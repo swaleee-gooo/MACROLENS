@@ -35,7 +35,9 @@ Real-device QA status:
 
 - Photo input reaches the result screen.
 - The current mock analysis always returns `Poulet, riz et legumes`, which is expected before live AI integration.
+- Mock results now display a `Mode demo` banner so users understand that the result is fixed test data.
 - Saved photo meals appear in the Timeline after tapping save.
+- Browser QA confirms `Portion +15%` correction behavior.
 - Remaining checks before merge: correction chips on device, app restart persistence, and separate camera/gallery behavior.
 
 Verified commands:

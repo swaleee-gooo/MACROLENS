@@ -37,8 +37,8 @@ Scan the QR code with Expo Go.
 | Camera | Allow permission and take a food photo | Analyzing screen opens, then result screen opens | Pass | User reported that putting a photo into the flow opens the app pages correctly. Exact camera/gallery source still needs to be distinguished. |
 | Gallery | Tap `Galerie` and choose a food image | Analyzing screen opens, then result screen opens | Watch | Photo input works, but exact source was not specified in the first real-device report. |
 | Quick add | Tap `Quick add` | Manual meal result screen opens |  |  |
-| Result | Inspect result screen | Meal name, calories, range, macros, confidence, items display | Pass | Result screen displays the current mock meal. Repeated `Poulet, riz et legumes` output is expected in MVP mock mode. |
-| Correction | Tap `Portion +15%` | Calories and item quantity increase immediately |  |  |
+| Result | Inspect result screen | Meal name, calories, range, macros, confidence, items display | Pass | Result screen displays the current mock meal and now shows a `Mode demo` banner when analysis source is `mock`. |
+| Correction | Tap `Portion +15%` | Calories and item quantity increase immediately | Pass on web | Browser smoke test confirmed the correction updates totals and item quantity. Needs confirmation on real phone. |
 | Correction | Tap `Huile ajoutee` | A new oil item appears and fat increases |  |  |
 | Correction | Remove an item when multiple items exist | Item disappears and totals recalculate |  |  |
 | Save | Tap `Enregistrer le repas` | App returns home; daily summary updates | Pass | User reported the meal saves after adding a photo and tapping save. |
@@ -73,7 +73,7 @@ Scan the QR code with Expo Go.
 | ID | Severity | Device | Steps | Expected | Actual | Fix Needed |
 | --- | --- | --- | --- | --- | --- | --- |
 | QA-001 | P1 | Real phone, details pending | Open MacroLens in Expo Go | Expo Go loads the app for real-device QA | Expo Go client reports SDK 54 while the project uses Expo SDK 56, so real-device QA cannot proceed in that client | Update/reinstall Expo Go to an SDK 56-compatible version, or explicitly choose a project downgrade/dev-client path |
-| QA-002 | P3 | Real phone, details pending | Analyze different food photos | Different photos should eventually produce different meals and macros in live AI mode | Every photo currently returns `Poulet, riz et legumes` with the same macros | No MVP fix required. This is expected because `createMockAnalysisService()` is active until live OpenAI/nutrition pipeline integration. |
+| QA-002 | P3 | Real phone and browser | Analyze different food photos | Different photos should eventually produce different meals and macros in live AI mode | Every photo currently returns `Poulet, riz et legumes` with the same macros | Fixed for MVP clarity by adding a visible `Mode demo` banner on mock analysis results. Live AI remains a later iteration. |
 
 Severity:
 
@@ -90,4 +90,4 @@ Decision:
 
 Notes:
 
-Project dependency check confirms the app is on Expo SDK 56. Web smoke testing works. Real-device testing now confirms photo input, result screen, save, and Timeline. Merge remains blocked until the remaining checklist items are checked, especially corrections, persistence after app restart, and separate camera/gallery behavior.
+Project dependency check confirms the app is on Expo SDK 56. Web smoke testing works. Real-device testing now confirms photo input, result screen, save, and Timeline. Browser QA confirms `Mode demo` visibility and `Portion +15%` correction behavior. Merge remains blocked until the remaining checklist items are checked, especially persistence after app restart and separate camera/gallery behavior on phone.

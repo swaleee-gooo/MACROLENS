@@ -22,6 +22,7 @@ const correctionButtons: { label: string; correction: MealCorrection; icon: 'sca
 
 export function ResultScreen({ meal, onApplyCorrection, onSave, onBack }: Props) {
   const isManual = meal.imageUri.startsWith('manual://');
+  const isMockAnalysis = meal.source === 'mock';
 
   return (
     <ScrollView style={{ backgroundColor: colors.background, flex: 1 }} contentContainerStyle={{ gap: spacing.xl, padding: spacing.xl }}>
@@ -54,6 +55,23 @@ export function ResultScreen({ meal, onApplyCorrection, onSave, onBack }: Props)
         </Text>
         <ConfidenceBadge confidence={meal.confidence} />
       </View>
+      {isMockAnalysis ? (
+        <View
+          style={{
+            backgroundColor: '#FFF7E8',
+            borderColor: '#F1C27D',
+            borderRadius: radius.sm,
+            borderWidth: 1,
+            gap: spacing.xs,
+            padding: spacing.md,
+          }}
+        >
+          <Text style={{ color: colors.amber, fontSize: typography.small, fontWeight: '900' }}>Mode demo</Text>
+          <Text style={{ color: colors.muted, fontSize: typography.small, lineHeight: 18 }}>
+            Analyse IA non branchee: ce resultat est un exemple fixe pour tester le flux photo, corrections et Timeline.
+          </Text>
+        </View>
+      ) : null}
       <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: spacing.md }}>
         <MetricPill label="Proteines" value={`${meal.proteinG} g`} accent={colors.protein} />
         <MetricPill label="Glucides" value={`${meal.carbsG} g`} accent={colors.carbs} />
