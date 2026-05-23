@@ -4,7 +4,8 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { StatusBar } from 'expo-status-bar';
 import * as ImagePicker from 'expo-image-picker';
-import { createMockAnalysisService } from './src/analysis/mockAnalysisService';
+import { createAnalysisService } from './src/analysis/analysisServiceFactory';
+import { appEnv } from './src/config/env';
 import { applyMealCorrection } from './src/domain/corrections';
 import { recalculateMeal } from './src/domain/nutrition';
 import type { FoodItem, Meal, UserGoal } from './src/domain/types';
@@ -71,7 +72,7 @@ function MacroLensApp() {
   const [screen, setScreen] = useState<ScreenState>({ name: 'onboarding' });
   const [meals, setMeals] = useState<Meal[]>([]);
   const repository = useMemo(() => createMealRepository(AsyncStorage), []);
-  const analysisService = useMemo(() => createMockAnalysisService(), []);
+  const analysisService = useMemo(() => createAnalysisService(appEnv), []);
 
   useEffect(() => {
     repository

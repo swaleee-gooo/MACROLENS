@@ -1,20 +1,32 @@
 import { serve } from 'https://deno.land/std@0.224.0/http/server.ts';
+import { analyzeMealWithOpenAI } from './openaiMealAnalyzer.ts';
+import { toMacroLensResponse } from './nutritionEstimator.ts';
 
 type AnalyzeRequest = {
   imageUrl: string;
   userId: string;
 };
 
+const corsHeaders = {
+  'access-control-allow-origin': '*',
+  'access-control-allow-headers': 'authorization, x-client-info, apikey, content-type',
+};
+
 function jsonResponse(body: unknown, status = 200): Response {
   return new Response(JSON.stringify(body), {
     status,
     headers: {
+      ...corsHeaders,
       'content-type': 'application/json',
     },
   });
 }
 
 serve(async (request) => {
+  if (request.method === 'OPTIONS') {
+    return new Response('ok', { headers: corsHeaders });
+  }
+
   if (request.method !== 'POST') {
     return jsonResponse({ error: 'method_not_allowed' }, 405);
   }
@@ -78,12 +90,16 @@ serve(async (request) => {
     });
   }
 
-  return jsonResponse(
-    {
-      error: 'openai_pipeline_not_enabled_in_mvp',
-      message:
-        'The mobile MVP uses local mock analysis. Replace this branch with a structured OpenAI vision call when secrets and nutrition API keys are configured.',
-    },
-    501,
-  );
+  try {
+    const rawAnalysis = await analyzeMealWithOpenAI(payload.imageUrl, openAiKey);
+    return jsonResponse(toMacroLensResponse(rawAnalysis, payload.imageUrl, payload.userId));
+  } catch (error) {
+    return jsonResponse(
+      {
+        error: 'analysis_failed',
+        message: error instanceof Error ? error.message : 'unknown_error',
+      },
+      502,
+    );
+  }
 });

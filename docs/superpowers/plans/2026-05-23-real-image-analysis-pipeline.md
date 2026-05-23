@@ -25,7 +25,7 @@
 - `apps/mobile/src/config/env.ts`: reads and validates public Expo env vars.
 - `apps/mobile/src/supabase/client.ts`: creates the browser-safe Supabase client.
 - `apps/mobile/src/supabase/session.ts`: ensures a Supabase anonymous auth session before remote uploads.
-- `apps/mobile/src/analysis/remoteAnalysisService.ts`: uploads images and invokes the Edge Function.
+- `apps/mobile/src/analysis/remoteAnalysisService.ts`: uploads images, creates a short-lived signed URL, and invokes the Edge Function.
 - `apps/mobile/src/analysis/analysisServiceFactory.ts`: selects remote or mock analysis.
 - `apps/mobile/App.tsx`: uses the factory instead of directly constructing the mock service.
 - `supabase/functions/analyze-meal/index.ts`: real OpenAI structured analysis with mock fallback.
@@ -279,13 +279,16 @@ describe('createRemoteAnalysisService', () => {
       error: null,
     });
     const upload = vi.fn().mockResolvedValue({ data: { path: 'auth-user/test.jpg' }, error: null });
-    const getPublicUrl = vi.fn().mockReturnValue({ data: { publicUrl: 'https://cdn.example/test.jpg' } });
+    const createSignedUrl = vi.fn().mockResolvedValue({
+      data: { signedUrl: 'https://cdn.example/test.jpg?token=signed' },
+      error: null,
+    });
     const invoke = vi.fn().mockResolvedValue({
       data: {
         meal: {
           id: 'meal-1',
           userId: 'auth-user',
-          imageUri: 'https://cdn.example/test.jpg',
+          imageUri: 'https://cdn.example/test.jpg?token=signed',
           capturedAt: '2026-05-23T12:00:00.000Z',
           mealName: 'Test meal',
           caloriesEstimate: 100,
@@ -327,7 +330,7 @@ describe('createRemoteAnalysisService', () => {
       { supabaseUrl: 'https://example.supabase.co', supabaseAnonKey: 'sb_publishable_123' },
       {
         auth: { getSession, signInAnonymously },
-        storage: { from: () => ({ upload, getPublicUrl }) },
+        storage: { from: () => ({ upload, createSignedUrl }) },
         functions: { invoke },
       },
     );
@@ -335,10 +338,12 @@ describe('createRemoteAnalysisService', () => {
     const result = await service.analyzeMealPhoto({ imageUri: 'file://meal.jpg', userId: 'local-user' });
 
     expect(upload).toHaveBeenCalledOnce();
+    expect(createSignedUrl).toHaveBeenCalledWith('auth-user/test.jpg', 600);
     expect(invoke).toHaveBeenCalledWith('analyze-meal', {
-      body: { imageUrl: 'https://cdn.example/test.jpg', userId: 'auth-user' },
+      body: { imageUrl: 'https://cdn.example/test.jpg?token=signed', userId: 'auth-user' },
     });
     expect(result.meal.mealName).toBe('Test meal');
+    expect(result.meal.imageUri).toBe('file://meal.jpg');
   });
 });
 ```
@@ -365,7 +370,7 @@ type SupabaseLike = {
   storage: {
     from(bucket: string): {
       upload(path: string, body: Blob | ArrayBuffer, options: { contentType: string; upsert: boolean }): Promise<{ data: { path: string } | null; error: unknown }>;
-      getPublicUrl(path: string): { data: { publicUrl: string } };
+      createSignedUrl(path: string, expiresIn: number): Promise<{ data: { signedUrl: string } | null; error: unknown }>;
     };
   };
   functions: {
@@ -399,16 +404,27 @@ export function createRemoteAnalysisService(config: RemoteConfig, client?: Supab
         throw new Error('image_upload_failed');
       }
 
-      const publicUrl = bucket.getPublicUrl(uploadResult.data.path).data.publicUrl;
+      const signedUrlResult = await bucket.createSignedUrl(uploadResult.data.path, 10 * 60);
+      if (signedUrlResult.error || !signedUrlResult.data) {
+        throw new Error('image_signed_url_failed');
+      }
+
       const functionResult = await supabase.functions.invoke('analyze-meal', {
-        body: { imageUrl: publicUrl, userId: authUserId },
+        body: { imageUrl: signedUrlResult.data.signedUrl, userId: authUserId },
       });
 
       if (functionResult.error) {
         throw new Error('analysis_function_failed');
       }
 
-      return analysisResultSchema.parse(functionResult.data);
+      const analysis = analysisResultSchema.parse(functionResult.data);
+      return {
+        ...analysis,
+        meal: {
+          ...analysis.meal,
+          imageUri,
+        },
+      };
     },
   };
 }
@@ -461,7 +477,7 @@ insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_typ
 values (
   'meal-photos',
   'meal-photos',
-  true,
+  false,
   10485760,
   array['image/jpeg', 'image/png', 'image/webp']
 )
@@ -487,7 +503,7 @@ using (
 );
 ```
 
-The object path is `${auth.uid()}/${timestamp}.jpg` inside the `meal-photos` bucket; do not prefix the path with `meal-photos/` because the bucket name is already part of the storage URL.
+The object path is `${auth.uid()}/${timestamp}.jpg` inside the private `meal-photos` bucket; do not prefix the path with `meal-photos/` because the bucket name is already part of the storage URL. The mobile app creates a 10-minute signed URL and sends that temporary URL to the Edge Function for OpenAI image access.
 
 - [ ] **Step 3: Verify locally when Supabase local stack is available**
 

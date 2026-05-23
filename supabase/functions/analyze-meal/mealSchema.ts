@@ -1,0 +1,45 @@
+export const mealAnalysisJsonSchema = {
+  type: 'object',
+  additionalProperties: false,
+  required: ['mealName', 'items', 'confidence', 'uncertaintyReasons'],
+  properties: {
+    mealName: { type: 'string' },
+    confidence: { enum: ['high', 'medium', 'low'] },
+    uncertaintyReasons: {
+      type: 'array',
+      items: { type: 'string' },
+    },
+    items: {
+      type: 'array',
+      minItems: 1,
+      items: {
+        type: 'object',
+        additionalProperties: false,
+        required: [
+          'name',
+          'canonicalFoodName',
+          'estimatedQuantity',
+          'unit',
+          'calories',
+          'proteinG',
+          'carbsG',
+          'fatG',
+          'fiberG',
+          'confidence',
+        ],
+        properties: {
+          name: { type: 'string' },
+          canonicalFoodName: { type: 'string' },
+          estimatedQuantity: { type: 'number' },
+          unit: { type: 'string' },
+          calories: { type: 'number' },
+          proteinG: { type: 'number' },
+          carbsG: { type: 'number' },
+          fatG: { type: 'number' },
+          fiberG: { type: 'number' },
+          confidence: { enum: ['high', 'medium', 'low'] },
+        },
+      },
+    },
+  },
+} as const;
