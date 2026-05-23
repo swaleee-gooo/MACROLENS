@@ -4,6 +4,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { StatusBar } from 'expo-status-bar';
 import * as ImagePicker from 'expo-image-picker';
+import { isNonFoodPhotoError } from './src/analysis/analysisErrors';
 import { createAnalysisService } from './src/analysis/analysisServiceFactory';
 import { appEnv } from './src/config/env';
 import { applyMealCorrection } from './src/domain/corrections';
@@ -87,7 +88,13 @@ function MacroLensApp() {
     try {
       const analysis = await analysisService.analyzeMealPhoto({ imageUri, userId: localUserId });
       setScreen({ name: 'result', meal: analysis.meal, isSaved: false });
-    } catch {
+    } catch (error) {
+      if (isNonFoodPhotoError(error)) {
+        Alert.alert('Photo non reconnue', error.userMessage);
+        setScreen({ name: 'home' });
+        return;
+      }
+
       Alert.alert('Analyse impossible', 'Reessaie avec une photo plus claire ou ajoute le repas manuellement.');
       setScreen({ name: 'home' });
     }

@@ -1,4 +1,5 @@
-import { describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
+import { NonFoodPhotoError } from './analysisErrors';
 import { createAnalysisService } from './analysisServiceFactory';
 import type { AnalysisResult, AnalysisService } from './analysisSchema';
 
@@ -57,6 +58,10 @@ function createService(result: AnalysisResult | Error): AnalysisService {
 }
 
 describe('createAnalysisService', () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
   it('uses remote analysis when remote mode succeeds', async () => {
     const service = createAnalysisService(
       {
@@ -96,5 +101,27 @@ describe('createAnalysisService', () => {
     expect(result.meal.source).toBe('mock');
     expect(result.meal.notes).toBe('Remote analysis failed: anonymous_auth_failed');
     expect(warn).toHaveBeenCalledWith('MacroLens remote analysis failed: anonymous_auth_failed');
+  });
+
+  it('does not fall back to mock analysis for typed non-food photos', async () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+    const mock = createService(createResult('Mock meal', 'mock'));
+    const service = createAnalysisService(
+      {
+        analysisMode: 'remote',
+        supabaseUrl: 'https://example.supabase.co',
+        supabaseAnonKey: 'sb_publishable_123',
+      },
+      {
+        remote: createService(new NonFoodPhotoError()),
+        mock,
+      },
+    );
+
+    await expect(service.analyzeMealPhoto({ imageUri: 'file://desk.jpg', userId: 'user-1' })).rejects.toBeInstanceOf(
+      NonFoodPhotoError,
+    );
+    expect(mock.analyzeMealPhoto).not.toHaveBeenCalled();
+    expect(warn).not.toHaveBeenCalled();
   });
 });

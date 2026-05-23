@@ -1,3 +1,4 @@
+import { NonFoodPhotoError } from './analysisErrors';
 import { analysisResultSchema, type AnalysisService } from './analysisSchema';
 import { createMacroLensSupabaseClient } from '../supabase/client';
 import { ensureAnonymousUserId } from '../supabase/session';
@@ -29,6 +30,37 @@ type SupabaseLike = {
     invoke(name: string, options: { body: unknown }): Promise<{ data: unknown; error: unknown }>;
   };
 };
+
+type EdgeErrorPayload = {
+  error?: unknown;
+  message?: unknown;
+};
+
+function getNonFoodMessage(payload: unknown): string | null {
+  if (typeof payload !== 'object' || payload === null) {
+    return null;
+  }
+
+  const candidate = payload as EdgeErrorPayload;
+  if (candidate.error !== 'non_food_photo') {
+    return null;
+  }
+
+  return typeof candidate.message === 'string' ? candidate.message : null;
+}
+
+async function getFunctionErrorPayload(error: unknown): Promise<unknown> {
+  const context = (error as { context?: { json?: () => Promise<unknown> } })?.context;
+  if (typeof context?.json !== 'function') {
+    return null;
+  }
+
+  try {
+    return await context.json();
+  } catch {
+    return null;
+  }
+}
 
 async function imageUriToArrayBuffer(imageUri: string): Promise<ArrayBuffer> {
   const response = await fetch(imageUri);
@@ -63,10 +95,21 @@ export function createRemoteAnalysisService(config: RemoteConfig, client?: Supab
       }
 
       const functionResult = await supabase.functions.invoke('analyze-meal', {
-        body: { imageUrl: signedUrlResult.data.signedUrl, userId: authUserId },
+        body: { imageUrl: signedUrlResult.data.signedUrl },
       });
 
+      const nonFoodMessage = getNonFoodMessage(functionResult.data);
+      if (nonFoodMessage) {
+        throw new NonFoodPhotoError(nonFoodMessage);
+      }
+
       if (functionResult.error) {
+        const errorPayload = await getFunctionErrorPayload(functionResult.error);
+        const wrappedNonFoodMessage = getNonFoodMessage(errorPayload);
+        if (wrappedNonFoodMessage) {
+          throw new NonFoodPhotoError(wrappedNonFoodMessage);
+        }
+
         throw new Error('analysis_function_failed');
       }
 

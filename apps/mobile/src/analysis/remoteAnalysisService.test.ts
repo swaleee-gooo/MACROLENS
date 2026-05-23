@@ -83,9 +83,87 @@ describe('createRemoteAnalysisService', () => {
     });
     expect(createSignedUrl).toHaveBeenCalledWith('auth-user/12345.jpg', 600);
     expect(invoke).toHaveBeenCalledWith('analyze-meal', {
-      body: { imageUrl: 'https://cdn.example/test.jpg?token=signed', userId: 'auth-user' },
+      body: { imageUrl: 'https://cdn.example/test.jpg?token=signed' },
     });
     expect(result.meal.mealName).toBe('Test meal');
     expect(result.meal.imageUri).toBe('file://meal.jpg');
+  });
+
+  it('throws a typed non-food error from an edge function payload', async () => {
+    vi.spyOn(Date, 'now').mockReturnValue(12345);
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue({
+      ok: true,
+      arrayBuffer: async () => new ArrayBuffer(4),
+    } as Response);
+
+    const getSession = vi.fn().mockResolvedValue({ data: { session: { user: { id: 'auth-user' } } }, error: null });
+    const signInAnonymously = vi.fn();
+    const upload = vi.fn().mockResolvedValue({ data: { path: 'auth-user/12345.jpg' }, error: null });
+    const createSignedUrl = vi.fn().mockResolvedValue({
+      data: { signedUrl: 'https://cdn.example/not-food.jpg?token=signed' },
+      error: null,
+    });
+    const invoke = vi.fn().mockResolvedValue({
+      data: {
+        error: 'non_food_photo',
+        message: 'Je ne vois pas de nourriture sur cette photo. Reprends une photo de ton repas.',
+      },
+      error: null,
+    });
+
+    const service = createRemoteAnalysisService(
+      { supabaseUrl: 'https://example.supabase.co', supabaseAnonKey: 'sb_publishable_123' },
+      {
+        auth: { getSession, signInAnonymously },
+        storage: { from: () => ({ upload, createSignedUrl }) },
+        functions: { invoke },
+      },
+    );
+
+    await expect(service.analyzeMealPhoto({ imageUri: 'file://not-food.jpg', userId: 'local-user' })).rejects.toMatchObject({
+      name: 'NonFoodPhotoError',
+      message: 'non_food_photo',
+    });
+  });
+
+  it('throws a typed non-food error from a wrapped edge function error payload', async () => {
+    vi.spyOn(Date, 'now').mockReturnValue(12345);
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue({
+      ok: true,
+      arrayBuffer: async () => new ArrayBuffer(4),
+    } as Response);
+
+    const getSession = vi.fn().mockResolvedValue({ data: { session: { user: { id: 'auth-user' } } }, error: null });
+    const signInAnonymously = vi.fn();
+    const upload = vi.fn().mockResolvedValue({ data: { path: 'auth-user/12345.jpg' }, error: null });
+    const createSignedUrl = vi.fn().mockResolvedValue({
+      data: { signedUrl: 'https://cdn.example/not-food.jpg?token=signed' },
+      error: null,
+    });
+    const invoke = vi.fn().mockResolvedValue({
+      data: null,
+      error: {
+        context: {
+          json: async () => ({
+            error: 'non_food_photo',
+            message: 'Je ne vois pas de nourriture sur cette photo. Reprends une photo de ton repas.',
+          }),
+        },
+      },
+    });
+
+    const service = createRemoteAnalysisService(
+      { supabaseUrl: 'https://example.supabase.co', supabaseAnonKey: 'sb_publishable_123' },
+      {
+        auth: { getSession, signInAnonymously },
+        storage: { from: () => ({ upload, createSignedUrl }) },
+        functions: { invoke },
+      },
+    );
+
+    await expect(service.analyzeMealPhoto({ imageUri: 'file://not-food.jpg', userId: 'local-user' })).rejects.toMatchObject({
+      name: 'NonFoodPhotoError',
+      message: 'non_food_photo',
+    });
   });
 });

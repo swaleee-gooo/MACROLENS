@@ -1,3 +1,4 @@
+import { isNonFoodPhotoError } from './analysisErrors';
 import type { AnalysisService } from './analysisSchema';
 import { createMockAnalysisService } from './mockAnalysisService';
 import { createRemoteAnalysisService } from './remoteAnalysisService';
@@ -14,6 +15,10 @@ function createFallbackAnalysisService(primary: AnalysisService, fallback: Analy
       try {
         return await primary.analyzeMealPhoto(input);
       } catch (error) {
+        if (isNonFoodPhotoError(error)) {
+          throw error;
+        }
+
         const message = error instanceof Error ? error.message : 'unknown_remote_error';
         console.warn(`MacroLens remote analysis failed: ${message}`);
         const fallbackResult = await fallback.analyzeMealPhoto(input);
