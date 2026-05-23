@@ -1,10 +1,10 @@
 # MacroLens Mobile QA Checklist
 
-Date:
-Tester:
+Date: 2026-05-23
+Tester: Idris
 Device:
 OS:
-Expo Go version:
+Expo Go version: client 1017756, SDK 54
 Branch: `codex/macrolens-mvp`
 
 ## Setup
@@ -72,6 +72,7 @@ Scan the QR code with Expo Go.
 
 | ID | Severity | Device | Steps | Expected | Actual | Fix Needed |
 | --- | --- | --- | --- | --- | --- | --- |
+| QA-001 | P1 | Real phone, details pending | Open MacroLens in Expo Go | Expo Go loads the app for real-device QA | Expo Go client reports SDK 54 while the project uses Expo SDK 56, so real-device QA cannot proceed in that client | Update/reinstall Expo Go to an SDK 56-compatible version, or explicitly choose a project downgrade/dev-client path |
 
 Severity:
 
@@ -84,8 +85,8 @@ Severity:
 
 Decision:
 
-- `Merge`: real-device QA passed with no unresolved P0/P1 issues.
-- `Hold`: fix unresolved P0/P1 issues first.
-- `Polish`: usable, but address P2/P3 issues before broader testing.
+`Hold`: real-device QA is blocked by Expo Go SDK mismatch.
 
 Notes:
+
+Project dependency check confirms the app is on Expo SDK 56. Web smoke testing works, but merge remains blocked until Expo Go can run the SDK 56 app or the project strategy changes.
