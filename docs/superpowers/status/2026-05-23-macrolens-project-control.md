@@ -43,7 +43,7 @@ Real-device QA status:
 - Remaining watch item: distinguish camera and gallery as separate entry points in a later QA pass. This is not blocking the next integration plan.
 - The next technical direction is now the real image analysis pipeline plan, with mock mode kept as the safe default until Supabase and OpenAI secrets are configured.
 - Mobile now has a `mock`/`remote` analysis service selector. `mock` remains the default unless `EXPO_PUBLIC_ANALYSIS_MODE=remote` and Supabase public config are present.
-- Remote mobile analysis now creates an anonymous Supabase session, uploads the image to private Storage, creates a short-lived signed URL, and invokes `analyze-meal`.
+- Remote mobile analysis now creates an anonymous Supabase session, uploads the image to private Storage, creates a short-lived signed URL, and invokes `analyze-meal`. If the remote path fails, the app falls back to mock analysis so the photo flow remains usable.
 - Supabase migrations are applied on project `wyrfncoiubvdnrvdpads`: MacroLens tables exist and `meal-photos` is a private bucket.
 - The Edge Function `analyze-meal` is deployed on project `wyrfncoiubvdnrvdpads` with JWT verification enabled.
 - The Edge Function now has an OpenAI Responses API branch behind `OPENAI_API_KEY`; without the secret it still returns the existing mock server response.
