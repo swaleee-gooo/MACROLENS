@@ -44,7 +44,10 @@ Real-device QA status:
 - The next technical direction is now the real image analysis pipeline plan, with mock mode kept as the safe default until Supabase and OpenAI secrets are configured.
 - Mobile now has a `mock`/`remote` analysis service selector. `mock` remains the default unless `EXPO_PUBLIC_ANALYSIS_MODE=remote` and Supabase public config are present.
 - Remote mobile analysis now creates an anonymous Supabase session, uploads the image to private Storage, creates a short-lived signed URL, and invokes `analyze-meal`.
+- Supabase migrations are applied on project `wyrfncoiubvdnrvdpads`: MacroLens tables exist and `meal-photos` is a private bucket.
+- The Edge Function `analyze-meal` is deployed on project `wyrfncoiubvdnrvdpads` with JWT verification enabled.
 - The Edge Function now has an OpenAI Responses API branch behind `OPENAI_API_KEY`; without the secret it still returns the existing mock server response.
+- Local Expo config exists at `apps/mobile/.env.local` with public Supabase config and `EXPO_PUBLIC_ANALYSIS_MODE=remote`; this file is git-ignored.
 
 Verified commands:
 
@@ -67,9 +70,10 @@ Manual smoke test completed:
 - `npm audit` reports 10 moderate vulnerabilities inherited through Expo dependencies. The proposed fix downgrades Expo to an incompatible major version, so do not apply `npm audit fix --force`.
 - Expo Web logs a React Native DevTools fallback warning because the machine lacked disk space while unpacking DevTools. The app still served with HTTP 200.
 - The AI analysis is mocked. Do not claim production nutrition accuracy yet.
-- Supabase is code-wired for remote analysis, but migrations, anonymous auth, secrets, and Edge Function deployment have not been applied to a live project yet.
+- Supabase is code-wired for remote analysis; migrations and Edge Function deployment have been applied to the live project.
 - Remote analysis mode must use Supabase anonymous auth for the first live test and must not expose `OPENAI_API_KEY` or `SUPABASE_SERVICE_ROLE_KEY` to Expo.
-- Local machine disk space is currently blocking Expo Web smoke tests and Supabase CLI migration commands (`ENOSPC: no space left on device`).
+- Supabase Anonymous Sign-Ins are currently disabled on the live project, so remote mobile upload/invoke smoke testing stops at `anonymous_auth_failed`.
+- `OPENAI_API_KEY` has not been safely installed as a Supabase secret. A key pasted into chat should be treated as exposed and rotated instead of reused through visible commands.
 - Deno is not installed locally, so the Edge Function has not been type-checked or served with Deno on this machine.
 
 ## Leadership Rules
@@ -152,8 +156,8 @@ Current execution note:
 
 - Mobile env selection and anonymous Supabase upload/invoke wiring are implemented.
 - Keep `EXPO_PUBLIC_ANALYSIS_MODE=mock` as the default.
-- Enable `remote` only after Supabase URL, publishable key, storage migration, anonymous auth, and Edge Function are ready.
-- Next external setup: free disk space, apply Supabase migrations, enable Anonymous Sign-Ins, set `OPENAI_API_KEY` as a Supabase secret, and deploy `analyze-meal` with JWT verification enabled.
+- Keep `remote` enabled locally only while testing the live Supabase pipeline.
+- Next external setup: enable Anonymous Sign-Ins in Supabase Auth, install a rotated `OPENAI_API_KEY` as a Supabase secret through a non-echoing path, then rerun the upload/function smoke test.
 
 ### Iteration 3: OpenAI Vision Structured Analysis
 
