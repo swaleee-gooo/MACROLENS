@@ -36,7 +36,7 @@ type EdgeErrorPayload = {
   message?: unknown;
 };
 
-function getNonFoodMessage(payload: unknown): string | null {
+function getNonFoodMessage(payload: unknown): string | undefined | null {
   if (typeof payload !== 'object' || payload === null) {
     return null;
   }
@@ -46,7 +46,7 @@ function getNonFoodMessage(payload: unknown): string | null {
     return null;
   }
 
-  return typeof candidate.message === 'string' ? candidate.message : null;
+  return typeof candidate.message === 'string' ? candidate.message : undefined;
 }
 
 async function getFunctionErrorPayload(error: unknown): Promise<unknown> {
@@ -99,14 +99,14 @@ export function createRemoteAnalysisService(config: RemoteConfig, client?: Supab
       });
 
       const nonFoodMessage = getNonFoodMessage(functionResult.data);
-      if (nonFoodMessage) {
+      if (nonFoodMessage !== null) {
         throw new NonFoodPhotoError(nonFoodMessage);
       }
 
       if (functionResult.error) {
         const errorPayload = await getFunctionErrorPayload(functionResult.error);
         const wrappedNonFoodMessage = getNonFoodMessage(errorPayload);
-        if (wrappedNonFoodMessage) {
+        if (wrappedNonFoodMessage !== null) {
           throw new NonFoodPhotoError(wrappedNonFoodMessage);
         }
 

@@ -1,4 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
+import { NON_FOOD_PHOTO_MESSAGE, NonFoodPhotoError } from './analysisErrors';
 import { createRemoteAnalysisService } from './remoteAnalysisService';
 
 describe('createRemoteAnalysisService', () => {
@@ -126,6 +127,44 @@ describe('createRemoteAnalysisService', () => {
     });
   });
 
+  it('throws a typed non-food error with the default message from an edge function payload without a message', async () => {
+    vi.spyOn(Date, 'now').mockReturnValue(12345);
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue({
+      ok: true,
+      arrayBuffer: async () => new ArrayBuffer(4),
+    } as Response);
+
+    const getSession = vi.fn().mockResolvedValue({ data: { session: { user: { id: 'auth-user' } } }, error: null });
+    const signInAnonymously = vi.fn();
+    const upload = vi.fn().mockResolvedValue({ data: { path: 'auth-user/12345.jpg' }, error: null });
+    const createSignedUrl = vi.fn().mockResolvedValue({
+      data: { signedUrl: 'https://cdn.example/not-food.jpg?token=signed' },
+      error: null,
+    });
+    const invoke = vi.fn().mockResolvedValue({
+      data: { error: 'non_food_photo' },
+      error: null,
+    });
+
+    const service = createRemoteAnalysisService(
+      { supabaseUrl: 'https://example.supabase.co', supabaseAnonKey: 'sb_publishable_123' },
+      {
+        auth: { getSession, signInAnonymously },
+        storage: { from: () => ({ upload, createSignedUrl }) },
+        functions: { invoke },
+      },
+    );
+
+    const analysis = service.analyzeMealPhoto({ imageUri: 'file://not-food.jpg', userId: 'local-user' });
+
+    await expect(analysis).rejects.toBeInstanceOf(NonFoodPhotoError);
+    await expect(analysis).rejects.toMatchObject({
+      name: 'NonFoodPhotoError',
+      message: 'non_food_photo',
+      userMessage: NON_FOOD_PHOTO_MESSAGE,
+    });
+  });
+
   it('throws a typed non-food error from a wrapped edge function error payload', async () => {
     vi.spyOn(Date, 'now').mockReturnValue(12345);
     vi.spyOn(globalThis, 'fetch').mockResolvedValue({
@@ -164,6 +203,48 @@ describe('createRemoteAnalysisService', () => {
     await expect(service.analyzeMealPhoto({ imageUri: 'file://not-food.jpg', userId: 'local-user' })).rejects.toMatchObject({
       name: 'NonFoodPhotoError',
       message: 'non_food_photo',
+    });
+  });
+
+  it('throws a typed non-food error with the default message from a wrapped edge function error payload without a message', async () => {
+    vi.spyOn(Date, 'now').mockReturnValue(12345);
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue({
+      ok: true,
+      arrayBuffer: async () => new ArrayBuffer(4),
+    } as Response);
+
+    const getSession = vi.fn().mockResolvedValue({ data: { session: { user: { id: 'auth-user' } } }, error: null });
+    const signInAnonymously = vi.fn();
+    const upload = vi.fn().mockResolvedValue({ data: { path: 'auth-user/12345.jpg' }, error: null });
+    const createSignedUrl = vi.fn().mockResolvedValue({
+      data: { signedUrl: 'https://cdn.example/not-food.jpg?token=signed' },
+      error: null,
+    });
+    const invoke = vi.fn().mockResolvedValue({
+      data: null,
+      error: {
+        context: {
+          json: async () => ({ error: 'non_food_photo' }),
+        },
+      },
+    });
+
+    const service = createRemoteAnalysisService(
+      { supabaseUrl: 'https://example.supabase.co', supabaseAnonKey: 'sb_publishable_123' },
+      {
+        auth: { getSession, signInAnonymously },
+        storage: { from: () => ({ upload, createSignedUrl }) },
+        functions: { invoke },
+      },
+    );
+
+    const analysis = service.analyzeMealPhoto({ imageUri: 'file://not-food.jpg', userId: 'local-user' });
+
+    await expect(analysis).rejects.toBeInstanceOf(NonFoodPhotoError);
+    await expect(analysis).rejects.toMatchObject({
+      name: 'NonFoodPhotoError',
+      message: 'non_food_photo',
+      userMessage: NON_FOOD_PHOTO_MESSAGE,
     });
   });
 });
