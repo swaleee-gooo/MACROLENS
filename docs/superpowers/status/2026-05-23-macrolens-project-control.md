@@ -25,7 +25,7 @@ The MVP is implemented as an Expo React Native app with:
 - home dashboard;
 - camera and gallery entry points;
 - quick-add fallback;
-- mocked AI meal analysis;
+- remote AI meal analysis with mock fallback;
 - macro totals and calorie ranges;
 - confidence labels;
 - one-tap corrections;
@@ -53,13 +53,16 @@ Real-device QA status:
 - Smoke test result: `Spaghetti alla Carbonara (2 servings)`, source `estimated`, 770 kcal, medium confidence, 4 items.
 - Mobile dependencies are aligned to Expo SDK 54 so the current Expo Go app can open the project.
 - Supabase React Native support now imports `react-native-url-polyfill/auto`, remote image upload uses `ArrayBuffer`, and demo fallback exposes the remote error message for mobile debugging.
-- Next accuracy direction is approach B from the nutrition calibration design: vision model as observer, backend-owned nutrition math, typed non-food error, and dataset roadmap for later model improvement.
+- Nutrition accuracy iteration implemented and deployed on Supabase Edge Function `analyze-meal` version 3: OpenAI now returns structured observations, the Edge Function derives `userId` from the Supabase JWT, non-food photos return typed `non_food_photo`, and backend nutrition profiles calibrate mixed-meal totals before returning results to mobile.
+- Mobile now stops sending body `userId` to `analyze-meal`, preserves typed non-food errors without demo fallback, and shows `Photo non reconnue` with the French retry message.
 
 Verified commands:
 
 - `npm test`
 - `npx tsc --noEmit`
 - `npx expo install --check`
+- Live Supabase calibrated food smoke test: anonymous auth, private upload, signed URL, Edge Function/OpenAI analysis, cleanup. Result: `Grilled Chicken Salad Bowl`, 501 kcal, 59 g protein, high confidence, source `estimated`.
+- Live Supabase non-food smoke test: anonymous auth, private upload, signed URL, Edge Function/OpenAI analysis, cleanup. Result: `non_food_photo` with French retry message.
 - `npm run web -- --port 8081`
 - `npx expo start --lan --clear`
 
@@ -76,7 +79,7 @@ Manual smoke test completed:
 
 - `npm audit` reports 10 moderate vulnerabilities inherited through Expo dependencies. The proposed fix downgrades Expo to an incompatible major version, so do not apply `npm audit fix --force`.
 - Expo Web logs a React Native DevTools fallback warning because the machine lacked disk space while unpacking DevTools. The app still served with HTTP 200.
-- The AI analysis is mocked. Do not claim production nutrition accuracy yet.
+- AI analysis is live in local remote mode and now calibrated, but do not claim production nutrition accuracy until the benchmark gate is run across the 50-case nutrition benchmark.
 - Supabase is code-wired for remote analysis; migrations and Edge Function deployment have been applied to the live project.
 - Remote analysis mode must use Supabase anonymous auth for the first live test and must not expose `OPENAI_API_KEY` or `SUPABASE_SERVICE_ROLE_KEY` to Expo.
 - A key pasted into chat earlier should remain treated as exposed and revoked; the live project uses the new rotated secret added in Supabase.
