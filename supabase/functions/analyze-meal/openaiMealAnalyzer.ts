@@ -1,9 +1,30 @@
 import { mealAnalysisJsonSchema } from './mealSchema.ts';
 
+export type ConfidenceTier = 'high' | 'medium' | 'low';
+
+export type MealCategory =
+  | 'poke_bowl'
+  | 'pasta'
+  | 'burger_fries'
+  | 'salad'
+  | 'sandwich'
+  | 'mixed_plate'
+  | 'dessert'
+  | 'drink'
+  | 'packaged'
+  | 'unknown';
+
+export type PortionSize = 'small' | 'standard' | 'large' | 'unknown';
+
 export type RawMealAnalysis = {
+  isFoodPhoto: boolean;
+  nonFoodReason: string;
   mealName: string;
-  confidence: 'high' | 'medium' | 'low';
+  mealCategory: MealCategory;
+  portionSize: PortionSize;
+  confidence: ConfidenceTier;
   uncertaintyReasons: string[];
+  hiddenCalorieRisks: string[];
   items: Array<{
     name: string;
     canonicalFoodName: string;
@@ -14,7 +35,7 @@ export type RawMealAnalysis = {
     carbsG: number;
     fatG: number;
     fiberG: number;
-    confidence: 'high' | 'medium' | 'low';
+    confidence: ConfidenceTier;
   }>;
 };
 
