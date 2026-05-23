@@ -10,7 +10,7 @@ describe('createRemoteAnalysisService', () => {
     vi.spyOn(Date, 'now').mockReturnValue(12345);
     vi.spyOn(globalThis, 'fetch').mockResolvedValue({
       ok: true,
-      blob: async () => new Blob(['image'], { type: 'image/jpeg' }),
+      arrayBuffer: async () => new ArrayBuffer(4),
     } as Response);
 
     const getSession = vi.fn().mockResolvedValue({ data: { session: null }, error: null });
@@ -77,7 +77,7 @@ describe('createRemoteAnalysisService', () => {
 
     const result = await service.analyzeMealPhoto({ imageUri: 'file://meal.jpg', userId: 'local-user' });
 
-    expect(upload).toHaveBeenCalledWith('auth-user/12345.jpg', expect.any(Blob), {
+    expect(upload).toHaveBeenCalledWith('auth-user/12345.jpg', expect.any(ArrayBuffer), {
       contentType: 'image/jpeg',
       upsert: false,
     });

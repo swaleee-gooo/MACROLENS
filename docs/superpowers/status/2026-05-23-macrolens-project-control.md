@@ -51,6 +51,7 @@ Real-device QA status:
 - Live pipeline smoke test passed after enabling Anonymous Sign-Ins and adding the rotated OpenAI secret in Supabase: anonymous auth, private upload, signed URL, Edge Function/OpenAI analysis, and cleanup all returned OK.
 - Smoke test result: `Spaghetti alla Carbonara (2 servings)`, source `estimated`, 770 kcal, medium confidence, 4 items.
 - Mobile dependencies are aligned to Expo SDK 54 so the current Expo Go app can open the project.
+- Supabase React Native support now imports `react-native-url-polyfill/auto`, remote image upload uses `ArrayBuffer`, and demo fallback exposes the remote error message for mobile debugging.
 
 Verified commands:
 

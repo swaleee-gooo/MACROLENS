@@ -13,8 +13,18 @@ function createFallbackAnalysisService(primary: AnalysisService, fallback: Analy
     async analyzeMealPhoto(input) {
       try {
         return await primary.analyzeMealPhoto(input);
-      } catch {
-        return fallback.analyzeMealPhoto(input);
+      } catch (error) {
+        const message = error instanceof Error ? error.message : 'unknown_remote_error';
+        console.warn(`MacroLens remote analysis failed: ${message}`);
+        const fallbackResult = await fallback.analyzeMealPhoto(input);
+
+        return {
+          ...fallbackResult,
+          meal: {
+            ...fallbackResult.meal,
+            notes: `Remote analysis failed: ${message}`,
+          },
+        };
       }
     },
   };

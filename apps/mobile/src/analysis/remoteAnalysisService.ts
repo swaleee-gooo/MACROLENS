@@ -19,7 +19,7 @@ type SupabaseLike = {
     from(bucket: string): {
       upload(
         path: string,
-        body: Blob | ArrayBuffer,
+        body: ArrayBuffer,
         options: { contentType: string; upsert: boolean },
       ): Promise<{ data: { path: string } | null; error: unknown }>;
       createSignedUrl(path: string, expiresIn: number): Promise<{ data: { signedUrl: string } | null; error: unknown }>;
@@ -30,13 +30,13 @@ type SupabaseLike = {
   };
 };
 
-async function imageUriToBlob(imageUri: string): Promise<Blob> {
+async function imageUriToArrayBuffer(imageUri: string): Promise<ArrayBuffer> {
   const response = await fetch(imageUri);
   if (!response.ok) {
     throw new Error('image_fetch_failed');
   }
 
-  return response.blob();
+  return response.arrayBuffer();
 }
 
 export function createRemoteAnalysisService(config: RemoteConfig, client?: SupabaseLike): AnalysisService {
@@ -45,10 +45,10 @@ export function createRemoteAnalysisService(config: RemoteConfig, client?: Supab
   return {
     async analyzeMealPhoto({ imageUri }) {
       const authUserId = await ensureAnonymousUserId(supabase.auth);
-      const imageBlob = await imageUriToBlob(imageUri);
+      const imageBuffer = await imageUriToArrayBuffer(imageUri);
       const objectPath = `${authUserId}/${Date.now()}.jpg`;
       const bucket = supabase.storage.from('meal-photos');
-      const uploadResult = await bucket.upload(objectPath, imageBlob, {
+      const uploadResult = await bucket.upload(objectPath, imageBuffer, {
         contentType: 'image/jpeg',
         upsert: false,
       });

@@ -77,6 +77,7 @@ describe('createAnalysisService', () => {
   });
 
   it('falls back to mock analysis when remote mode fails', async () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
     const service = createAnalysisService(
       {
         analysisMode: 'remote',
@@ -93,5 +94,7 @@ describe('createAnalysisService', () => {
 
     expect(result.meal.mealName).toBe('Mock meal');
     expect(result.meal.source).toBe('mock');
+    expect(result.meal.notes).toBe('Remote analysis failed: anonymous_auth_failed');
+    expect(warn).toHaveBeenCalledWith('MacroLens remote analysis failed: anonymous_auth_failed');
   });
 });

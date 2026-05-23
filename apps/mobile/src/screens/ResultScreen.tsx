@@ -70,6 +70,9 @@ export function ResultScreen({ meal, onApplyCorrection, onSave, onBack }: Props)
           <Text style={{ color: colors.muted, fontSize: typography.small, lineHeight: 18 }}>
             Analyse IA non branchee: ce resultat est un exemple fixe pour tester le flux photo, corrections et Timeline.
           </Text>
+          {meal.notes.startsWith('Remote analysis failed:') ? (
+            <Text style={{ color: colors.red, fontSize: typography.small, lineHeight: 18 }}>{meal.notes}</Text>
+          ) : null}
         </View>
       ) : null}
       <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: spacing.md }}>
