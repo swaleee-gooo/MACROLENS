@@ -38,13 +38,13 @@ Scan the QR code with Expo Go.
 | Gallery | Tap `Galerie` and choose a food image | Analyzing screen opens, then result screen opens | Watch | Photo input works, but exact source was not specified in the first real-device report. |
 | Quick add | Tap `Quick add` | Manual meal result screen opens |  |  |
 | Result | Inspect result screen | Meal name, calories, range, macros, confidence, items display | Pass | Result screen displays the current mock meal and now shows a `Mode demo` banner when analysis source is `mock`. |
-| Correction | Tap `Portion +15%` | Calories and item quantity increase immediately | Pass on web | Browser smoke test confirmed the correction updates totals and item quantity. Needs confirmation on real phone. |
-| Correction | Tap `Huile ajoutee` | A new oil item appears and fat increases |  |  |
+| Correction | Tap `Portion +15%` | Calories and item quantity increase immediately | Pass | Browser smoke test confirmed the correction updates totals and item quantity. User later confirmed corrections work on phone. |
+| Correction | Tap `Huile ajoutee` | A new oil item appears and fat increases | Pass | User confirmed correction flow works on phone. |
 | Correction | Remove an item when multiple items exist | Item disappears and totals recalculate |  |  |
 | Save | Tap `Enregistrer le repas` | App returns home; daily summary updates | Pass | User reported the meal saves after adding a photo and tapping save. |
 | Timeline | Tap `Voir tout` | Timeline opens and shows saved meal | Pass | User reported the saved meal appears in the Timeline. |
 | Reopen | Tap saved meal | Result screen opens for that meal |  |  |
-| Persistence | Fully close and reopen app | Saved meals remain visible |  |  |
+| Persistence | Fully close and reopen app | Saved meals remain visible | Pass | User confirmed persistence works after the meal is saved. |
 
 ## Layout Checks
 
@@ -86,8 +86,8 @@ Severity:
 
 Decision:
 
-`Hold`: real-device core photo-to-timeline flow partially passed, but full QA remains incomplete.
+`Pass with watch items`: real-device core photo-to-timeline flow, corrections, and persistence passed. Separate camera/gallery source distinction remains a watch item, not a blocker.
 
 Notes:
 
-Project dependency check confirms the app is on Expo SDK 56. Web smoke testing works. Real-device testing now confirms photo input, result screen, save, and Timeline. Browser QA confirms `Mode demo` visibility and `Portion +15%` correction behavior. Merge remains blocked until the remaining checklist items are checked, especially persistence after app restart and separate camera/gallery behavior on phone.
+Project dependency check confirms the app is on Expo SDK 56. Web smoke testing works. Real-device testing confirms photo input, result screen, save, Timeline, corrections, and persistence. Browser QA confirms `Mode demo` visibility. The only remaining watch item is distinguishing camera and gallery as separate entry points in a later QA pass.

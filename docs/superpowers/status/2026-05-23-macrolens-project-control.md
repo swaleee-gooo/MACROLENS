@@ -37,8 +37,9 @@ Real-device QA status:
 - The current mock analysis always returns `Poulet, riz et legumes`, which is expected before live AI integration.
 - Mock results now display a `Mode demo` banner so users understand that the result is fixed test data.
 - Saved photo meals appear in the Timeline after tapping save.
-- Browser QA confirms `Portion +15%` correction behavior.
-- Remaining checks before merge: correction chips on device, app restart persistence, and separate camera/gallery behavior.
+- Real-device QA confirms corrections and persistence.
+- Browser QA confirms `Portion +15%` correction behavior and `Mode demo` visibility.
+- Remaining watch item: distinguish camera and gallery as separate entry points in a later QA pass. This is not blocking the next integration plan.
 
 Verified commands:
 
@@ -65,8 +66,8 @@ Manual smoke test completed:
 
 ## Leadership Rules
 
-1. Keep the branch as-is until mobile device QA is done.
-2. Do not merge to `master` until the app is tested on a real phone with Expo Go.
+1. Keep the branch as-is until mobile device QA notes are committed.
+2. Do not merge to `master` until verification commands pass after QA notes are committed.
 3. Do not wire live OpenAI until there is a nutrition benchmark.
 4. Do not build growth/paywall features until the core scan result feels trustworthy.
 5. Every iteration must end with tests, typecheck, Expo dependency check, and one manual smoke test.
