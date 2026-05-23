@@ -126,6 +126,85 @@ describe('nutrition calibration', () => {
     expect(calibrated.items).toHaveLength(1);
   });
 
+  it('uses the deterministic oil profile for generic oil names', () => {
+    const raw: RawMealAnalysis = {
+      isFoodPhoto: true,
+      nonFoodReason: '',
+      mealName: 'Huile ajoutee',
+      mealCategory: 'mixed_plate',
+      portionSize: 'standard',
+      confidence: 'medium',
+      uncertaintyReasons: [],
+      hiddenCalorieRisks: ['oil'],
+      items: [
+        {
+          name: 'Oil',
+          canonicalFoodName: 'oil',
+          estimatedQuantity: 10,
+          unit: 'g',
+          calories: 20,
+          proteinG: 0,
+          carbsG: 0,
+          fatG: 2,
+          fiberG: 0,
+          confidence: 'low',
+        },
+      ],
+    };
+
+    const calibrated = calibrateMealAnalysis(raw);
+
+    expect(calibrated.items[0].calories).toBe(88);
+    expect(calibrated.items[0].fatG).toBe(10);
+    expect(calibrated.correctionSuggestions.map((item) => item.correctionType)).toContain('add_oil');
+  });
+
+  it('applies poke bowl protein floors to tofu bowls too', () => {
+    const raw: RawMealAnalysis = {
+      isFoodPhoto: true,
+      nonFoodReason: '',
+      mealName: 'Poke tofu riz avocat',
+      mealCategory: 'poke_bowl',
+      portionSize: 'standard',
+      confidence: 'medium',
+      uncertaintyReasons: ['protein_partly_hidden'],
+      hiddenCalorieRisks: ['hidden rice base', 'sauce'],
+      items: [
+        {
+          name: 'Tofu',
+          canonicalFoodName: 'tofu',
+          estimatedQuantity: 60,
+          unit: 'g',
+          calories: 86,
+          proteinG: 9.4,
+          carbsG: 2.1,
+          fatG: 5.2,
+          fiberG: 1.4,
+          confidence: 'medium',
+        },
+        {
+          name: 'Riz',
+          canonicalFoodName: 'cooked white rice',
+          estimatedQuantity: 120,
+          unit: 'g',
+          calories: 156,
+          proteinG: 3,
+          carbsG: 34,
+          fatG: 0.3,
+          fiberG: 0.5,
+          confidence: 'low',
+        },
+      ],
+    };
+
+    const calibrated = calibrateMealAnalysis(raw);
+    const tofu = calibrated.items.find((item) => item.canonicalFoodName === 'tofu');
+
+    expect(tofu?.estimatedQuantity).toBeGreaterThanOrEqual(130);
+    expect(calibrated.proteinG).toBeGreaterThanOrEqual(20);
+    expect(calibrated.confidence).toBe('low');
+  });
+
   it('detects non-food analysis outputs before a meal response is created', () => {
     const raw: RawMealAnalysis = {
       isFoodPhoto: false,

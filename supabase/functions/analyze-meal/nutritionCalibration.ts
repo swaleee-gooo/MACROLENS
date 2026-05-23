@@ -57,7 +57,7 @@ const PROFILES: Array<{ patterns: RegExp[]; profile: NutritionProfile }> = [
   { patterns: [/avocado|avocat/i], profile: { calories: 160, proteinG: 2, carbsG: 8.5, fatG: 14.7, fiberG: 6.7 } },
   { patterns: [/edamame/i], profile: { calories: 121, proteinG: 11.9, carbsG: 8.9, fatG: 5.2, fiberG: 5.2 } },
   { patterns: [/vegetable|legume|crudite|cucumber|concombre|carrot|carotte/i], profile: { calories: 30, proteinG: 1.8, carbsG: 6, fatG: 0.2, fiberG: 2.2 } },
-  { patterns: [/olive oil|huile/i], profile: { calories: 884, proteinG: 0, carbsG: 0, fatG: 100, fiberG: 0 } },
+  { patterns: [/olive oil|huile|\boil\b/i], profile: { calories: 884, proteinG: 0, carbsG: 0, fatG: 100, fiberG: 0 } },
   { patterns: [/sauce|dressing|vinaigrette|mayo|mayonnaise|creamy/i], profile: { calories: 300, proteinG: 1, carbsG: 10, fatG: 28, fiberG: 0 } },
   { patterns: [/cheese|fromage|parmesan|chevre/i], profile: { calories: 380, proteinG: 24, carbsG: 2, fatG: 31, fiberG: 0 } },
   { patterns: [/fries|frites/i], profile: { calories: 312, proteinG: 3.4, carbsG: 41, fatG: 15, fiberG: 3.8 } },
@@ -191,7 +191,11 @@ function applyPokeBowlRules(raw: RawMealAnalysis, items: CalibratedItem[], reaso
     ensureMinimumItemGrams(items, /rice|riz/i, riceFloor);
   }
 
-  ensureMinimumItemGrams(items, /salmon|saumon|tuna|thon|chicken|poulet/i, proteinFloor);
+  ensureMinimumItemGrams(
+    items,
+    /salmon|saumon|tuna|thon|chicken|poulet|tofu|beef|boeuf|steak|egg|oeuf|protein/i,
+    proteinFloor,
+  );
 
   if (hasItem(items, /avocado|avocat/i)) {
     ensureMinimumItemGrams(items, /avocado|avocat/i, 70);
