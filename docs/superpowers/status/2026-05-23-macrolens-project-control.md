@@ -31,6 +31,13 @@ The MVP is implemented as an Expo React Native app with:
 - timeline;
 - Supabase schema and Edge Function contract.
 
+Real-device QA status:
+
+- Photo input reaches the result screen.
+- The current mock analysis always returns `Poulet, riz et legumes`, which is expected before live AI integration.
+- Saved photo meals appear in the Timeline after tapping save.
+- Remaining checks before merge: correction chips on device, app restart persistence, and separate camera/gallery behavior.
+
 Verified commands:
 
 - `npm test`
