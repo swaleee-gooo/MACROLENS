@@ -48,6 +48,8 @@ Real-device QA status:
 - The Edge Function `analyze-meal` is deployed on project `wyrfncoiubvdnrvdpads` with JWT verification enabled.
 - The Edge Function now has an OpenAI Responses API branch behind `OPENAI_API_KEY`; without the secret it still returns the existing mock server response.
 - Local Expo config exists at `apps/mobile/.env.local` with public Supabase config and `EXPO_PUBLIC_ANALYSIS_MODE=remote`; this file is git-ignored.
+- Live pipeline smoke test passed after enabling Anonymous Sign-Ins and adding the rotated OpenAI secret in Supabase: anonymous auth, private upload, signed URL, Edge Function/OpenAI analysis, and cleanup all returned OK.
+- Smoke test result: `Spaghetti alla Carbonara (2 servings)`, source `estimated`, 770 kcal, medium confidence, 4 items.
 
 Verified commands:
 
@@ -72,8 +74,7 @@ Manual smoke test completed:
 - The AI analysis is mocked. Do not claim production nutrition accuracy yet.
 - Supabase is code-wired for remote analysis; migrations and Edge Function deployment have been applied to the live project.
 - Remote analysis mode must use Supabase anonymous auth for the first live test and must not expose `OPENAI_API_KEY` or `SUPABASE_SERVICE_ROLE_KEY` to Expo.
-- Supabase Anonymous Sign-Ins are currently disabled on the live project, so remote mobile upload/invoke smoke testing stops at `anonymous_auth_failed`.
-- `OPENAI_API_KEY` has not been safely installed as a Supabase secret. A key pasted into chat should be treated as exposed and rotated instead of reused through visible commands.
+- A key pasted into chat earlier should remain treated as exposed and revoked; the live project uses the new rotated secret added in Supabase.
 - Deno is not installed locally, so the Edge Function has not been type-checked or served with Deno on this machine.
 
 ## Leadership Rules
@@ -156,8 +157,8 @@ Current execution note:
 
 - Mobile env selection and anonymous Supabase upload/invoke wiring are implemented.
 - Keep `EXPO_PUBLIC_ANALYSIS_MODE=mock` as the default.
-- Keep `remote` enabled locally only while testing the live Supabase pipeline.
-- Next external setup: enable Anonymous Sign-Ins in Supabase Auth, install a rotated `OPENAI_API_KEY` as a Supabase secret through a non-echoing path, then rerun the upload/function smoke test.
+- Keep `remote` enabled locally while testing the live Supabase pipeline.
+- Next execution step: test from Expo Go with a real meal photo and record the first benchmark row before relying on nutrition accuracy claims.
 
 ### Iteration 3: OpenAI Vision Structured Analysis
 
