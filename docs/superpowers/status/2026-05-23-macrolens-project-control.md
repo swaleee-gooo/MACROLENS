@@ -50,6 +50,7 @@ Real-device QA status:
 - Local Expo config exists at `apps/mobile/.env.local` with public Supabase config and `EXPO_PUBLIC_ANALYSIS_MODE=remote`; this file is git-ignored.
 - Live pipeline smoke test passed after enabling Anonymous Sign-Ins and adding the rotated OpenAI secret in Supabase: anonymous auth, private upload, signed URL, Edge Function/OpenAI analysis, and cleanup all returned OK.
 - Smoke test result: `Spaghetti alla Carbonara (2 servings)`, source `estimated`, 770 kcal, medium confidence, 4 items.
+- Mobile dependencies are aligned to Expo SDK 54 so the current Expo Go app can open the project.
 
 Verified commands:
 
@@ -57,6 +58,7 @@ Verified commands:
 - `npx tsc --noEmit`
 - `npx expo install --check`
 - `npm run web -- --port 8081`
+- `npx expo start --lan --clear`
 
 Manual smoke test completed:
 
@@ -76,6 +78,7 @@ Manual smoke test completed:
 - Remote analysis mode must use Supabase anonymous auth for the first live test and must not expose `OPENAI_API_KEY` or `SUPABASE_SERVICE_ROLE_KEY` to Expo.
 - A key pasted into chat earlier should remain treated as exposed and revoked; the live project uses the new rotated secret added in Supabase.
 - Deno is not installed locally, so the Edge Function has not been type-checked or served with Deno on this machine.
+- Expo SDK 56 was incompatible with the installed Expo Go client, so the project was downgraded and verified on SDK 54.
 
 ## Leadership Rules
 
