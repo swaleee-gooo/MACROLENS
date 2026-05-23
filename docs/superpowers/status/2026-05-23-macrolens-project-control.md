@@ -10,8 +10,9 @@ Use these files in this order when making decisions:
 
 1. Product design: `docs/superpowers/specs/2026-05-23-macrolens-design.md`
 2. MVP implementation plan: `docs/superpowers/plans/2026-05-23-macrolens-mvp.md`
-3. Current implementation: `apps/mobile`
-4. Backend contract: `supabase`
+3. Real image pipeline plan: `docs/superpowers/plans/2026-05-23-real-image-analysis-pipeline.md`
+4. Current implementation: `apps/mobile`
+5. Backend contract: `supabase`
 
 If a new idea conflicts with the spec, update the spec first. If a new technical step conflicts with the plan, write a new iteration plan before coding.
 
@@ -40,6 +41,7 @@ Real-device QA status:
 - Real-device QA confirms corrections and persistence.
 - Browser QA confirms `Portion +15%` correction behavior and `Mode demo` visibility.
 - Remaining watch item: distinguish camera and gallery as separate entry points in a later QA pass. This is not blocking the next integration plan.
+- The next technical direction is now the real image analysis pipeline plan, with mock mode kept as the safe default until Supabase and OpenAI secrets are configured.
 
 Verified commands:
 
@@ -63,6 +65,7 @@ Manual smoke test completed:
 - Expo Web logs a React Native DevTools fallback warning because the machine lacked disk space while unpacking DevTools. The app still served with HTTP 200.
 - The AI analysis is mocked. Do not claim production nutrition accuracy yet.
 - Supabase is contract-ready, but not wired to live auth, storage, or Edge Function calls from the app.
+- Remote analysis mode must use Supabase anonymous auth for the first live test and must not expose `OPENAI_API_KEY` or `SUPABASE_SERVICE_ROLE_KEY` to Expo.
 
 ## Leadership Rules
 
@@ -135,6 +138,16 @@ Scope:
 - image upload to Supabase Storage;
 - meal persistence in Postgres;
 - app repository that can switch between local and Supabase storage.
+
+Plan:
+
+- `docs/superpowers/plans/2026-05-23-real-image-analysis-pipeline.md`
+
+Current execution note:
+
+- Start with mobile env selection and anonymous Supabase upload/invoke wiring.
+- Keep `EXPO_PUBLIC_ANALYSIS_MODE=mock` as the default.
+- Enable `remote` only after Supabase URL, publishable key, storage migration, anonymous auth, and Edge Function are ready.
 
 ### Iteration 3: OpenAI Vision Structured Analysis
 
