@@ -9,10 +9,11 @@ Status: MVP implemented, not merged
 Use these files in this order when making decisions:
 
 1. Product design: `docs/superpowers/specs/2026-05-23-macrolens-design.md`
-2. MVP implementation plan: `docs/superpowers/plans/2026-05-23-macrolens-mvp.md`
-3. Real image pipeline plan: `docs/superpowers/plans/2026-05-23-real-image-analysis-pipeline.md`
-4. Current implementation: `apps/mobile`
-5. Backend contract: `supabase`
+2. Nutrition calibration design: `docs/superpowers/specs/2026-05-23-nutrition-calibration-design.md`
+3. MVP implementation plan: `docs/superpowers/plans/2026-05-23-macrolens-mvp.md`
+4. Real image pipeline plan: `docs/superpowers/plans/2026-05-23-real-image-analysis-pipeline.md`
+5. Current implementation: `apps/mobile`
+6. Backend contract: `supabase`
 
 If a new idea conflicts with the spec, update the spec first. If a new technical step conflicts with the plan, write a new iteration plan before coding.
 
@@ -52,6 +53,7 @@ Real-device QA status:
 - Smoke test result: `Spaghetti alla Carbonara (2 servings)`, source `estimated`, 770 kcal, medium confidence, 4 items.
 - Mobile dependencies are aligned to Expo SDK 54 so the current Expo Go app can open the project.
 - Supabase React Native support now imports `react-native-url-polyfill/auto`, remote image upload uses `ArrayBuffer`, and demo fallback exposes the remote error message for mobile debugging.
+- Next accuracy direction is approach B from the nutrition calibration design: vision model as observer, backend-owned nutrition math, typed non-food error, and dataset roadmap for later model improvement.
 
 Verified commands:
 
