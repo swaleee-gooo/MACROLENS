@@ -67,6 +67,12 @@ Manual smoke test completed:
 
 Goal: prove the MVP works on real devices and create the benchmark needed before real AI integration.
 
+Iteration files:
+
+- Plan: `docs/superpowers/plans/2026-05-23-mobile-qa-nutrition-benchmark.md`
+- Mobile QA checklist: `docs/qa/mobile-qa-checklist.md`
+- Nutrition benchmark: `docs/benchmarks/macrolens-nutrition-benchmark-v1.md`
+
 ### Track A: Mobile QA And Polish
 
 Owner role: Mobile QA and polish agent.
@@ -101,6 +107,11 @@ Done when:
 - each case has expected macro ranges;
 - cases include common French foods and difficult mixed meals;
 - scoring rules define accuracy, confidence calibration, and correction usefulness.
+
+Current status:
+
+- Benchmark v1 has been created with 50 cases.
+- It must be used as the gate before live OpenAI nutrition claims.
 
 ## Later Iterations
 
