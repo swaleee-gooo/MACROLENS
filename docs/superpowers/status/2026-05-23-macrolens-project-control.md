@@ -55,6 +55,7 @@ Real-device QA status:
 - Supabase React Native support now imports `react-native-url-polyfill/auto`, remote image upload uses `ArrayBuffer`, and demo fallback exposes the remote error message for mobile debugging.
 - Nutrition accuracy iteration implemented and deployed on Supabase Edge Function `analyze-meal` version 3: OpenAI now returns structured observations, the Edge Function derives `userId` from the Supabase JWT, non-food photos return typed `non_food_photo`, and backend nutrition profiles calibrate mixed-meal totals before returning results to mobile.
 - Mobile now stops sending body `userId` to `analyze-meal`, preserves typed non-food errors without demo fallback, and shows `Photo non reconnue` with the French retry message.
+- App Core V2 screens are implemented locally: Profile, Targets, Today, Settings, and Manual Meal. Profile/targets persist in AsyncStorage and Home/Today compare daily totals against targets.
 
 Verified commands:
 
@@ -64,6 +65,7 @@ Verified commands:
 - Live Supabase calibrated food smoke test: anonymous auth, private upload, signed URL, Edge Function/OpenAI analysis, cleanup. Result: `Grilled Chicken Salad Bowl`, 501 kcal, 59 g protein, high confidence, source `estimated`.
 - Live Supabase non-food smoke test: anonymous auth, private upload, signed URL, Edge Function/OpenAI analysis, cleanup. Result: `non_food_photo` with French retry message.
 - `npm run web -- --port 8081`
+- Expo web smoke test for App Core V2 navigation, profile, targets, manual meal, Today, and Settings on `http://localhost:8082/` because `8081` was already occupied by another local app.
 - `npx expo start --lan --clear`
 
 Manual smoke test completed:
