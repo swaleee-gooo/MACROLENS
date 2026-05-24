@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { buildDailySummary, formatConfidenceLabel } from './dashboardViewModel';
-import type { Meal } from '../domain/types';
+import type { MacroTargets, Meal } from '../domain/types';
 
 const meals: Meal[] = [
   {
@@ -23,6 +23,16 @@ const meals: Meal[] = [
   },
 ];
 
+const targets: MacroTargets = {
+  calorieTarget: 2000,
+  proteinTargetG: 100,
+  carbsTargetG: 220,
+  fatTargetG: 70,
+  fiberTargetG: 30,
+  calorieOverride: null,
+  proteinOverrideG: null,
+};
+
 describe('dashboard view model', () => {
   it('builds a daily summary for the selected date', () => {
     expect(buildDailySummary(meals, '2026-05-23')).toEqual({
@@ -32,7 +42,20 @@ describe('dashboard view model', () => {
       carbsG: 57.3,
       fatG: 6.1,
       fiberG: 4.6,
+      calorieTarget: null,
+      proteinTargetG: null,
+      calorieProgress: null,
+      proteinProgress: null,
     });
+  });
+
+  it('adds target progress when macro targets are provided', () => {
+    const summary = buildDailySummary(meals, '2026-05-23', targets);
+
+    expect(summary.calorieTarget).toBe(2000);
+    expect(summary.proteinTargetG).toBe(100);
+    expect(summary.calorieProgress).toBe(25);
+    expect(summary.proteinProgress).toBe(51);
   });
 
   it('formats confidence labels in French', () => {
