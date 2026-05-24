@@ -77,6 +77,7 @@ export async function analyzeMealWithOpenAI(imageUrl: string, openAiKey: string)
     },
     body: JSON.stringify({
       model: 'gpt-4.1-mini',
+      temperature: 0.1,
       input: [
         {
           role: 'user',

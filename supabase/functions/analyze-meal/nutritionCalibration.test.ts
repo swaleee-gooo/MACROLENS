@@ -205,6 +205,64 @@ describe('nutrition calibration', () => {
     expect(calibrated.confidence).toBe('low');
   });
 
+  it('stabilizes protein totals for near-identical ambiguous poke bowl scans', () => {
+    function variant(proteinGrams: number): RawMealAnalysis {
+      return {
+        isFoodPhoto: true,
+        nonFoodReason: '',
+        mealName: 'Poke bowl saumon',
+        mealCategory: 'poke_bowl',
+        portionSize: 'standard',
+        confidence: 'medium',
+        uncertaintyReasons: ['protein_visible_but_portion_estimated'],
+        hiddenCalorieRisks: ['hidden rice base', 'sauce'],
+        items: [
+          {
+            name: 'Saumon',
+            canonicalFoodName: 'salmon raw',
+            estimatedQuantity: proteinGrams,
+            unit: 'g',
+            calories: 208 * (proteinGrams / 100),
+            proteinG: 20.4 * (proteinGrams / 100),
+            carbsG: 0,
+            fatG: 13.4 * (proteinGrams / 100),
+            fiberG: 0,
+            confidence: 'medium',
+          },
+          {
+            name: 'Riz',
+            canonicalFoodName: 'cooked white rice',
+            estimatedQuantity: 220,
+            unit: 'g',
+            calories: 286,
+            proteinG: 5.9,
+            carbsG: 62,
+            fatG: 0.7,
+            fiberG: 0.9,
+            confidence: 'low',
+          },
+          {
+            name: 'Legumes',
+            canonicalFoodName: 'mixed vegetables',
+            estimatedQuantity: 100,
+            unit: 'g',
+            calories: 30,
+            proteinG: 1.8,
+            carbsG: 6,
+            fatG: 0.2,
+            fiberG: 2.2,
+            confidence: 'medium',
+          },
+        ],
+      };
+    }
+
+    const lowerEstimate = calibrateMealAnalysis(variant(132));
+    const higherEstimate = calibrateMealAnalysis(variant(158));
+
+    expect(Math.abs(lowerEstimate.proteinG - higherEstimate.proteinG)).toBeLessThanOrEqual(2);
+  });
+
   it('detects non-food analysis outputs before a meal response is created', () => {
     const raw: RawMealAnalysis = {
       isFoodPhoto: false,

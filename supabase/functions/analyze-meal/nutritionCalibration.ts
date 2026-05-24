@@ -65,6 +65,16 @@ const PROFILES: Array<{ patterns: RegExp[]; profile: NutritionProfile }> = [
   { patterns: [/croissant/i], profile: { calories: 406, proteinG: 8.2, carbsG: 45.8, fatG: 21, fiberG: 2.6 } },
 ];
 
+const AMBIGUOUS_MEAL_CATEGORIES = new Set<RawMealAnalysis['mealCategory']>([
+  'poke_bowl',
+  'salad',
+  'mixed_plate',
+  'burger_fries',
+  'sandwich',
+  'pasta',
+]);
+const PROTEIN_SOURCE_PATTERN = /salmon|saumon|tuna|thon|chicken|poulet|tofu|beef|boeuf|steak|egg|oeuf|protein/i;
+
 function roundWhole(value: number): number {
   return Math.round(value);
 }
@@ -88,15 +98,51 @@ function computeFromProfile(profile: NutritionProfile, grams: number): Nutrition
   };
 }
 
-function rawItemToCalibratedItem(item: RawMealAnalysis['items'][number]): CalibratedItem {
+function stableProteinAnchor(raw: RawMealAnalysis): number | null {
+  if (!AMBIGUOUS_MEAL_CATEGORIES.has(raw.mealCategory)) {
+    return null;
+  }
+
+  if (raw.portionSize === 'small') {
+    return 110;
+  }
+
+  if (raw.portionSize === 'large') {
+    return 180;
+  }
+
+  return 145;
+}
+
+function stabilizedQuantity(raw: RawMealAnalysis, item: RawMealAnalysis['items'][number], normalizedName: string): number {
+  if (item.unit.toLowerCase() !== 'g' || !PROTEIN_SOURCE_PATTERN.test(normalizedName)) {
+    return item.estimatedQuantity;
+  }
+
+  const anchor = stableProteinAnchor(raw);
+  if (!anchor) {
+    return item.estimatedQuantity;
+  }
+
+  const lowerBound = anchor * 0.65;
+  const upperBound = anchor * 1.35;
+  if (item.estimatedQuantity < lowerBound || item.estimatedQuantity > upperBound) {
+    return item.estimatedQuantity;
+  }
+
+  return anchor;
+}
+
+function rawItemToCalibratedItem(raw: RawMealAnalysis, item: RawMealAnalysis['items'][number]): CalibratedItem {
   const normalizedName = `${item.canonicalFoodName} ${item.name}`;
+  const estimatedQuantity = stabilizedQuantity(raw, item, normalizedName);
   const profile = item.unit.toLowerCase() === 'g' ? profileFor(normalizedName) : null;
-  const macros = profile ? computeFromProfile(profile, item.estimatedQuantity) : item;
+  const macros = profile ? computeFromProfile(profile, estimatedQuantity) : item;
 
   return {
     name: item.name,
     canonicalFoodName: item.canonicalFoodName,
-    estimatedQuantity: roundMacro(item.estimatedQuantity),
+    estimatedQuantity: roundMacro(estimatedQuantity),
     unit: item.unit,
     calories: roundWhole(macros.calories),
     proteinG: roundMacro(macros.proteinG),
@@ -255,7 +301,7 @@ export function isNonFoodAnalysis(raw: RawMealAnalysis): boolean {
 }
 
 export function calibrateMealAnalysis(raw: RawMealAnalysis): CalibratedMealAnalysis {
-  const items = raw.items.map(rawItemToCalibratedItem);
+  const items = raw.items.map((item) => rawItemToCalibratedItem(raw, item));
   const uncertaintyReasons = [...raw.uncertaintyReasons];
   let confidence = raw.confidence;
 
