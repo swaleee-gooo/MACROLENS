@@ -50,6 +50,16 @@ export type Meal = {
 
 export type UserGoal = 'lose_fat' | 'build_muscle' | 'maintain' | 'understand_eating';
 
+export type MacroTargets = {
+  calorieTarget: number;
+  proteinTargetG: number;
+  carbsTargetG: number;
+  fatTargetG: number;
+  fiberTargetG: number;
+  calorieOverride: number | null;
+  proteinOverrideG: number | null;
+};
+
 export type UserProfile = {
   id: string;
   goal: UserGoal;
@@ -59,6 +69,6 @@ export type UserProfile = {
   weightKg: number;
   activityLevel: 'low' | 'moderate' | 'high';
   targetWeightKg: number | null;
-  proteinTargetG: number;
-  calorieTarget: number;
+  targets: MacroTargets;
+  updatedAt: string;
 };
