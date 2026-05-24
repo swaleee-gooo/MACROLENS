@@ -9,7 +9,7 @@ import { createAnalysisService } from './src/analysis/analysisServiceFactory';
 import { appEnv } from './src/config/env';
 import { applyMealCorrection } from './src/domain/corrections';
 import { createManualMacroMeal } from './src/domain/manualMeal';
-import type { MacroTargets, Meal, UserGoal, UserProfile } from './src/domain/types';
+import type { MacroTargets, Meal, UserProfile } from './src/domain/types';
 import { createMealRepository } from './src/storage/mealRepository';
 import { createProfileRepository } from './src/storage/profileRepository';
 import { colors } from './src/ui/theme';
@@ -122,7 +122,9 @@ function MacroLensApp() {
     setScreen({ name: 'manualMeal' });
   }
 
-  function completeOnboarding(_goal: UserGoal) {
+  async function completeOnboarding(nextProfile: UserProfile) {
+    await profileRepository.saveProfile(nextProfile);
+    setProfile(nextProfile);
     setScreen({ name: 'home' });
   }
 
@@ -151,7 +153,7 @@ function MacroLensApp() {
   }
 
   if (screen.name === 'onboarding') {
-    return <OnboardingScreen onComplete={completeOnboarding} />;
+    return <OnboardingScreen userId={localUserId} onComplete={completeOnboarding} />;
   }
 
   if (screen.name === 'analyzing') {
