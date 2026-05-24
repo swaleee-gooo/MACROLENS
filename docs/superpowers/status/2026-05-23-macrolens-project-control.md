@@ -12,8 +12,10 @@ Use these files in this order when making decisions:
 2. Nutrition calibration design: `docs/superpowers/specs/2026-05-23-nutrition-calibration-design.md`
 3. MVP implementation plan: `docs/superpowers/plans/2026-05-23-macrolens-mvp.md`
 4. Real image pipeline plan: `docs/superpowers/plans/2026-05-23-real-image-analysis-pipeline.md`
-5. Current implementation: `apps/mobile`
-6. Backend contract: `supabase`
+5. Trust and App Store release design: `docs/superpowers/specs/2026-05-24-trust-app-store-release-v1-design.md`
+6. Trust and App Store release plan: `docs/superpowers/plans/2026-05-24-trust-app-store-release-v1.md`
+7. Current implementation: `apps/mobile`
+8. Backend contract: `supabase`
 
 If a new idea conflicts with the spec, update the spec first. If a new technical step conflicts with the plan, write a new iteration plan before coding.
 
@@ -55,6 +57,7 @@ Real-device QA status:
 - Supabase React Native support now imports `react-native-url-polyfill/auto`, remote image upload uses `ArrayBuffer`, and demo fallback exposes the remote error message for mobile debugging.
 - Nutrition accuracy iteration implemented and deployed on Supabase Edge Function `analyze-meal` version 3: OpenAI now returns structured observations, the Edge Function derives `userId` from the Supabase JWT, non-food photos return typed `non_food_photo`, and backend nutrition profiles calibrate mixed-meal totals before returning results to mobile.
 - Repeat-scan credibility guard is deployed on Supabase Edge Function `analyze-meal`: OpenAI analysis now uses low-temperature structured output, and backend calibration stabilizes ambiguous protein portions for near-identical bowl/plate scans.
+- Trust And App Store Release V1 is now started: repeatability scoring exists for macro snapshots, and `docs/benchmarks/macrolens-repeatability-benchmark-v1.md` defines the same-photo benchmark protocol and release gates.
 - Mobile now stops sending body `userId` to `analyze-meal`, preserves typed non-food errors without demo fallback, and shows `Photo non reconnue` with the French retry message.
 - App Core V2 screens are implemented locally: Profile, Targets, Today, Settings, and Manual Meal. Profile/targets persist in AsyncStorage and Home/Today compare daily totals against targets.
 - Premium Conversion V1 is implemented in Expo Go mode: four-step onboarding, local hard paywall gate, premium Home/Timeline/Profile shell, portion adjustment, and save confirmation. Real App Store monetization still requires RevenueCat or StoreKit in a development/TestFlight build.
@@ -64,6 +67,7 @@ Verified commands:
 - `npm test`
 - `npx tsc --noEmit`
 - `npx expo install --check`
+- `npm test -- ../../supabase/functions/analyze-meal/repeatabilityMetrics.test.ts`
 - Live Supabase calibrated food smoke test: anonymous auth, private upload, signed URL, Edge Function/OpenAI analysis, cleanup. Result: `Grilled Chicken Salad Bowl`, 501 kcal, 59 g protein, high confidence, source `estimated`.
 - Live Supabase non-food smoke test: anonymous auth, private upload, signed URL, Edge Function/OpenAI analysis, cleanup. Result: `non_food_photo` with French retry message.
 - `npm run web -- --port 8081`
@@ -86,6 +90,7 @@ Manual smoke test completed:
 - `npm audit` reports 10 moderate vulnerabilities inherited through Expo dependencies. The proposed fix downgrades Expo to an incompatible major version, so do not apply `npm audit fix --force`.
 - Expo Web logs a React Native DevTools fallback warning because the machine lacked disk space while unpacking DevTools. The app still served with HTTP 200.
 - AI analysis is live in local remote mode and now calibrated, but do not claim production nutrition accuracy until the benchmark gate is run across the 50-case nutrition benchmark.
+- The repeatability utility currently scores recorded macro outputs; it does not yet automate five live scans from the same image URL.
 - Repeat-scan stability is improved for ambiguous protein portions, but it still needs a real-photo repeatability benchmark before claiming “same photo, same macros” as a product guarantee.
 - Supabase is code-wired for remote analysis; migrations and Edge Function deployment have been applied to the live project.
 - Remote analysis mode must use Supabase anonymous auth for the first live test and must not expose `OPENAI_API_KEY` or `SUPABASE_SERVICE_ROLE_KEY` to Expo.
