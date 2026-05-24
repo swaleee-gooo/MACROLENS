@@ -56,6 +56,7 @@ Real-device QA status:
 - Nutrition accuracy iteration implemented and deployed on Supabase Edge Function `analyze-meal` version 3: OpenAI now returns structured observations, the Edge Function derives `userId` from the Supabase JWT, non-food photos return typed `non_food_photo`, and backend nutrition profiles calibrate mixed-meal totals before returning results to mobile.
 - Mobile now stops sending body `userId` to `analyze-meal`, preserves typed non-food errors without demo fallback, and shows `Photo non reconnue` with the French retry message.
 - App Core V2 screens are implemented locally: Profile, Targets, Today, Settings, and Manual Meal. Profile/targets persist in AsyncStorage and Home/Today compare daily totals against targets.
+- Premium Conversion V1 is implemented in Expo Go mode: four-step onboarding, local hard paywall gate, premium Home/Timeline/Profile shell, portion adjustment, and save confirmation. Real App Store monetization still requires RevenueCat or StoreKit in a development/TestFlight build.
 
 Verified commands:
 
@@ -67,6 +68,7 @@ Verified commands:
 - `npm run web -- --port 8081`
 - Expo web smoke test for App Core V2 navigation, profile, targets, manual meal, Today, and Settings on `http://localhost:8082/` because `8081` was already occupied by another local app.
 - `npx expo start --lan --clear`
+- Expo web smoke test for Premium Conversion V1 on `http://localhost:8084/`: onboarding, paywall gate, local Expo Go unlock, bottom tabs, manual meal, portion adjustment, save confirmation, and Timeline.
 
 Manual smoke test completed:
 
@@ -87,6 +89,7 @@ Manual smoke test completed:
 - A key pasted into chat earlier should remain treated as exposed and revoked; the live project uses the new rotated secret added in Supabase.
 - Deno is not installed locally, so the Edge Function has not been type-checked or served with Deno on this machine.
 - Expo SDK 56 was incompatible with the installed Expo Go client, so the project was downgraded and verified on SDK 54.
+- The current paywall is an Expo Go local entitlement gate for UX validation only. It must be replaced by real Apple In-App Purchase through a development/TestFlight build before App Store submission.
 
 ## Leadership Rules
 
