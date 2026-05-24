@@ -52,4 +52,23 @@ describe('adjustMealItemGrams', () => {
 
     expect(adjusted.items[0].estimatedQuantity).toBe(25);
   });
+
+  it('treats non-gram portions as a 100g baseline', () => {
+    const portionMeal: Meal = {
+      ...meal,
+      items: [
+        {
+          ...meal.items[0],
+          estimatedQuantity: 1,
+          unit: 'portion',
+        },
+      ],
+    };
+
+    const adjusted = adjustMealItemGrams(portionMeal, 'item-1', 150);
+
+    expect(adjusted.items[0].estimatedQuantity).toBe(150);
+    expect(adjusted.items[0].unit).toBe('g');
+    expect(adjusted.caloriesEstimate).toBe(300);
+  });
 });

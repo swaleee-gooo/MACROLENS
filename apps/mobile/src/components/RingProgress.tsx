@@ -31,8 +31,7 @@ export function RingProgress({ size, strokeWidth, progress, color = colors.black
           strokeDasharray={`${circumference} ${circumference}`}
           strokeDashoffset={strokeDashoffset}
           strokeLinecap="butt"
-          rotation="-90"
-          origin={`${size / 2}, ${size / 2}`}
+          transform={`rotate(-90 ${size / 2} ${size / 2})`}
         />
       </Svg>
       <View style={{ alignItems: 'center', position: 'absolute' }}>

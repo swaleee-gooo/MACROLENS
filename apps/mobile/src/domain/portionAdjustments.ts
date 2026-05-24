@@ -17,8 +17,13 @@ export function adjustMealItemGrams(meal: Meal, itemId: string, grams: number): 
         return item;
       }
 
-      const currentQuantity = item.estimatedQuantity > 0 ? item.estimatedQuantity : 100;
-      return scaleFoodItem(item, targetGrams / currentQuantity);
+      const currentQuantity = item.unit === 'g' && item.estimatedQuantity > 0 ? item.estimatedQuantity : 100;
+
+      return {
+        ...scaleFoodItem(item, targetGrams / currentQuantity),
+        estimatedQuantity: targetGrams,
+        unit: 'g',
+      };
     }),
   });
 }
