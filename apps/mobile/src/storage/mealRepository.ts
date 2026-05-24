@@ -12,6 +12,7 @@ export type MealRepository = {
   listMeals(): Promise<Meal[]>;
   saveMeal(meal: Meal): Promise<void>;
   deleteMeal(mealId: string): Promise<void>;
+  clearMeals(): Promise<void>;
 };
 
 async function readMeals(storage: StorageAdapter): Promise<Meal[]> {
@@ -46,6 +47,10 @@ export function createMealRepository(storage: StorageAdapter): MealRepository {
         storage,
         meals.filter((meal) => meal.id !== mealId),
       );
+    },
+
+    async clearMeals() {
+      await writeMeals(storage, []);
     },
   };
 }

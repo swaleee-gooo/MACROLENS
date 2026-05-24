@@ -21,6 +21,14 @@ const meal: Meal = {
   items: [],
 };
 
+function createMeal(id: string): Meal {
+  return {
+    ...meal,
+    id,
+    mealName: id,
+  };
+}
+
 describe('meal repository', () => {
   it('saves and lists meals newest first', async () => {
     const repository = createMealRepository(createMemoryStorageAdapter());
@@ -38,5 +46,15 @@ describe('meal repository', () => {
     await repository.deleteMeal('meal-1');
 
     expect(await repository.listMeals()).toEqual([]);
+  });
+
+  it('clears all saved meals', async () => {
+    const repository = createMealRepository(createMemoryStorageAdapter());
+
+    await repository.saveMeal(createMeal('meal-1'));
+    await repository.saveMeal(createMeal('meal-2'));
+    await repository.clearMeals();
+
+    await expect(repository.listMeals()).resolves.toEqual([]);
   });
 });
