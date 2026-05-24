@@ -8,14 +8,20 @@ import { isNonFoodPhotoError } from './src/analysis/analysisErrors';
 import { createAnalysisService } from './src/analysis/analysisServiceFactory';
 import { appEnv } from './src/config/env';
 import { applyMealCorrection } from './src/domain/corrections';
-import { recalculateMeal } from './src/domain/nutrition';
-import type { FoodItem, Meal, UserGoal } from './src/domain/types';
+import { createManualMacroMeal } from './src/domain/manualMeal';
+import type { MacroTargets, Meal, UserGoal, UserProfile } from './src/domain/types';
 import { createMealRepository } from './src/storage/mealRepository';
+import { createProfileRepository } from './src/storage/profileRepository';
 import { colors } from './src/ui/theme';
 import { AnalyzingScreen } from './src/screens/AnalyzingScreen';
 import { HomeScreen } from './src/screens/HomeScreen';
+import { ManualMealScreen } from './src/screens/ManualMealScreen';
 import { OnboardingScreen } from './src/screens/OnboardingScreen';
+import { ProfileScreen } from './src/screens/ProfileScreen';
 import { ResultScreen } from './src/screens/ResultScreen';
+import { SettingsScreen } from './src/screens/SettingsScreen';
+import { TargetsScreen } from './src/screens/TargetsScreen';
+import { TodayScreen } from './src/screens/TodayScreen';
 import { TimelineScreen } from './src/screens/TimelineScreen';
 
 type ScreenState =
@@ -23,57 +29,24 @@ type ScreenState =
   | { name: 'home' }
   | { name: 'analyzing'; imageUri: string }
   | { name: 'result'; meal: Meal; isSaved: boolean }
-  | { name: 'timeline' };
+  | { name: 'timeline' }
+  | { name: 'profile' }
+  | { name: 'targets' }
+  | { name: 'today' }
+  | { name: 'settings' }
+  | { name: 'manualMeal' };
 
 const queryClient = new QueryClient();
 const localUserId = 'local-user';
 
-function createManualMeal(userId: string): Meal {
-  const mealId = `manual-${Date.now()}`;
-  const items: FoodItem[] = [
-    {
-      id: `${mealId}-protein-bowl`,
-      mealId,
-      name: 'Repas rapide',
-      canonicalFoodName: 'balanced mixed meal',
-      estimatedQuantity: 1,
-      unit: 'portion',
-      calories: 520,
-      proteinG: 32,
-      carbsG: 55,
-      fatG: 18,
-      fiberG: 8,
-      confidence: 'low',
-      dataSource: 'estimated',
-      sourceFoodId: null,
-    },
-  ];
-
-  return recalculateMeal({
-    id: mealId,
-    userId,
-    imageUri: 'manual://quick-add',
-    capturedAt: new Date().toISOString(),
-    mealName: 'Repas manuel',
-    caloriesEstimate: 0,
-    caloriesLow: 0,
-    caloriesHigh: 0,
-    proteinG: 0,
-    carbsG: 0,
-    fatG: 0,
-    fiberG: 0,
-    confidence: 'low',
-    notes: 'Quick add modifiable depuis les corrections.',
-    source: 'estimated',
-    items,
-  });
-}
-
 function MacroLensApp() {
   const [screen, setScreen] = useState<ScreenState>({ name: 'onboarding' });
   const [meals, setMeals] = useState<Meal[]>([]);
+  const [profile, setProfile] = useState<UserProfile | null>(null);
   const repository = useMemo(() => createMealRepository(AsyncStorage), []);
+  const profileRepository = useMemo(() => createProfileRepository(AsyncStorage), []);
   const analysisService = useMemo(() => createAnalysisService(appEnv), []);
+  const targets: MacroTargets | null = profile?.targets ?? null;
 
   useEffect(() => {
     repository
@@ -81,6 +54,13 @@ function MacroLensApp() {
       .then(setMeals)
       .catch(() => setMeals([]));
   }, [repository]);
+
+  useEffect(() => {
+    profileRepository
+      .getProfile()
+      .then(setProfile)
+      .catch(() => setProfile(null));
+  }, [profileRepository]);
 
   async function analyzeImageUri(imageUri: string) {
     setScreen({ name: 'analyzing', imageUri });
@@ -139,7 +119,7 @@ function MacroLensApp() {
   }
 
   function quickAddMeal() {
-    setScreen({ name: 'result', meal: createManualMeal(localUserId), isSaved: false });
+    setScreen({ name: 'manualMeal' });
   }
 
   function completeOnboarding(_goal: UserGoal) {
@@ -151,6 +131,23 @@ function MacroLensApp() {
     const nextMeals = await repository.listMeals();
     setMeals(nextMeals);
     setScreen({ name: 'home' });
+  }
+
+  async function saveProfile(nextProfile: UserProfile) {
+    await profileRepository.saveProfile(nextProfile);
+    setProfile(nextProfile);
+    setScreen({ name: 'home' });
+  }
+
+  async function clearMeals() {
+    await repository.clearMeals();
+    setMeals([]);
+    setScreen({ name: 'home' });
+  }
+
+  function saveManualMeal(input: { name: string; calories: number; proteinG: number; carbsG: number; fatG: number; fiberG: number }) {
+    const meal = createManualMacroMeal({ userId: localUserId, ...input });
+    setScreen({ name: 'result', meal, isSaved: false });
   }
 
   if (screen.name === 'onboarding') {
@@ -188,14 +185,71 @@ function MacroLensApp() {
     );
   }
 
+  if (screen.name === 'profile') {
+    return <ProfileScreen profile={profile} userId={localUserId} onBack={() => setScreen({ name: 'home' })} onSave={saveProfile} />;
+  }
+
+  if (screen.name === 'targets') {
+    return (
+      <TargetsScreen
+        profile={profile}
+        onBack={() => setScreen({ name: 'home' })}
+        onCreateProfile={() => setScreen({ name: 'profile' })}
+        onSave={saveProfile}
+      />
+    );
+  }
+
+  if (screen.name === 'today') {
+    return (
+      <TodayScreen
+        meals={meals}
+        targets={targets}
+        onBack={() => setScreen({ name: 'home' })}
+        onCapture={captureMeal}
+        onPickPhoto={pickMealPhoto}
+        onManualMeal={() => setScreen({ name: 'manualMeal' })}
+        onOpenMeal={(meal) => setScreen({ name: 'result', meal, isSaved: true })}
+      />
+    );
+  }
+
+  if (screen.name === 'settings') {
+    return (
+      <SettingsScreen
+        analysisMode={appEnv.analysisMode}
+        mealCount={meals.length}
+        onBack={() => setScreen({ name: 'home' })}
+        onOpenProfile={() => setScreen({ name: 'profile' })}
+        onOpenTargets={() => setScreen({ name: 'targets' })}
+        onClearMeals={clearMeals}
+      />
+    );
+  }
+
+  if (screen.name === 'manualMeal') {
+    return <ManualMealScreen onBack={() => setScreen({ name: 'home' })} onSave={saveManualMeal} />;
+  }
+
   return (
     <HomeScreen
       meals={meals}
+      targets={targets}
       onCapture={captureMeal}
       onPickPhoto={pickMealPhoto}
       onQuickAdd={quickAddMeal}
       onOpenMeal={(meal) => setScreen({ name: 'result', meal, isSaved: true })}
       onOpenTimeline={() => setScreen({ name: 'timeline' })}
+      onOpenToday={() => setScreen({ name: 'today' })}
+      onOpenProfile={() => {
+        if (profile) {
+          setScreen({ name: 'targets' });
+          return;
+        }
+
+        setScreen({ name: 'profile' });
+      }}
+      onOpenSettings={() => setScreen({ name: 'settings' })}
     />
   );
 }
