@@ -15,8 +15,9 @@ Use these files in this order when making decisions:
 5. Trust and App Store release design: `docs/superpowers/specs/2026-05-24-trust-app-store-release-v1-design.md`
 6. Trust and App Store release plan: `docs/superpowers/plans/2026-05-24-trust-app-store-release-v1.md`
 7. Commercial launch design: `docs/superpowers/specs/2026-05-25-commercial-launch-v1-design.md`
-8. Current implementation: `apps/mobile`
-9. Backend contract: `supabase`
+8. Commercial launch plan: `docs/superpowers/plans/2026-05-25-commercial-launch-v1.md`
+9. Current implementation: `apps/mobile`
+10. Backend contract: `supabase`
 
 If a new idea conflicts with the spec, update the spec first. If a new technical step conflicts with the plan, write a new iteration plan before coding.
 
@@ -65,6 +66,7 @@ Real-device QA status:
 - App Core V2 screens are implemented locally: Profile, Targets, Today, Settings, and Manual Meal. Profile/targets persist in AsyncStorage and Home/Today compare daily totals against targets.
 - Premium Conversion V1 is implemented in Expo Go mode: four-step onboarding, local hard paywall gate, premium Home/Timeline/Profile shell, portion adjustment, and save confirmation. Real App Store monetization still requires RevenueCat or StoreKit in a development/TestFlight build.
 - Commercial Launch V1 design is drafted: it defines the minimum commercial scope for scan trust, real App Store monetization, conversion onboarding, barcode/OCR, coaching, compliance, TestFlight, and acquisition.
+- Commercial Launch V1 implementation plan is drafted: it decomposes launch into analytics, benchmark expansion, entitlements, onboarding/paywall, scan trust UI, barcode/OCR, coaching, compliance, TestFlight, and final release gates.
 
 Verified commands:
 
@@ -223,6 +225,10 @@ Scope:
 Current design:
 
 - `docs/superpowers/specs/2026-05-25-commercial-launch-v1-design.md`
+
+Current plan:
+
+- `docs/superpowers/plans/2026-05-25-commercial-launch-v1.md`
 
 ## Merge Gate For Current MVP
 
