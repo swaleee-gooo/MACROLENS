@@ -5,6 +5,7 @@ const MEALS_KEY = 'macrolens.meals.v1';
 export type StorageAdapter = {
   getItem(key: string): Promise<string | null>;
   setItem(key: string, value: string): Promise<void>;
+  removeItem?(key: string): Promise<void>;
 };
 
 export type MealRepository = {
@@ -62,6 +63,9 @@ export function createMemoryStorageAdapter(): StorageAdapter {
     },
     async setItem(key, value) {
       values.set(key, value);
+    },
+    async removeItem(key) {
+      values.delete(key);
     },
   };
 }
