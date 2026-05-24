@@ -1,5 +1,5 @@
 import { Image, Pressable, ScrollView, Text, View } from 'react-native';
-import { ArrowLeft, Droplets, Save, Scale, Trash2 } from 'lucide-react-native';
+import { ArrowLeft, Droplets, Save, Scale, SlidersHorizontal, Trash2 } from 'lucide-react-native';
 import type { Meal } from '../domain/types';
 import type { MealCorrection } from '../domain/corrections';
 import { ConfidenceBadge } from '../components/ConfidenceBadge';
@@ -9,6 +9,7 @@ import { colors, radius, spacing, typography } from '../ui/theme';
 type Props = {
   meal: Meal;
   onApplyCorrection: (correction: MealCorrection) => void;
+  onAdjustItem?: (itemId: string) => void;
   onSave: () => void;
   onBack: () => void;
 };
@@ -20,15 +21,15 @@ const correctionButtons: { label: string; correction: MealCorrection; icon: 'sca
   { label: 'Sauce ajoutee', correction: { type: 'add_sauce', targetItemId: null }, icon: 'droplets' },
 ];
 
-export function ResultScreen({ meal, onApplyCorrection, onSave, onBack }: Props) {
+export function ResultScreen({ meal, onApplyCorrection, onAdjustItem, onSave, onBack }: Props) {
   const isManual = meal.imageUri.startsWith('manual://');
   const isMockAnalysis = meal.source === 'mock';
 
   return (
     <ScrollView style={{ backgroundColor: colors.background, flex: 1 }} contentContainerStyle={{ gap: spacing.xl, padding: spacing.xl }}>
-      <Pressable onPress={onBack} style={{ alignItems: 'center', flexDirection: 'row', gap: spacing.xs }}>
-        <ArrowLeft color={colors.blue} size={18} strokeWidth={2.5} />
-        <Text style={{ color: colors.blue, fontSize: typography.body, fontWeight: '800' }}>Retour</Text>
+      <Pressable onPress={onBack} style={{ alignItems: 'center', flexDirection: 'row', gap: spacing.sm }}>
+        <ArrowLeft color={colors.black} size={28} strokeWidth={2.6} />
+        <Text style={{ color: colors.black, fontSize: typography.heading, fontWeight: '900' }}>MACROLENS</Text>
       </Pressable>
       {isManual ? (
         <View
@@ -81,6 +82,15 @@ export function ResultScreen({ meal, onApplyCorrection, onSave, onBack }: Props)
         <MetricPill label="Lipides" value={`${meal.fatG} g`} accent={colors.fat} />
         <MetricPill label="Fibres" value={`${meal.fiberG} g`} accent={colors.fiber} />
       </View>
+      {onAdjustItem && meal.items[0] ? (
+        <Pressable
+          onPress={() => onAdjustItem(meal.items[0].id)}
+          style={{ alignItems: 'center', backgroundColor: colors.black, borderRadius: radius.pill, flexDirection: 'row', gap: spacing.sm, justifyContent: 'center', padding: spacing.lg }}
+        >
+          <SlidersHorizontal color="white" size={20} strokeWidth={2.5} />
+          <Text style={{ color: 'white', fontSize: typography.body, fontWeight: '900' }}>Ajuster les quantites</Text>
+        </Pressable>
+      ) : null}
       <View style={{ gap: spacing.md }}>
         <Text style={{ color: colors.ink, fontSize: typography.heading, fontWeight: '900' }}>Corrections rapides</Text>
         <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm }}>
@@ -126,13 +136,18 @@ export function ResultScreen({ meal, onApplyCorrection, onSave, onBack }: Props)
                   <Trash2 color={colors.red} size={18} strokeWidth={2.4} />
                 </Pressable>
               ) : null}
+              {onAdjustItem ? (
+                <Pressable onPress={() => onAdjustItem(item.id)} style={{ padding: spacing.xs }}>
+                  <SlidersHorizontal color={colors.black} size={18} strokeWidth={2.4} />
+                </Pressable>
+              ) : null}
             </View>
           </View>
         ))}
       </View>
       <Pressable
         onPress={onSave}
-        style={{ alignItems: 'center', backgroundColor: colors.green, borderRadius: radius.md, flexDirection: 'row', gap: spacing.sm, justifyContent: 'center', padding: spacing.lg }}
+        style={{ alignItems: 'center', backgroundColor: colors.black, borderRadius: radius.pill, flexDirection: 'row', gap: spacing.sm, justifyContent: 'center', padding: spacing.lg }}
       >
         <Save color="white" size={20} strokeWidth={2.5} />
         <Text style={{ color: 'white', fontSize: typography.body, fontWeight: '900' }}>Enregistrer le repas</Text>
