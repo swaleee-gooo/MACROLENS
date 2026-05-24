@@ -58,6 +58,8 @@ Real-device QA status:
 - Nutrition accuracy iteration implemented and deployed on Supabase Edge Function `analyze-meal` version 3: OpenAI now returns structured observations, the Edge Function derives `userId` from the Supabase JWT, non-food photos return typed `non_food_photo`, and backend nutrition profiles calibrate mixed-meal totals before returning results to mobile.
 - Repeat-scan credibility guard is deployed on Supabase Edge Function `analyze-meal`: OpenAI analysis now uses low-temperature structured output, and backend calibration stabilizes ambiguous protein portions for near-identical bowl/plate scans.
 - Trust And App Store Release V1 is now started: repeatability scoring exists for macro snapshots, and `docs/benchmarks/macrolens-repeatability-benchmark-v1.md` defines the same-photo benchmark protocol and release gates.
+- Live repeatability automation now exists: `npm run repeatability:live` invokes Supabase `analyze-meal` five times against the same image URL, scores macro drift, and exits non-zero when the credibility gate fails.
+- Repeat-scan calibration now normalizes gram aliases and stabilizes common poke bowl toppings such as tempura, fish roe, seaweed, and cabbage so repeated scans do not swing because OpenAI used a different ingredient label.
 - Mobile now stops sending body `userId` to `analyze-meal`, preserves typed non-food errors without demo fallback, and shows `Photo non reconnue` with the French retry message.
 - App Core V2 screens are implemented locally: Profile, Targets, Today, Settings, and Manual Meal. Profile/targets persist in AsyncStorage and Home/Today compare daily totals against targets.
 - Premium Conversion V1 is implemented in Expo Go mode: four-step onboarding, local hard paywall gate, premium Home/Timeline/Profile shell, portion adjustment, and save confirmation. Real App Store monetization still requires RevenueCat or StoreKit in a development/TestFlight build.
@@ -75,6 +77,7 @@ Verified commands:
 - `npx expo start --lan --clear`
 - Expo web smoke test for Premium Conversion V1 on `http://localhost:8084/`: onboarding, paywall gate, local Expo Go unlock, bottom tabs, manual meal, portion adjustment, save confirmation, and Timeline.
 - Live Supabase repeat-scan guard smoke test after deployment: anonymous auth + `analyze-meal` invocation returned `Banana`, 105 kcal, 1.3 g protein, high confidence, source `estimated`.
+- `npm run repeatability:live`: passed on `Salmon_Poke.jpg` with 5 same-image live calls; calories 789-826 kcal, protein 39.7-41.5 g, no failed metrics.
 
 Manual smoke test completed:
 
@@ -90,8 +93,7 @@ Manual smoke test completed:
 - `npm audit` reports 10 moderate vulnerabilities inherited through Expo dependencies. The proposed fix downgrades Expo to an incompatible major version, so do not apply `npm audit fix --force`.
 - Expo Web logs a React Native DevTools fallback warning because the machine lacked disk space while unpacking DevTools. The app still served with HTTP 200.
 - AI analysis is live in local remote mode and now calibrated, but do not claim production nutrition accuracy until the benchmark gate is run across the 50-case nutrition benchmark.
-- The repeatability utility currently scores recorded macro outputs; it does not yet automate five live scans from the same image URL.
-- Repeat-scan stability is improved for ambiguous protein portions, but it still needs a real-photo repeatability benchmark before claiming “same photo, same macros” as a product guarantee.
+- Repeatability is now automated for one live image URL, but the release gate still needs to be expanded across a broader same-photo set before claiming "same photo, same macros" as a product guarantee.
 - Supabase is code-wired for remote analysis; migrations and Edge Function deployment have been applied to the live project.
 - Remote analysis mode must use Supabase anonymous auth for the first live test and must not expose `OPENAI_API_KEY` or `SUPABASE_SERVICE_ROLE_KEY` to Expo.
 - A key pasted into chat earlier should remain treated as exposed and revoked; the live project uses the new rotated secret added in Supabase.

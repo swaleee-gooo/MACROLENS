@@ -263,6 +263,170 @@ describe('nutrition calibration', () => {
     expect(Math.abs(lowerEstimate.proteinG - higherEstimate.proteinG)).toBeLessThanOrEqual(2);
   });
 
+  it('normalizes gram unit aliases before stabilizing repeated poke bowl protein estimates', () => {
+    function variant(proteinGrams: number): RawMealAnalysis {
+      return {
+        isFoodPhoto: true,
+        nonFoodReason: '',
+        mealName: 'Salmon Poke Bowl',
+        mealCategory: 'poke_bowl',
+        portionSize: 'standard',
+        confidence: 'medium',
+        uncertaintyReasons: ['protein_visible_but_portion_estimated'],
+        hiddenCalorieRisks: ['hidden rice base', 'sauce'],
+        items: [
+          {
+            name: 'Raw salmon chunks',
+            canonicalFoodName: 'salmon',
+            estimatedQuantity: proteinGrams,
+            unit: 'grams',
+            calories: 208 * (proteinGrams / 100),
+            proteinG: 20.4 * (proteinGrams / 100),
+            carbsG: 0,
+            fatG: 13.4 * (proteinGrams / 100),
+            fiberG: 0,
+            confidence: 'high',
+          },
+          {
+            name: 'Cooked white rice base',
+            canonicalFoodName: 'white rice',
+            estimatedQuantity: 150,
+            unit: 'grams',
+            calories: 195,
+            proteinG: 4,
+            carbsG: 43,
+            fatG: 0.4,
+            fiberG: 1.5,
+            confidence: 'medium',
+          },
+          {
+            name: 'Creamy spicy mayo sauce',
+            canonicalFoodName: 'spicy mayo sauce',
+            estimatedQuantity: 30,
+            unit: 'grams',
+            calories: 120,
+            proteinG: 0,
+            carbsG: 2,
+            fatG: 12,
+            fiberG: 0,
+            confidence: 'medium',
+          },
+        ],
+      };
+    }
+
+    const lowerEstimate = calibrateMealAnalysis(variant(80));
+    const higherEstimate = calibrateMealAnalysis(variant(100));
+    const salmonItem = lowerEstimate.items.find((item) => item.canonicalFoodName === 'salmon');
+    const riceItem = lowerEstimate.items.find((item) => item.canonicalFoodName === 'white rice');
+
+    expect(salmonItem?.unit).toBe('g');
+    expect(salmonItem?.estimatedQuantity).toBe(130);
+    expect(riceItem?.estimatedQuantity).toBe(220);
+    expect(Math.abs(lowerEstimate.proteinG - higherEstimate.proteinG)).toBeLessThanOrEqual(2);
+  });
+
+  it('keeps poke bowl topping calories stable when OpenAI names the same visible items differently', () => {
+    function variant(tempuraCanonicalName: string, fishRoeCalories: number, fishRoeProtein: number): RawMealAnalysis {
+      return {
+        isFoodPhoto: true,
+        nonFoodReason: '',
+        mealName: 'Salmon Poke Bowl',
+        mealCategory: 'poke_bowl',
+        portionSize: 'standard',
+        confidence: 'medium',
+        uncertaintyReasons: ['visible_toppings_estimated'],
+        hiddenCalorieRisks: ['hidden rice base', 'sauce'],
+        items: [
+          {
+            name: 'Raw salmon',
+            canonicalFoodName: 'salmon',
+            estimatedQuantity: 130,
+            unit: 'g',
+            calories: 270,
+            proteinG: 26.5,
+            carbsG: 0,
+            fatG: 17.4,
+            fiberG: 0,
+            confidence: 'medium',
+          },
+          {
+            name: 'Cooked white rice',
+            canonicalFoodName: 'white rice',
+            estimatedQuantity: 220,
+            unit: 'g',
+            calories: 286,
+            proteinG: 5.9,
+            carbsG: 62,
+            fatG: 0.7,
+            fiberG: 0.9,
+            confidence: 'low',
+          },
+          {
+            name: 'Fried tempura piece',
+            canonicalFoodName: tempuraCanonicalName,
+            estimatedQuantity: 30,
+            unit: 'g',
+            calories: 9,
+            proteinG: 0.5,
+            carbsG: 1.8,
+            fatG: 0.1,
+            fiberG: 0.7,
+            confidence: 'medium',
+          },
+          {
+            name: 'Fish roe',
+            canonicalFoodName: 'fish roe',
+            estimatedQuantity: 10,
+            unit: 'g',
+            calories: fishRoeCalories,
+            proteinG: fishRoeProtein,
+            carbsG: 1,
+            fatG: 1,
+            fiberG: 0,
+            confidence: 'medium',
+          },
+          {
+            name: 'Seaweed sheets',
+            canonicalFoodName: 'seaweed nori',
+            estimatedQuantity: 5,
+            unit: 'g',
+            calories: 20,
+            proteinG: 1,
+            carbsG: 1,
+            fatG: 0,
+            fiberG: 1,
+            confidence: 'high',
+          },
+          {
+            name: 'Creamy spicy mayo sauce',
+            canonicalFoodName: 'spicy mayo sauce',
+            estimatedQuantity: 30,
+            unit: 'g',
+            calories: 90,
+            proteinG: 0.3,
+            carbsG: 3,
+            fatG: 8.4,
+            fiberG: 0,
+            confidence: 'medium',
+          },
+        ],
+      };
+    }
+
+    const vegetableNamedTempura = calibrateMealAnalysis(variant('tempura fried vegetable or shrimp', 40, 5));
+    const genericTempura = calibrateMealAnalysis(variant('tempura', 15, 1));
+    const tempura = vegetableNamedTempura.items.find((item) => item.name === 'Fried tempura piece');
+    const fishRoe = vegetableNamedTempura.items.find((item) => item.canonicalFoodName === 'fish roe');
+
+    expect(tempura?.calories).toBe(90);
+    expect(tempura?.carbsG).toBe(8);
+    expect(fishRoe?.calories).toBe(14);
+    expect(fishRoe?.proteinG).toBe(2.2);
+    expect(Math.abs(vegetableNamedTempura.caloriesEstimate - genericTempura.caloriesEstimate)).toBeLessThanOrEqual(5);
+    expect(Math.abs(vegetableNamedTempura.proteinG - genericTempura.proteinG)).toBeLessThanOrEqual(1);
+  });
+
   it('detects non-food analysis outputs before a meal response is created', () => {
     const raw: RawMealAnalysis = {
       isFoodPhoto: false,

@@ -56,6 +56,10 @@ const PROFILES: Array<{ patterns: RegExp[]; profile: NutritionProfile }> = [
   { patterns: [/egg|oeuf/i], profile: { calories: 143, proteinG: 12.6, carbsG: 0.7, fatG: 9.5, fiberG: 0 } },
   { patterns: [/avocado|avocat/i], profile: { calories: 160, proteinG: 2, carbsG: 8.5, fatG: 14.7, fiberG: 6.7 } },
   { patterns: [/edamame/i], profile: { calories: 121, proteinG: 11.9, carbsG: 8.9, fatG: 5.2, fiberG: 5.2 } },
+  { patterns: [/tempura/i], profile: { calories: 300, proteinG: 6.7, carbsG: 26.7, fatG: 20, fiberG: 1.7 } },
+  { patterns: [/fish roe|tobiko|masago/i], profile: { calories: 140, proteinG: 22, carbsG: 1.5, fatG: 6.4, fiberG: 0 } },
+  { patterns: [/seaweed|nori/i], profile: { calories: 300, proteinG: 30, carbsG: 40, fatG: 2, fiberG: 30 } },
+  { patterns: [/cabbage|chou/i], profile: { calories: 31, proteinG: 1.4, carbsG: 7, fatG: 0.2, fiberG: 2.1 } },
   { patterns: [/vegetable|legume|crudite|cucumber|concombre|carrot|carotte/i], profile: { calories: 30, proteinG: 1.8, carbsG: 6, fatG: 0.2, fiberG: 2.2 } },
   { patterns: [/olive oil|huile|\boil\b/i], profile: { calories: 884, proteinG: 0, carbsG: 0, fatG: 100, fiberG: 0 } },
   { patterns: [/sauce|dressing|vinaigrette|mayo|mayonnaise|creamy/i], profile: { calories: 300, proteinG: 1, carbsG: 10, fatG: 28, fiberG: 0 } },
@@ -74,6 +78,10 @@ const AMBIGUOUS_MEAL_CATEGORIES = new Set<RawMealAnalysis['mealCategory']>([
   'pasta',
 ]);
 const PROTEIN_SOURCE_PATTERN = /salmon|saumon|tuna|thon|chicken|poulet|tofu|beef|boeuf|steak|egg|oeuf|protein/i;
+
+function isGramUnit(unit: string): boolean {
+  return /^g(ram|rams)?$/i.test(unit.trim());
+}
 
 function roundWhole(value: number): number {
   return Math.round(value);
@@ -111,11 +119,11 @@ function stableProteinAnchor(raw: RawMealAnalysis): number | null {
     return 180;
   }
 
-  return 145;
+  return 130;
 }
 
 function stabilizedQuantity(raw: RawMealAnalysis, item: RawMealAnalysis['items'][number], normalizedName: string): number {
-  if (item.unit.toLowerCase() !== 'g' || !PROTEIN_SOURCE_PATTERN.test(normalizedName)) {
+  if (!isGramUnit(item.unit) || !PROTEIN_SOURCE_PATTERN.test(normalizedName)) {
     return item.estimatedQuantity;
   }
 
@@ -135,15 +143,16 @@ function stabilizedQuantity(raw: RawMealAnalysis, item: RawMealAnalysis['items']
 
 function rawItemToCalibratedItem(raw: RawMealAnalysis, item: RawMealAnalysis['items'][number]): CalibratedItem {
   const normalizedName = `${item.canonicalFoodName} ${item.name}`;
+  const unit = isGramUnit(item.unit) ? 'g' : item.unit;
   const estimatedQuantity = stabilizedQuantity(raw, item, normalizedName);
-  const profile = item.unit.toLowerCase() === 'g' ? profileFor(normalizedName) : null;
+  const profile = isGramUnit(item.unit) ? profileFor(normalizedName) : null;
   const macros = profile ? computeFromProfile(profile, estimatedQuantity) : item;
 
   return {
     name: item.name,
     canonicalFoodName: item.canonicalFoodName,
     estimatedQuantity: roundMacro(estimatedQuantity),
-    unit: item.unit,
+    unit,
     calories: roundWhole(macros.calories),
     proteinG: roundMacro(macros.proteinG),
     carbsG: roundMacro(macros.carbsG),
@@ -184,7 +193,7 @@ function addProfileItem(
 
 function ensureMinimumItemGrams(items: CalibratedItem[], pattern: RegExp, grams: number): boolean {
   const item = items.find((candidate) => pattern.test(`${candidate.canonicalFoodName} ${candidate.name}`));
-  if (!item || item.unit.toLowerCase() !== 'g' || item.estimatedQuantity >= grams) {
+  if (!item || !isGramUnit(item.unit) || item.estimatedQuantity >= grams) {
     return false;
   }
 

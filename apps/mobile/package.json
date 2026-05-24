@@ -29,6 +29,7 @@
     "android": "expo start --android",
     "ios": "expo start --ios",
     "web": "expo start --web",
+    "repeatability:live": "node scripts/run-repeatability-benchmark.mjs",
     "test": "vitest run --passWithNoTests",
     "test:watch": "vitest"
   },
