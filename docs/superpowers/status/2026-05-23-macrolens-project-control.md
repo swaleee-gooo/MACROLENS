@@ -266,6 +266,12 @@ Current plan:
 - Each detected food row has quick corrections for `-15%`, `+15%`, grams adjustment, and removal when safe.
 - Empty detailed-food state is handled for manual/global meals.
 
+### Recurring Meals V1 - 2026-05-25
+
+- Home now surfaces quick relog suggestions from meal history under `Repas rapides`.
+- Suggestions group recurring meals by normalized meal name, prioritize frequency then recency, and use the latest version as the template.
+- One-tap `Relogger` clones the meal with fresh ids and timestamp, then saves through the existing confirmation flow.
+
 ## Merge Gate For Current MVP
 
 Merge `codex/macrolens-mvp` into `master` only when:

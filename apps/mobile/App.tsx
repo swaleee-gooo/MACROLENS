@@ -14,6 +14,7 @@ import { appEnv } from './src/config/env';
 import { BottomTabs, type AppTab } from './src/components/BottomTabs';
 import { applyMealCorrection, getMealCorrectionType, type MealCorrection } from './src/domain/corrections';
 import { createManualMacroMeal } from './src/domain/manualMeal';
+import { cloneMealForRelog } from './src/domain/recurringMeals';
 import { calculateMealStreak } from './src/domain/streaks';
 import type { MacroTargets, Meal, UserProfile } from './src/domain/types';
 import { buildWeeklyReport, buildWeeklyReportFromMeals } from './src/domain/weeklyReport';
@@ -298,6 +299,11 @@ function MacroLensApp() {
     setScreen({ name: 'saveConfirmation', meal, streakDays: calculateMealStreak(nextMeals, new Date().toISOString().slice(0, 10)) });
   }
 
+  async function relogMeal(templateMeal: Meal) {
+    const reloggedMeal = cloneMealForRelog(templateMeal);
+    await saveMeal(reloggedMeal);
+  }
+
   async function saveProfile(nextProfile: UserProfile) {
     await profileRepository.saveProfile(nextProfile);
     setProfile(nextProfile);
@@ -396,6 +402,7 @@ function MacroLensApp() {
           profile={profile}
           onOpenSettings={() => setScreen({ name: 'settings' })}
           onOpenMeal={(meal) => setScreen({ name: 'result', meal, isSaved: true })}
+          onRelogMeal={relogMeal}
         />
       );
 

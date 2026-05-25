@@ -1,10 +1,11 @@
 import { useEffect, useRef, useState } from 'react';
 import { Pressable, ScrollView, Text, View } from 'react-native';
-import { Flame, Star } from 'lucide-react-native';
+import { Flame, Plus, RotateCcw, Star } from 'lucide-react-native';
 import { BrandHeader } from '../components/BrandHeader';
 import { MealCard } from '../components/MealCard';
 import { PremiumCard } from '../components/PremiumCard';
 import { RingProgress } from '../components/RingProgress';
+import { buildRecurringMealSuggestions, type RecurringMealSuggestion } from '../domain/recurringMeals';
 import type { MacroTargets, Meal, UserProfile } from '../domain/types';
 import type { HomeStreakCalendar } from '../domain/homeStreak';
 import { buildDayReviewViewModel } from '../ui/dayReviewViewModel';
@@ -17,6 +18,7 @@ type Props = {
   profile: UserProfile | null;
   onOpenSettings: () => void;
   onOpenMeal: (meal: Meal) => void;
+  onRelogMeal: (meal: Meal) => void;
 };
 
 function SmallStatCard({ label, value, icon }: { label: string; value: string; icon: 'flame' | 'star' }) {
@@ -111,11 +113,37 @@ function MacroProgress({ label, consumed, target, color }: { label: string; cons
   );
 }
 
-export function PremiumHomeScreen({ meals, targets, profile, onOpenSettings, onOpenMeal }: Props) {
+function QuickRelogCard({ suggestion, onRelogMeal }: { suggestion: RecurringMealSuggestion; onRelogMeal: (meal: Meal) => void }) {
+  return (
+    <PremiumCard style={{ gap: spacing.md }}>
+      <View style={{ alignItems: 'center', flexDirection: 'row', gap: spacing.md, justifyContent: 'space-between' }}>
+        <View style={{ flex: 1, gap: spacing.xs }}>
+          <Text style={{ color: colors.black, fontSize: typography.body, fontWeight: '900' }}>{suggestion.mealName}</Text>
+          <Text style={{ color: colors.muted, fontSize: typography.small, fontWeight: '800' }}>
+            {suggestion.calories} kcal - {suggestion.proteinG} g proteines
+          </Text>
+          <Text style={{ color: colors.muted, fontSize: typography.tiny, fontWeight: '900' }}>
+            {suggestion.count}x logge - dernier: {suggestion.lastLoggedLabel}
+          </Text>
+        </View>
+        <Pressable
+          onPress={() => onRelogMeal(suggestion.templateMeal)}
+          style={{ alignItems: 'center', backgroundColor: colors.black, borderRadius: radius.pill, flexDirection: 'row', gap: spacing.xs, minHeight: 42, paddingHorizontal: spacing.md }}
+        >
+          <Plus color="white" size={16} strokeWidth={2.8} />
+          <Text style={{ color: 'white', fontSize: typography.small, fontWeight: '900' }}>Relogger</Text>
+        </Pressable>
+      </View>
+    </PremiumCard>
+  );
+}
+
+export function PremiumHomeScreen({ meals, targets, profile, onOpenSettings, onOpenMeal, onRelogMeal }: Props) {
   const today = new Date().toISOString().slice(0, 10);
   const [selectedIsoDate, setSelectedIsoDate] = useState(today);
   const vm = buildPremiumDashboardViewModel(meals, today, targets, profile);
   const dayReview = buildDayReviewViewModel(meals, selectedIsoDate, today, targets);
+  const quickRelogMeals = buildRecurringMealSuggestions(meals, 3);
 
   return (
     <ScrollView style={{ backgroundColor: colors.background, flex: 1 }} contentContainerStyle={{ gap: spacing.xl, paddingBottom: spacing.xxl }}>
@@ -146,6 +174,21 @@ export function PremiumHomeScreen({ meals, targets, profile, onOpenSettings, onO
         <MacroProgress label="Glucides" consumed={dayReview.carbs.consumed} target={dayReview.carbs.target} color={colors.blue} />
         <MacroProgress label="Lipides" consumed={dayReview.fat.consumed} target={dayReview.fat.target} color={colors.amber} />
       </View>
+
+      {quickRelogMeals.length > 0 ? (
+        <View style={{ gap: spacing.md, paddingHorizontal: spacing.xl }}>
+          <View style={{ alignItems: 'center', flexDirection: 'row', justifyContent: 'space-between' }}>
+            <View style={{ alignItems: 'center', flexDirection: 'row', gap: spacing.sm }}>
+              <RotateCcw color={colors.black} size={21} strokeWidth={2.5} />
+              <Text style={{ color: colors.black, fontSize: typography.heading, fontWeight: '900' }}>Repas rapides</Text>
+            </View>
+            <Text style={{ color: colors.muted, fontSize: typography.small, fontWeight: '900' }}>1 tap</Text>
+          </View>
+          {quickRelogMeals.map((suggestion) => (
+            <QuickRelogCard key={suggestion.id} suggestion={suggestion} onRelogMeal={onRelogMeal} />
+          ))}
+        </View>
+      ) : null}
 
       <View style={{ gap: spacing.md, paddingHorizontal: spacing.xl }}>
         <View style={{ alignItems: 'center', flexDirection: 'row', justifyContent: 'space-between' }}>
