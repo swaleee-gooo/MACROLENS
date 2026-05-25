@@ -1,5 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 
 const DEFAULT_IMAGE_URL = 'https://upload.wikimedia.org/wikipedia/commons/1/13/Salmon_Poke.jpg';
@@ -27,14 +27,29 @@ function loadEnvFile(path) {
 
 function parseArgs(argv) {
   const imageUrl = argv[2] && !argv[2].startsWith('--') ? argv[2] : DEFAULT_IMAGE_URL;
+  const caseFileArg = argv.find((arg) => arg.startsWith('--case-file='));
   const runCountArg = argv.find((arg) => arg.startsWith('--runs='));
   const delayArg = argv.find((arg) => arg.startsWith('--delay-ms='));
 
   return {
     imageUrl,
+    caseFile: caseFileArg ? caseFileArg.replace('--case-file=', '') : null,
     runCount: runCountArg ? Number(runCountArg.replace('--runs=', '')) : 5,
     delayMs: delayArg ? Number(delayArg.replace('--delay-ms=', '')) : 750,
   };
+}
+
+function loadCases(caseFile) {
+  if (!caseFile) {
+    return null;
+  }
+
+  const resolvedPath = resolve(caseFile);
+  if (!existsSync(resolvedPath)) {
+    throw new Error(`case_file_missing_${resolvedPath}`);
+  }
+
+  return JSON.parse(readFileSync(resolvedPath, 'utf8'));
 }
 
 function assertPositiveInteger(value, name) {
@@ -182,7 +197,7 @@ async function runRepeatabilityBenchmark(functions, { imageUrl, runCount, delayM
 }
 
 async function main() {
-  const { imageUrl, runCount, delayMs } = parseArgs(process.argv);
+  const { imageUrl, caseFile, runCount, delayMs } = parseArgs(process.argv);
   assertPositiveInteger(runCount, 'runs');
   assertPositiveInteger(delayMs, 'delay_ms');
 
@@ -205,15 +220,46 @@ async function main() {
     throw auth.error ?? new Error('anonymous_auth_failed');
   }
 
-  const result = await runRepeatabilityBenchmark(supabase.functions, {
-    imageUrl,
-    runCount,
-    delayMs,
-  });
+  const cases = loadCases(caseFile);
+  const benchmarks = cases ?? [
+    {
+      id: 'single-url',
+      label: 'Single URL',
+      category: 'single',
+      imageUrl,
+      marketingEligible: false,
+    },
+  ];
+  const summaries = [];
 
-  console.log(JSON.stringify(createSummary(result), null, 2));
+  for (const benchmarkCase of benchmarks) {
+    const result = await runRepeatabilityBenchmark(supabase.functions, {
+      imageUrl: benchmarkCase.imageUrl,
+      runCount,
+      delayMs,
+    });
 
-  if (!result.report.passed) {
+    summaries.push({
+      id: benchmarkCase.id,
+      label: benchmarkCase.label,
+      category: benchmarkCase.category,
+      marketingEligible: benchmarkCase.marketingEligible,
+      ...createSummary(result),
+    });
+  }
+
+  console.log(
+    JSON.stringify(
+      {
+        passed: summaries.every((summary) => summary.passed),
+        summaries,
+      },
+      null,
+      2,
+    ),
+  );
+
+  if (!summaries.every((summary) => summary.passed)) {
     process.exitCode = 2;
   }
 }

@@ -67,6 +67,8 @@ Real-device QA status:
 - Premium Conversion V1 is implemented in Expo Go mode: four-step onboarding, local hard paywall gate, premium Home/Timeline/Profile shell, portion adjustment, and save confirmation. Real App Store monetization still requires RevenueCat or StoreKit in a development/TestFlight build.
 - Commercial Launch V1 design is drafted: it defines the minimum commercial scope for scan trust, real App Store monetization, conversion onboarding, barcode/OCR, coaching, compliance, TestFlight, and acquisition.
 - Commercial Launch V1 implementation plan is drafted: it decomposes launch into analytics, benchmark expansion, entitlements, onboarding/paywall, scan trust UI, barcode/OCR, coaching, compliance, TestFlight, and final release gates.
+- Commercial analytics foundation is implemented and committed: privacy-safe event names now cover app open, scan start/completion/failure, non-food detection, and meal save without sending image URIs or raw notes.
+- Commercial repeatability benchmark now supports case-file runs through `npm run repeatability:live:cases`; public launch still requires adding 8 real test images and recording 10 passing same-photo cases.
 
 Verified commands:
 

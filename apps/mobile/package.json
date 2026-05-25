@@ -30,6 +30,7 @@
     "ios": "expo start --ios",
     "web": "expo start --web",
     "repeatability:live": "node scripts/run-repeatability-benchmark.mjs",
+    "repeatability:live:cases": "node scripts/run-repeatability-benchmark.mjs --case-file=scripts/repeatability-cases.json --runs=5",
     "test": "vitest run --passWithNoTests",
     "test:watch": "vitest"
   },
