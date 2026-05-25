@@ -74,6 +74,8 @@ Real-device QA status:
 - Scan Result V2 trust UI is implemented locally: result screens now show confidence wording, calorie range, protein summary, verification prompts, and correction analytics for quick corrections.
 - Commercial Task 6 and Task 7 are implemented locally: barcode scanning uses Expo Camera and Open Food Facts, nutrition label OCR is wired through a Supabase Edge Function contract, Today has a daily coach, the Coach tab opens a weekly report, and the analysis screen now uses a staged animated scan experience. The OCR Edge Function still needs deployment before device QA.
 - Mobile now shares one Supabase client between remote meal analysis and label OCR to avoid duplicate browser auth clients during web/dev smoke tests.
+- Pre-Goal-Progress safety backup is pushed to GitHub repository `swaleee-gooo/MACROLENS`: current app state exists on `main`, branch `codex/macrolens-mvp`, and tag `backup/pre-goal-progress-20260525-155618`.
+- Home Goal Progress is implemented locally: the home screen now has a weekly streak strip above `Apercu Quotidien`, a functional SVG goal progress chart driven by saved meals/profile, and Open Food Facts product lookup now normalizes UPC/EAN barcodes with world/fr host fallback.
 
 Verified commands:
 
@@ -90,6 +92,7 @@ Verified commands:
 - Live Supabase repeat-scan guard smoke test after deployment: anonymous auth + `analyze-meal` invocation returned `Banana`, 105 kcal, 1.3 g protein, high confidence, source `estimated`.
 - `npm run repeatability:live`: passed on `Salmon_Poke.jpg` with 5 same-image live calls; calories 789-826 kcal, protein 39.7-41.5 g, no failed metrics.
 - Expo web smoke test for Commercial Task 6/7 on `http://localhost:8086/`: app served HTTP 200, onboarding rendered at mobile viewport, and console showed no runtime errors.
+- Expo web smoke test for Goal Progress on `http://localhost:8086/`: seeded local premium state rendered Home with `Serie 3 jours`, `Goal Progress`, range chips, SVG chart, and no runtime console errors.
 
 Manual smoke test completed:
 

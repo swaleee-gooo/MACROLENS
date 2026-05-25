@@ -1,21 +1,57 @@
+import { useState } from 'react';
 import { Pressable, ScrollView, Text, View } from 'react-native';
-import { Barcode, Camera, Flame, ImagePlus, PenLine, Star, Target } from 'lucide-react-native';
+import { Barcode, Camera, Flame, ImagePlus, PenLine, Star } from 'lucide-react-native';
 import { BrandHeader } from '../components/BrandHeader';
+import { GoalProgressChart } from '../components/GoalProgressChart';
 import { PremiumCard } from '../components/PremiumCard';
 import { RingProgress } from '../components/RingProgress';
-import type { MacroTargets, Meal } from '../domain/types';
+import type { MacroTargets, Meal, UserProfile } from '../domain/types';
+import type { HomeStreakCalendar } from '../domain/homeStreak';
 import { buildPremiumDashboardViewModel } from '../ui/premiumDashboardViewModel';
 import { colors, radius, spacing, typography } from '../ui/theme';
 
 type Props = {
   meals: Meal[];
   targets: MacroTargets | null;
+  profile: UserProfile | null;
   onCapture: () => void;
   onPickPhoto: () => void;
   onBarcodeScan: () => void;
   onManualMeal: () => void;
   onOpenSettings: () => void;
 };
+
+type GoalRange = '90d' | '6m' | '1y' | 'all';
+
+const goalRanges: { value: GoalRange; label: string }[] = [
+  { value: '90d', label: '90 j' },
+  { value: '6m', label: '6 mois' },
+  { value: '1y', label: '1 an' },
+  { value: 'all', label: 'Tout' },
+];
+
+function daysBetween(startIsoDate: string, endIsoDate: string): number {
+  const start = new Date(`${startIsoDate}T12:00:00.000Z`).getTime();
+  const end = new Date(`${endIsoDate}T12:00:00.000Z`).getTime();
+  return Math.max(1, Math.round((end - start) / 86400000) + 1);
+}
+
+function goalRangeDays(range: GoalRange, meals: Meal[], todayIsoDate: string): number {
+  if (range === '6m') {
+    return 183;
+  }
+
+  if (range === '1y') {
+    return 365;
+  }
+
+  if (range === 'all') {
+    const oldestMeal = meals.length > 0 ? meals[meals.length - 1] : undefined;
+    return oldestMeal ? Math.max(90, daysBetween(oldestMeal.capturedAt.slice(0, 10), todayIsoDate)) : 90;
+  }
+
+  return 90;
+}
 
 function SmallStatCard({ label, value, icon }: { label: string; value: string; icon: 'flame' | 'star' }) {
   const Icon = icon === 'flame' ? Flame : Star;
@@ -30,6 +66,45 @@ function SmallStatCard({ label, value, icon }: { label: string; value: string; i
         </View>
       </View>
     </PremiumCard>
+  );
+}
+
+function StreakCalendarStrip({ calendar }: { calendar: HomeStreakCalendar }) {
+  return (
+    <View style={{ gap: spacing.md, paddingHorizontal: spacing.xl }}>
+      <View style={{ alignItems: 'center', flexDirection: 'row', justifyContent: 'space-between' }}>
+        <Text style={{ color: colors.black, fontSize: typography.subheading, fontWeight: '900' }}>Serie {calendar.streakDays} jours</Text>
+        <Text style={{ color: colors.muted, fontSize: typography.small, fontWeight: '800' }}>Cette semaine</Text>
+      </View>
+      <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+        {calendar.days.map((day) => {
+          const active = day.hasMeal || day.isToday;
+          const borderColor = day.isToday ? colors.black : day.hasMeal ? colors.green : colors.line;
+          const backgroundColor = day.isToday ? colors.black : day.hasMeal ? colors.greenSoft : colors.surface;
+          const textColor = day.isToday ? 'white' : day.isFuture ? colors.muted : colors.black;
+
+          return (
+            <View key={day.isoDate} style={{ alignItems: 'center', gap: spacing.xs, width: 42 }}>
+              <View
+                style={{
+                  alignItems: 'center',
+                  backgroundColor,
+                  borderColor,
+                  borderRadius: radius.pill,
+                  borderWidth: active ? 2 : 1,
+                  height: 34,
+                  justifyContent: 'center',
+                  width: 34,
+                }}
+              >
+                <Text style={{ color: textColor, fontSize: typography.small, fontWeight: '900' }}>{day.weekdayLabel}</Text>
+              </View>
+              <Text style={{ color: day.isToday ? colors.black : colors.muted, fontSize: typography.tiny, fontWeight: '900' }}>{day.dayOfMonth}</Text>
+            </View>
+          );
+        })}
+      </View>
+    </View>
   );
 }
 
@@ -49,14 +124,15 @@ function MacroProgress({ label, consumed, target, color }: { label: string; cons
   );
 }
 
-export function PremiumHomeScreen({ meals, targets, onCapture, onPickPhoto, onBarcodeScan, onManualMeal, onOpenSettings }: Props) {
+export function PremiumHomeScreen({ meals, targets, profile, onCapture, onPickPhoto, onBarcodeScan, onManualMeal, onOpenSettings }: Props) {
+  const [goalRange, setGoalRange] = useState<GoalRange>('90d');
   const today = new Date().toISOString().slice(0, 10);
-  const vm = buildPremiumDashboardViewModel(meals, today, targets);
-  const dayLabels = ['LUN', 'MAR', 'MER', 'JEU', 'VEN', 'SAM', 'DIM'];
+  const vm = buildPremiumDashboardViewModel(meals, today, targets, profile, goalRangeDays(goalRange, meals, today));
 
   return (
     <ScrollView style={{ backgroundColor: colors.background, flex: 1 }} contentContainerStyle={{ gap: spacing.xl, paddingBottom: spacing.xxl }}>
-      <BrandHeader streak={vm.streakDays || undefined} onSettings={onOpenSettings} />
+      <BrandHeader onSettings={onOpenSettings} />
+      <StreakCalendarStrip calendar={vm.streakCalendar} />
       <View style={{ gap: spacing.xs, paddingHorizontal: spacing.xl }}>
         <Text style={{ color: colors.black, fontSize: typography.heading, fontWeight: '900' }}>Apercu Quotidien</Text>
         <Text style={{ color: colors.muted, fontSize: typography.body, fontWeight: '800' }}>Aujourd'hui</Text>
@@ -77,28 +153,36 @@ export function PremiumHomeScreen({ meals, targets, onCapture, onPickPhoto, onBa
         </PremiumCard>
       </View>
 
+      {vm.goalProgress ? (
+        <View style={{ paddingHorizontal: spacing.xl }}>
+          <PremiumCard style={{ gap: spacing.lg }}>
+            <View style={{ flexDirection: 'row', gap: spacing.sm }}>
+              {goalRanges.map((range) => (
+                <Pressable
+                  key={range.value}
+                  onPress={() => setGoalRange(range.value)}
+                  style={{
+                    alignItems: 'center',
+                    backgroundColor: goalRange === range.value ? colors.black : colors.surfaceMuted,
+                    borderRadius: radius.pill,
+                    flex: 1,
+                    minHeight: 34,
+                    justifyContent: 'center',
+                  }}
+                >
+                  <Text style={{ color: goalRange === range.value ? 'white' : colors.black, fontSize: typography.tiny, fontWeight: '900' }}>{range.label}</Text>
+                </Pressable>
+              ))}
+            </View>
+            <GoalProgressChart progress={vm.goalProgress} />
+          </PremiumCard>
+        </View>
+      ) : null}
+
       <View style={{ gap: spacing.md, paddingHorizontal: spacing.xl }}>
         <MacroProgress label="Proteines" consumed={vm.protein.consumed} target={vm.protein.target} color={colors.green} />
         <MacroProgress label="Glucides" consumed={vm.carbs.consumed} target={vm.carbs.target} color={colors.blue} />
         <MacroProgress label="Lipides" consumed={vm.fat.consumed} target={vm.fat.target} color={colors.amber} />
-      </View>
-
-      <View style={{ paddingHorizontal: spacing.xl }}>
-        <PremiumCard style={{ gap: spacing.xl, minHeight: 220 }}>
-          <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-            <Text style={{ color: colors.muted, fontSize: typography.tiny, fontWeight: '900', textTransform: 'uppercase' }}>Progression hebdomadaire</Text>
-            <Text style={{ color: colors.black, fontSize: typography.small, fontWeight: '900' }}>Moyenne: {vm.calories.target || vm.calories.consumed} kcal</Text>
-          </View>
-          <View style={{ flex: 1, justifyContent: 'flex-end' }}>
-            <View style={{ flexDirection: 'row', gap: spacing.sm, justifyContent: 'space-between' }}>
-              {dayLabels.map((label) => (
-                <View key={label} style={{ alignItems: 'center', backgroundColor: label === 'SAM' ? colors.surface : colors.surfaceMuted, borderColor: label === 'SAM' ? colors.black : colors.surfaceMuted, borderWidth: 1, flex: 1, paddingVertical: spacing.xs }}>
-                  <Text style={{ color: colors.muted, fontSize: typography.tiny, fontWeight: '900' }}>{label}</Text>
-                </View>
-              ))}
-            </View>
-          </View>
-        </PremiumCard>
       </View>
 
       <View style={{ gap: spacing.md, paddingHorizontal: spacing.xl }}>

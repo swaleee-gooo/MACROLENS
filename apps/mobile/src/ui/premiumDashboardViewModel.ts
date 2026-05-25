@@ -1,5 +1,7 @@
 import { calculateMealStreak } from '../domain/streaks';
-import type { MacroTargets, Meal } from '../domain/types';
+import { buildGoalProgress } from '../domain/goalProgress';
+import { buildHomeStreakCalendar } from '../domain/homeStreak';
+import type { MacroTargets, Meal, UserProfile } from '../domain/types';
 import { buildDailySummary } from './dashboardViewModel';
 
 function progress(value: number, target: number): number {
@@ -10,13 +12,22 @@ function progress(value: number, target: number): number {
   return Math.min(999, Math.round((value / target) * 100));
 }
 
-export function buildPremiumDashboardViewModel(meals: Meal[], todayIsoDate: string, targets: MacroTargets | null) {
+export function buildPremiumDashboardViewModel(
+  meals: Meal[],
+  todayIsoDate: string,
+  targets: MacroTargets | null,
+  profile: UserProfile | null = null,
+  goalProgressDays = 90,
+) {
   const summary = buildDailySummary(meals, todayIsoDate, targets);
   const calorieTarget = targets?.calorieTarget ?? 0;
   const proteinTarget = targets?.proteinTargetG ?? 0;
+  const streakCalendar = buildHomeStreakCalendar(meals, todayIsoDate);
 
   return {
     dateLabel: 'Aujourd hui',
+    streakCalendar,
+    goalProgress: profile ? buildGoalProgress(meals, profile, todayIsoDate, goalProgressDays) : null,
     calories: {
       consumed: summary.calories,
       target: calorieTarget,

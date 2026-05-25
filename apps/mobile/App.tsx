@@ -416,6 +416,7 @@ function MacroLensApp() {
         <PremiumHomeScreen
           meals={meals}
           targets={targets}
+          profile={profile}
           onCapture={captureMeal}
           onPickPhoto={pickMealPhoto}
           onBarcodeScan={openBarcodeScan}

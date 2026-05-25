@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { buildPremiumDashboardViewModel } from './premiumDashboardViewModel';
-import type { MacroTargets, Meal } from '../domain/types';
+import type { MacroTargets, Meal, UserProfile } from '../domain/types';
 
 const targets: MacroTargets = {
   calorieTarget: 2400,
@@ -10,6 +10,19 @@ const targets: MacroTargets = {
   fiberTargetG: 30,
   calorieOverride: null,
   proteinOverrideG: null,
+};
+
+const profile: UserProfile = {
+  id: 'local-user',
+  goal: 'lose_fat',
+  ageRange: '25-34',
+  sex: 'female',
+  heightCm: 170,
+  weightKg: 80,
+  activityLevel: 'moderate',
+  targetWeightKg: 75,
+  targets,
+  updatedAt: '2026-05-24T12:00:00.000Z',
 };
 
 function meal(id: string, capturedAt: string, calories: number, proteinG: number): Meal {
@@ -39,6 +52,8 @@ describe('buildPremiumDashboardViewModel', () => {
       [meal('today', '2026-05-24T10:00:00.000Z', 1850, 120), meal('yesterday', '2026-05-23T10:00:00.000Z', 500, 30)],
       '2026-05-24',
       targets,
+      profile,
+      7,
     );
 
     expect(vm.calories.consumed).toBe(1850);
@@ -46,6 +61,8 @@ describe('buildPremiumDashboardViewModel', () => {
     expect(vm.calories.progress).toBe(77);
     expect(vm.protein.progress).toBe(80);
     expect(vm.streakDays).toBe(2);
+    expect(vm.streakCalendar.days).toHaveLength(7);
+    expect(vm.goalProgress?.points).toHaveLength(7);
     expect(vm.nextBadge.label).toBe('Chef Etoile');
   });
 });
