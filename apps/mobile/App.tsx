@@ -9,21 +9,29 @@ import { createAnalyticsClient, createConsoleAnalyticsSink } from './src/analyti
 import { isNonFoodPhotoError } from './src/analysis/analysisErrors';
 import type { AnalysisResult } from './src/analysis/analysisSchema';
 import { createAnalysisService } from './src/analysis/analysisServiceFactory';
+import { createRemoteAnalysisService } from './src/analysis/remoteAnalysisService';
 import { appEnv } from './src/config/env';
 import { BottomTabs, type AppTab } from './src/components/BottomTabs';
 import { applyMealCorrection, getMealCorrectionType, type MealCorrection } from './src/domain/corrections';
 import { createManualMacroMeal } from './src/domain/manualMeal';
 import { calculateMealStreak } from './src/domain/streaks';
 import type { MacroTargets, Meal, UserProfile } from './src/domain/types';
+import { buildWeeklyReport, buildWeeklyReportFromMeals } from './src/domain/weeklyReport';
 import { createEntitlementProvider } from './src/entitlements/entitlementProviderFactory';
 import type { CommercialEntitlementState, PurchasePlan } from './src/entitlements/entitlementTypes';
+import { lookupOpenFoodFactsProduct } from './src/packagedFood/openFoodFacts';
+import { createNutritionLabelOcrService } from './src/packagedFood/labelOcrService';
+import { createPackagedFoodMeal } from './src/packagedFood/packagedFoodMeal';
 import { createEntitlementRepository, type EntitlementState } from './src/storage/entitlementRepository';
 import { createMealRepository } from './src/storage/mealRepository';
 import { createOnboardingRepository, type OnboardingState } from './src/storage/onboardingRepository';
 import { createProfileRepository } from './src/storage/profileRepository';
+import { createMacroLensSupabaseClient } from './src/supabase/client';
 import { colors } from './src/ui/theme';
 import { AnalyzingScreen } from './src/screens/AnalyzingScreen';
+import { BarcodeScanScreen } from './src/screens/BarcodeScanScreen';
 import { EditProfileScreen } from './src/screens/EditProfileScreen';
+import { LabelScanScreen } from './src/screens/LabelScanScreen';
 import { ManualMealScreen } from './src/screens/ManualMealScreen';
 import { OnboardingScreen } from './src/screens/OnboardingScreen';
 import { PaywallScreen } from './src/screens/PaywallScreen';
@@ -35,6 +43,8 @@ import { SaveConfirmationScreen } from './src/screens/SaveConfirmationScreen';
 import { SettingsScreen } from './src/screens/SettingsScreen';
 import { SuccessProfileScreen } from './src/screens/SuccessProfileScreen';
 import { TargetsScreen } from './src/screens/TargetsScreen';
+import { TodayScreen } from './src/screens/TodayScreen';
+import { WeeklyReportScreen } from './src/screens/WeeklyReportScreen';
 
 type ScreenState =
   | { name: 'loading' }
@@ -48,7 +58,10 @@ type ScreenState =
   | { name: 'editProfile' }
   | { name: 'settings' }
   | { name: 'targets' }
-  | { name: 'manualMeal' };
+  | { name: 'manualMeal' }
+  | { name: 'barcodeScan' }
+  | { name: 'labelScan' }
+  | { name: 'weeklyReport' };
 
 const queryClient = new QueryClient();
 const analytics = createAnalyticsClient(createConsoleAnalyticsSink());
@@ -88,7 +101,41 @@ function MacroLensApp() {
   const profileRepository = useMemo(() => createProfileRepository(AsyncStorage), []);
   const entitlementRepository = useMemo(() => createEntitlementRepository(AsyncStorage), []);
   const onboardingRepository = useMemo(() => createOnboardingRepository(AsyncStorage), []);
-  const analysisService = useMemo(() => createAnalysisService(appEnv), []);
+  const supabaseClient = useMemo(() => {
+    if (appEnv.analysisMode !== 'remote' || !appEnv.supabaseUrl || !appEnv.supabaseAnonKey) {
+      return null;
+    }
+
+    return createMacroLensSupabaseClient(appEnv.supabaseUrl, appEnv.supabaseAnonKey);
+  }, []);
+  const analysisService = useMemo(() => {
+    if (!supabaseClient || !appEnv.supabaseUrl || !appEnv.supabaseAnonKey) {
+      return createAnalysisService(appEnv);
+    }
+
+    return createAnalysisService(appEnv, {
+      remote: createRemoteAnalysisService(
+        {
+          supabaseUrl: appEnv.supabaseUrl,
+          supabaseAnonKey: appEnv.supabaseAnonKey,
+        },
+        supabaseClient as NonNullable<Parameters<typeof createRemoteAnalysisService>[1]>,
+      ),
+    });
+  }, [supabaseClient]);
+  const nutritionLabelOcrService = useMemo(() => {
+    if (!supabaseClient || !appEnv.supabaseUrl || !appEnv.supabaseAnonKey) {
+      return null;
+    }
+
+    return createNutritionLabelOcrService(
+      {
+        supabaseUrl: appEnv.supabaseUrl,
+        supabaseAnonKey: appEnv.supabaseAnonKey,
+      },
+      supabaseClient as NonNullable<Parameters<typeof createNutritionLabelOcrService>[1]>,
+    );
+  }, [supabaseClient]);
   const entitlementProvider = useMemo(
     () =>
       createEntitlementProvider({
@@ -277,6 +324,67 @@ function MacroLensApp() {
     setScreen({ name: 'result', meal, isSaved: false });
   }
 
+  function openBarcodeScan() {
+    analytics.track('barcode_scan_started');
+    setScreen({ name: 'barcodeScan' });
+  }
+
+  function openLabelScan() {
+    setScreen({ name: 'labelScan' });
+  }
+
+  async function handleBarcodeDetected(barcode: string) {
+    analytics.track('barcode_scan_completed', { source: 'barcode' });
+    setScreen({ name: 'analyzing', imageUri: `barcode://${barcode}` });
+
+    try {
+      const item = await lookupOpenFoodFactsProduct(barcode);
+      const meal = createPackagedFoodMeal({ userId: localUserId, item, servingGrams: 100 });
+      setScreen({ name: 'result', meal, isSaved: false });
+    } catch {
+      Alert.alert('Produit introuvable', "Open Food Facts n'a pas trouve ce code-barres. Scanne l'etiquette ou ajoute le produit manuellement.");
+      setScreen({ name: 'labelScan' });
+    }
+  }
+
+  async function handleLabelPhoto(imageUri: string) {
+    analytics.track('label_scan_completed', { source: 'label_photo' });
+
+    if (!nutritionLabelOcrService) {
+      Alert.alert('OCR indisponible', "Passe l'app en mode remote pour lire automatiquement les etiquettes nutritionnelles.");
+      setScreen({ name: 'manualMeal' });
+      return;
+    }
+
+    setScreen({ name: 'analyzing', imageUri });
+
+    try {
+      const result = await nutritionLabelOcrService.scanLabelPhoto(imageUri);
+      const meal = createPackagedFoodMeal({
+        userId: localUserId,
+        item: result.item,
+        servingGrams: result.servingGrams,
+        imageUri,
+      });
+      analytics.track('scan_completed', {
+        source: 'label_ocr',
+        confidence: meal.confidence,
+        caloriesEstimate: meal.caloriesEstimate,
+        corrected: false,
+      });
+      setScreen({ name: 'result', meal, isSaved: false });
+    } catch {
+      analytics.track('scan_failed', { source: 'label_ocr', reason: 'label_ocr_error' });
+      Alert.alert('Etiquette illisible', 'Cadre le tableau nutritionnel de face, avec les valeurs par 100 g visibles, ou ajoute le produit manuellement.');
+      setScreen({ name: 'manualMeal' });
+    }
+  }
+
+  function openWeeklyReport() {
+    analytics.track('weekly_report_viewed');
+    setScreen({ name: 'weeklyReport' });
+  }
+
   function applyCorrectionAndTrack(meal: Meal, correction: MealCorrection) {
     const correctedMeal = applyMealCorrection(meal, correction);
     analytics.track('correction_applied', {
@@ -290,6 +398,18 @@ function MacroLensApp() {
     const content =
       tab === 'timeline' ? (
         <PremiumTimelineScreen meals={meals} onOpenMeal={(meal) => setScreen({ name: 'result', meal, isSaved: true })} />
+      ) : tab === 'today' ? (
+        <TodayScreen
+          meals={meals}
+          targets={targets}
+          onBack={() => setScreen({ name: 'app', tab: 'home' })}
+          onCapture={captureMeal}
+          onPickPhoto={pickMealPhoto}
+          onBarcodeScan={openBarcodeScan}
+          onManualMeal={() => setScreen({ name: 'manualMeal' })}
+          onOpenWeeklyReport={openWeeklyReport}
+          onOpenMeal={(meal) => setScreen({ name: 'result', meal, isSaved: true })}
+        />
       ) : tab === 'profile' ? (
         <SuccessProfileScreen meals={meals} onEditProfile={() => setScreen({ name: 'editProfile' })} onOpenSettings={() => setScreen({ name: 'settings' })} />
       ) : (
@@ -298,6 +418,7 @@ function MacroLensApp() {
           targets={targets}
           onCapture={captureMeal}
           onPickPhoto={pickMealPhoto}
+          onBarcodeScan={openBarcodeScan}
           onManualMeal={() => setScreen({ name: 'manualMeal' })}
           onOpenSettings={() => setScreen({ name: 'settings' })}
         />
@@ -413,6 +534,30 @@ function MacroLensApp() {
 
   if (screen.name === 'manualMeal') {
     return <ManualMealScreen onBack={() => setScreen({ name: 'app', tab: 'home' })} onSave={saveManualMeal} />;
+  }
+
+  if (screen.name === 'barcodeScan') {
+    return (
+      <BarcodeScanScreen
+        onBack={() => setScreen({ name: 'app', tab: 'home' })}
+        onBarcodeDetected={handleBarcodeDetected}
+        onOpenLabelScan={openLabelScan}
+        onManualFallback={() => setScreen({ name: 'manualMeal' })}
+      />
+    );
+  }
+
+  if (screen.name === 'labelScan') {
+    return <LabelScanScreen onBack={() => setScreen({ name: 'barcodeScan' })} onLabelPhoto={handleLabelPhoto} />;
+  }
+
+  if (screen.name === 'weeklyReport') {
+    const todayIsoDate = new Date().toISOString().slice(0, 10);
+    const report = targets
+      ? buildWeeklyReportFromMeals({ meals, targets, todayIsoDate })
+      : buildWeeklyReport({ daysLogged: 0, averageCalories: 0, averageProteinG: 0, targetCalories: 0, targetProteinG: 0 });
+
+    return <WeeklyReportScreen report={report} onBack={() => setScreen({ name: 'app', tab: 'today' })} />;
   }
 
   return renderAppShell('home');

@@ -1,7 +1,8 @@
 import { Pressable, ScrollView, Text, View } from 'react-native';
 import type { DimensionValue } from 'react-native';
-import { ArrowLeft, Camera, ImagePlus, PenLine } from 'lucide-react-native';
+import { ArrowLeft, Barcode, CalendarDays, Camera, ImagePlus, PenLine, Sparkles } from 'lucide-react-native';
 import type { MacroTargets, Meal } from '../domain/types';
+import { buildTodayCoach } from '../domain/todayCoach';
 import { MealCard } from '../components/MealCard';
 import { MetricPill } from '../components/MetricPill';
 import { buildTodayViewModel } from '../ui/todayViewModel';
@@ -13,7 +14,9 @@ type Props = {
   onBack: () => void;
   onCapture: () => void;
   onPickPhoto: () => void;
+  onBarcodeScan: () => void;
   onManualMeal: () => void;
+  onOpenWeeklyReport: () => void;
   onOpenMeal: (meal: Meal) => void;
 };
 
@@ -33,10 +36,10 @@ function ActionButton({
   onPress,
 }: {
   label: string;
-  icon: 'camera' | 'image' | 'manual';
+  icon: 'camera' | 'image' | 'barcode' | 'manual';
   onPress: () => void;
 }) {
-  const Icon = icon === 'camera' ? Camera : icon === 'image' ? ImagePlus : PenLine;
+  const Icon = icon === 'camera' ? Camera : icon === 'image' ? ImagePlus : icon === 'barcode' ? Barcode : PenLine;
 
   return (
     <Pressable
@@ -61,10 +64,28 @@ function ActionButton({
   );
 }
 
-export function TodayScreen({ meals, targets, onBack, onCapture, onPickPhoto, onManualMeal, onOpenMeal }: Props) {
+export function TodayScreen({ meals, targets, onBack, onCapture, onPickPhoto, onBarcodeScan, onManualMeal, onOpenWeeklyReport, onOpenMeal }: Props) {
   const today = new Date().toISOString().slice(0, 10);
   const viewModel = buildTodayViewModel(meals, today, targets);
   const summary = viewModel.summary;
+  const coach = targets
+    ? buildTodayCoach({
+        consumed: {
+          calories: summary.calories,
+          proteinG: summary.proteinG,
+          carbsG: summary.carbsG,
+          fatG: summary.fatG,
+          fiberG: summary.fiberG,
+        },
+        targets: {
+          calories: targets.calorieTarget,
+          proteinG: targets.proteinTargetG,
+          carbsG: targets.carbsTargetG,
+          fatG: targets.fatTargetG,
+          fiberG: targets.fiberTargetG,
+        },
+      })
+    : null;
 
   return (
     <ScrollView style={{ backgroundColor: colors.background, flex: 1 }} contentContainerStyle={{ gap: spacing.xl, padding: spacing.xl }}>
@@ -77,6 +98,20 @@ export function TodayScreen({ meals, targets, onBack, onCapture, onPickPhoto, on
         <Text style={{ color: colors.ink, fontSize: typography.title, fontWeight: '900' }}>Aujourd'hui</Text>
         <Text style={{ color: colors.muted, fontSize: typography.body }}>{viewModel.meals.length} repas enregistres</Text>
       </View>
+
+      {coach ? (
+        <View style={{ backgroundColor: colors.black, borderRadius: radius.md, gap: spacing.md, padding: spacing.lg }}>
+          <View style={{ alignItems: 'center', flexDirection: 'row', gap: spacing.sm }}>
+            <Sparkles color={colors.greenSoft} size={22} strokeWidth={2.5} />
+            <Text style={{ color: 'white', fontSize: typography.heading, fontWeight: '900' }}>{coach.headline}</Text>
+          </View>
+          <Text style={{ color: '#EFEFEF', fontSize: typography.body, fontWeight: '800', lineHeight: 24 }}>{coach.action}</Text>
+          <Pressable onPress={onOpenWeeklyReport} style={{ alignItems: 'center', alignSelf: 'flex-start', backgroundColor: colors.greenSoft, borderRadius: radius.pill, flexDirection: 'row', gap: spacing.xs, paddingHorizontal: spacing.md, paddingVertical: spacing.sm }}>
+            <CalendarDays color={colors.green} size={16} strokeWidth={2.6} />
+            <Text style={{ color: colors.green, fontSize: typography.small, fontWeight: '900' }}>Rapport hebdo</Text>
+          </Pressable>
+        </View>
+      ) : null}
 
       <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: spacing.md }}>
         <MetricPill label="Calories" value={`${summary.calories}${targets ? ` / ${targets.calorieTarget}` : ''}`} />
@@ -106,6 +141,7 @@ export function TodayScreen({ meals, targets, onBack, onCapture, onPickPhoto, on
 
       <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm }}>
         <ActionButton label="Scan" icon="camera" onPress={onCapture} />
+        <ActionButton label="Produit" icon="barcode" onPress={onBarcodeScan} />
         <ActionButton label="Galerie" icon="image" onPress={onPickPhoto} />
         <ActionButton label="Manuel" icon="manual" onPress={onManualMeal} />
       </View>

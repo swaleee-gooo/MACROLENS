@@ -1,5 +1,5 @@
 import { Pressable, ScrollView, Text, View } from 'react-native';
-import { Camera, Flame, ImagePlus, PenLine, Star, Target } from 'lucide-react-native';
+import { Barcode, Camera, Flame, ImagePlus, PenLine, Star, Target } from 'lucide-react-native';
 import { BrandHeader } from '../components/BrandHeader';
 import { PremiumCard } from '../components/PremiumCard';
 import { RingProgress } from '../components/RingProgress';
@@ -12,6 +12,7 @@ type Props = {
   targets: MacroTargets | null;
   onCapture: () => void;
   onPickPhoto: () => void;
+  onBarcodeScan: () => void;
   onManualMeal: () => void;
   onOpenSettings: () => void;
 };
@@ -48,7 +49,7 @@ function MacroProgress({ label, consumed, target, color }: { label: string; cons
   );
 }
 
-export function PremiumHomeScreen({ meals, targets, onCapture, onPickPhoto, onManualMeal, onOpenSettings }: Props) {
+export function PremiumHomeScreen({ meals, targets, onCapture, onPickPhoto, onBarcodeScan, onManualMeal, onOpenSettings }: Props) {
   const today = new Date().toISOString().slice(0, 10);
   const vm = buildPremiumDashboardViewModel(meals, today, targets);
   const dayLabels = ['LUN', 'MAR', 'MER', 'JEU', 'VEN', 'SAM', 'DIM'];
@@ -106,6 +107,10 @@ export function PremiumHomeScreen({ meals, targets, onCapture, onPickPhoto, onMa
           <Text style={{ color: 'white', fontSize: typography.subheading, fontWeight: '900' }}>Scanner un repas</Text>
         </Pressable>
         <View style={{ flexDirection: 'row', gap: spacing.md }}>
+          <Pressable onPress={onBarcodeScan} style={{ alignItems: 'center', backgroundColor: colors.surface, borderColor: colors.line, borderRadius: radius.pill, borderWidth: 1, flex: 1, flexDirection: 'row', gap: spacing.sm, justifyContent: 'center', minHeight: 54 }}>
+            <Barcode color={colors.green} size={18} strokeWidth={2.4} />
+            <Text style={{ color: colors.black, fontSize: typography.body, fontWeight: '900' }}>Produit</Text>
+          </Pressable>
           <Pressable onPress={onPickPhoto} style={{ alignItems: 'center', backgroundColor: colors.surface, borderColor: colors.line, borderRadius: radius.pill, borderWidth: 1, flex: 1, flexDirection: 'row', gap: spacing.sm, justifyContent: 'center', minHeight: 54 }}>
             <ImagePlus color={colors.blue} size={18} strokeWidth={2.4} />
             <Text style={{ color: colors.black, fontSize: typography.body, fontWeight: '900' }}>Galerie</Text>

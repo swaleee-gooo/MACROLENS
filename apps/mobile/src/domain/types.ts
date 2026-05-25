@@ -1,6 +1,6 @@
 export type ConfidenceTier = 'high' | 'medium' | 'low';
 
-export type NutritionSource = 'open_food_facts' | 'usda' | 'estimated' | 'mock';
+export type NutritionSource = 'open_food_facts' | 'nutrition_label_ocr' | 'usda' | 'estimated' | 'mock';
 
 export type CorrectionType = 'portion_up' | 'portion_down' | 'add_oil' | 'add_sauce' | 'remove_item';
 

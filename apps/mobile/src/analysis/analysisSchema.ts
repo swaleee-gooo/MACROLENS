@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
 export const confidenceTierSchema = z.enum(['high', 'medium', 'low']);
-export const nutritionSourceSchema = z.enum(['open_food_facts', 'usda', 'estimated', 'mock']);
+export const nutritionSourceSchema = z.enum(['open_food_facts', 'nutrition_label_ocr', 'usda', 'estimated', 'mock']);
 
 export const foodItemSchema = z.object({
   id: z.string().min(1),

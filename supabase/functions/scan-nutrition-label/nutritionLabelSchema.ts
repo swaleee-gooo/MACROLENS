@@ -1,0 +1,33 @@
+export const nutritionLabelOcrJsonSchema = {
+  type: 'object',
+  additionalProperties: false,
+  required: [
+    'isNutritionLabel',
+    'productName',
+    'servingSizeText',
+    'servingGrams',
+    'caloriesPer100g',
+    'proteinPer100g',
+    'carbsPer100g',
+    'fatPer100g',
+    'fiberPer100g',
+    'confidence',
+    'missingFields',
+  ],
+  properties: {
+    isNutritionLabel: { type: 'boolean' },
+    productName: { type: 'string' },
+    servingSizeText: { type: 'string' },
+    servingGrams: { anyOf: [{ type: 'number' }, { type: 'null' }] },
+    caloriesPer100g: { anyOf: [{ type: 'number' }, { type: 'null' }] },
+    proteinPer100g: { anyOf: [{ type: 'number' }, { type: 'null' }] },
+    carbsPer100g: { anyOf: [{ type: 'number' }, { type: 'null' }] },
+    fatPer100g: { anyOf: [{ type: 'number' }, { type: 'null' }] },
+    fiberPer100g: { anyOf: [{ type: 'number' }, { type: 'null' }] },
+    confidence: { type: 'string', enum: ['high', 'medium', 'low'] },
+    missingFields: {
+      type: 'array',
+      items: { type: 'string' },
+    },
+  },
+};

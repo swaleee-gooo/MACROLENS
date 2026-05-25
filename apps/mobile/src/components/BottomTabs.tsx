@@ -1,8 +1,8 @@
 import { Pressable, Text, View } from 'react-native';
-import { BarChart3, Home, User } from 'lucide-react-native';
+import { BarChart3, CalendarCheck, Home, User } from 'lucide-react-native';
 import { colors, spacing, typography } from '../ui/theme';
 
-export type AppTab = 'home' | 'timeline' | 'profile';
+export type AppTab = 'home' | 'today' | 'timeline' | 'profile';
 
 type Props = {
   activeTab: AppTab;
@@ -11,6 +11,7 @@ type Props = {
 
 const tabs: { tab: AppTab; label: string; icon: typeof Home }[] = [
   { tab: 'home', label: 'Accueil', icon: Home },
+  { tab: 'today', label: 'Coach', icon: CalendarCheck },
   { tab: 'timeline', label: 'Timeline', icon: BarChart3 },
   { tab: 'profile', label: 'Profil', icon: User },
 ];

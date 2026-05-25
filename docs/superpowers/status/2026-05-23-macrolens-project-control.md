@@ -72,6 +72,8 @@ Real-device QA status:
 - Production entitlement architecture is implemented locally: RevenueCat dependency, EAS development build config, iOS bundle id, store/local entitlement provider boundary, and entitlement persistence metadata are in place. Real purchase validation still requires App Store Connect products and a TestFlight/development build.
 - Conversion onboarding and paywall UX are now wired locally: onboarding captures goal, friction, measures, activity, and a personalized proof screen; the paywall CTA calls the entitlement provider while the Expo Go unlock remains hidden outside local dev mode.
 - Scan Result V2 trust UI is implemented locally: result screens now show confidence wording, calorie range, protein summary, verification prompts, and correction analytics for quick corrections.
+- Commercial Task 6 and Task 7 are implemented locally: barcode scanning uses Expo Camera and Open Food Facts, nutrition label OCR is wired through a Supabase Edge Function contract, Today has a daily coach, the Coach tab opens a weekly report, and the analysis screen now uses a staged animated scan experience. The OCR Edge Function still needs deployment before device QA.
+- Mobile now shares one Supabase client between remote meal analysis and label OCR to avoid duplicate browser auth clients during web/dev smoke tests.
 
 Verified commands:
 
@@ -87,6 +89,7 @@ Verified commands:
 - Expo web smoke test for Premium Conversion V1 on `http://localhost:8084/`: onboarding, paywall gate, local Expo Go unlock, bottom tabs, manual meal, portion adjustment, save confirmation, and Timeline.
 - Live Supabase repeat-scan guard smoke test after deployment: anonymous auth + `analyze-meal` invocation returned `Banana`, 105 kcal, 1.3 g protein, high confidence, source `estimated`.
 - `npm run repeatability:live`: passed on `Salmon_Poke.jpg` with 5 same-image live calls; calories 789-826 kcal, protein 39.7-41.5 g, no failed metrics.
+- Expo web smoke test for Commercial Task 6/7 on `http://localhost:8086/`: app served HTTP 200, onboarding rendered at mobile viewport, and console showed no runtime errors.
 
 Manual smoke test completed:
 
