@@ -135,8 +135,14 @@ export function ScannerScreen({
     onManualBarcode(barcode);
   }
 
+  function openManualBarcodeEntry() {
+    setMode('barcode');
+    setScanned(false);
+    setManualEntryOpen(true);
+  }
+
   async function captureFrame() {
-    if (!cameraReady || isCapturing || !config.showsShutter) {
+    if (!cameraReady || isCapturing || config.captureType !== 'manual_photo') {
       return;
     }
 
@@ -257,23 +263,26 @@ export function ScannerScreen({
                     ? "La base produit n'a pas assez de valeurs nutritionnelles. Cadre le tableau par 100 g pour creer la fiche."
                     : "Essaie un autre angle, entre le code ou scanne l'etiquette nutritionnelle."}
                 </Text>
-                <View style={{ flexDirection: 'row', gap: spacing.sm }}>
+                <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm }}>
                   <Pressable
                     onPress={() => {
                       setScanned(false);
                       setLookupIssue(null);
                     }}
-                    style={{ alignItems: 'center', backgroundColor: colors.black, borderRadius: radius.pill, flex: 1, minHeight: 44, justifyContent: 'center' }}
+                    style={{ alignItems: 'center', backgroundColor: colors.black, borderRadius: radius.pill, flexGrow: 1, minHeight: 44, minWidth: 132, justifyContent: 'center' }}
                   >
                     <Text style={{ color: 'white', fontSize: typography.small, fontWeight: '900' }}>Reessayer</Text>
                   </Pressable>
-                  <Pressable onPress={() => switchMode('label')} style={{ alignItems: 'center', backgroundColor: colors.surfaceMuted, borderRadius: radius.pill, flex: 1, minHeight: 44, justifyContent: 'center' }}>
-                    <Text style={{ color: colors.black, fontSize: typography.small, fontWeight: '900' }}>Etiquette</Text>
+                  <Pressable onPress={() => switchMode('label')} style={{ alignItems: 'center', backgroundColor: colors.greenSoft, borderRadius: radius.pill, flexGrow: 1, minHeight: 44, minWidth: 132, justifyContent: 'center' }}>
+                    <Text style={{ color: colors.green, fontSize: typography.small, fontWeight: '900' }}>Scanner l'etiquette</Text>
+                  </Pressable>
+                  <Pressable onPress={openManualBarcodeEntry} style={{ alignItems: 'center', backgroundColor: colors.surfaceMuted, borderRadius: radius.pill, flexGrow: 1, minHeight: 44, minWidth: 132, justifyContent: 'center' }}>
+                    <Text style={{ color: colors.black, fontSize: typography.small, fontWeight: '900' }}>Entrer le code</Text>
+                  </Pressable>
+                  <Pressable onPress={onManualMeal} style={{ alignItems: 'center', borderColor: colors.line, borderRadius: radius.pill, borderWidth: 1, flexGrow: 1, minHeight: 44, minWidth: 132, justifyContent: 'center' }}>
+                    <Text style={{ color: colors.black, fontSize: typography.small, fontWeight: '900' }}>Ajouter manuellement</Text>
                   </Pressable>
                 </View>
-                <Pressable onPress={() => setManualEntryOpen((current) => !current)} style={{ alignItems: 'center', borderColor: colors.line, borderRadius: radius.pill, borderWidth: 1, minHeight: 42, justifyContent: 'center' }}>
-                  <Text style={{ color: colors.black, fontSize: typography.small, fontWeight: '900' }}>Entrer le code</Text>
-                </Pressable>
               </View>
             ) : null}
 
@@ -330,7 +339,7 @@ export function ScannerScreen({
                 {mode === 'barcode' ? <Keyboard color={colors.black} size={19} strokeWidth={2.4} /> : <ImagePlus color={colors.black} size={19} strokeWidth={2.4} />}
               </Pressable>
 
-              {config.showsShutter ? (
+              {config.captureType === 'manual_photo' ? (
                 <Pressable
                   disabled={!cameraReady || isCapturing}
                   onPress={captureFrame}
@@ -350,7 +359,7 @@ export function ScannerScreen({
                 </Pressable>
               ) : (
                 <View style={{ alignItems: 'center', backgroundColor: 'rgba(0,0,0,0.42)', borderColor: 'rgba(255,255,255,0.3)', borderRadius: radius.pill, borderWidth: 1, height: 64, justifyContent: 'center', paddingHorizontal: spacing.md, width: 138 }}>
-                  <Text style={{ color: 'white', fontSize: typography.small, fontWeight: '900', textAlign: 'center' }}>{scanned ? 'Recherche...' : 'Detection auto'}</Text>
+                  <Text style={{ color: 'white', fontSize: typography.small, fontWeight: '900', textAlign: 'center' }}>{scanned ? 'Recherche...' : 'Detection automatique'}</Text>
                 </View>
               )}
 

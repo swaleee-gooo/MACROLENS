@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { getScannerModeConfig, scannerModes } from './scannerModes';
+import { getScannerModeConfig, scannerModeConfig, scannerModes } from './scannerModes';
 
 describe('scannerModes', () => {
   it('orders the scanner modes like the capture tray', () => {
@@ -19,5 +19,12 @@ describe('scannerModes', () => {
     expect(barcodeConfig.title).toBe('Code-barres');
     expect(barcodeConfig.instruction).toContain('produit');
     expect(barcodeConfig.frameVariant).toBe('barcode');
+  });
+
+  it('uses automatic detection for barcode mode and capture for meal mode', () => {
+    expect(scannerModeConfig.barcode.captureType).toBe('automatic');
+    expect(scannerModeConfig.meal.captureType).toBe('manual_photo');
+    expect(scannerModeConfig.label.captureType).toBe('manual_photo');
+    expect(scannerModeConfig.library.captureType).toBe('library');
   });
 });

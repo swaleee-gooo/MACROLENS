@@ -25,6 +25,15 @@ function MetricCard({ label, value, unit, accent = colors.black }: { label: stri
   );
 }
 
+function Per100gRow({ label, value, accent = colors.black }: { label: string; value: string; accent?: string }) {
+  return (
+    <View style={{ alignItems: 'center', flexDirection: 'row', justifyContent: 'space-between' }}>
+      <Text style={{ color: colors.muted, fontSize: typography.small, fontWeight: '800' }}>{label}</Text>
+      <Text style={{ color: accent, fontSize: typography.small, fontWeight: '900' }}>{value}</Text>
+    </View>
+  );
+}
+
 export function PackagedProductScreen({ item, initialServingGrams = 30, onBack, onAddProduct }: Props) {
   const [servingGrams, setServingGrams] = useState(initialServingGrams);
   const nutrition = calculatePackagedServingNutrition(item, servingGrams);
@@ -46,7 +55,7 @@ export function PackagedProductScreen({ item, initialServingGrams = 30, onBack, 
         </View>
         <Text style={{ color: colors.black, fontSize: typography.title, fontWeight: '900' }}>{item.name}</Text>
         <Text style={{ color: colors.muted, fontSize: typography.body, fontWeight: '800', lineHeight: 24 }}>
-          Produit scanne. Choisis la portion consommee avant de l'ajouter au journal.
+          Produit scanne. Ajuste la portion consommee avant de l'ajouter au journal.
         </Text>
       </View>
 
@@ -93,24 +102,27 @@ export function PackagedProductScreen({ item, initialServingGrams = 30, onBack, 
         </View>
       </View>
 
-      <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: spacing.md }}>
-        <MetricCard label="Calories" value={`${nutrition.calories}`} unit="kcal" />
-        <MetricCard label="Proteines" value={`${nutrition.proteinG}`} unit="g" accent={colors.green} />
-        <MetricCard label="Glucides" value={`${nutrition.carbsG}`} unit="g" accent={colors.blue} />
-        <MetricCard label="Lipides" value={`${nutrition.fatG}`} unit="g" accent={colors.amber} />
+      <View style={{ gap: spacing.md }}>
+        <Text style={{ color: colors.black, fontSize: typography.subheading, fontWeight: '900' }}>Portion selectionnee</Text>
+        <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: spacing.md }}>
+          <MetricCard label="Calories" value={`${nutrition.calories}`} unit="kcal" />
+          <MetricCard label="Proteines" value={`${nutrition.proteinG}`} unit="g" accent={colors.green} />
+          <MetricCard label="Glucides" value={`${nutrition.carbsG}`} unit="g" accent={colors.blue} />
+          <MetricCard label="Lipides" value={`${nutrition.fatG}`} unit="g" accent={colors.amber} />
+        </View>
       </View>
 
-      <View style={{ backgroundColor: colors.surfaceMuted, borderRadius: radius.sm, gap: spacing.xs, padding: spacing.md }}>
-        <Text style={{ color: colors.muted, fontSize: typography.tiny, fontWeight: '900', textTransform: 'uppercase' }}>Base produit</Text>
-        <Text style={{ color: colors.black, fontSize: typography.small, fontWeight: '900' }}>{item.caloriesPer100g} kcal / 100g</Text>
-        <Text style={{ color: colors.muted, fontSize: typography.small, fontWeight: '800' }}>
-          {item.proteinPer100g}g prot | {item.carbsPer100g}g glucides | {item.fatPer100g}g lipides
-        </Text>
+      <View style={{ backgroundColor: colors.surfaceMuted, borderRadius: radius.sm, gap: spacing.sm, padding: spacing.md }}>
+        <Text style={{ color: colors.muted, fontSize: typography.tiny, fontWeight: '900', textTransform: 'uppercase' }}>Valeurs pour 100 g</Text>
+        <Per100gRow label="Calories" value={`${item.caloriesPer100g} kcal`} />
+        <Per100gRow label="Proteines" value={`${item.proteinPer100g} g`} accent={colors.green} />
+        <Per100gRow label="Glucides" value={`${item.carbsPer100g} g`} accent={colors.blue} />
+        <Per100gRow label="Lipides" value={`${item.fatPer100g} g`} accent={colors.amber} />
       </View>
 
       <Pressable onPress={() => onAddProduct(servingGrams)} style={{ alignItems: 'center', backgroundColor: colors.black, borderRadius: radius.pill, flexDirection: 'row', gap: spacing.sm, justifyContent: 'center', minHeight: 64 }}>
         <Check color="white" size={24} strokeWidth={2.7} />
-        <Text style={{ color: 'white', fontSize: typography.subheading, fontWeight: '900' }}>Ajouter au journal</Text>
+        <Text style={{ color: 'white', fontSize: typography.subheading, fontWeight: '900' }}>Ajouter ce produit</Text>
       </Pressable>
     </ScrollView>
   );
