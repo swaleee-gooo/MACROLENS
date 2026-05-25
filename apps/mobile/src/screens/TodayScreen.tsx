@@ -1,21 +1,23 @@
+import { useState } from 'react';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 import type { DimensionValue } from 'react-native';
-import { ArrowLeft, Barcode, CalendarDays, Camera, ImagePlus, PenLine, Sparkles } from 'lucide-react-native';
-import type { MacroTargets, Meal } from '../domain/types';
+import { ArrowLeft, CalendarDays, Sparkles } from 'lucide-react-native';
+import type { MacroTargets, Meal, UserProfile } from '../domain/types';
+import { buildGoalProgress } from '../domain/goalProgress';
 import { buildTodayCoach } from '../domain/todayCoach';
+import { GoalProgressChart } from '../components/GoalProgressChart';
 import { MealCard } from '../components/MealCard';
 import { MetricPill } from '../components/MetricPill';
+import { PremiumCard } from '../components/PremiumCard';
+import { goalRangeDays, goalRanges, type GoalRange } from '../ui/goalProgressRanges';
 import { buildTodayViewModel } from '../ui/todayViewModel';
 import { colors, radius, spacing, typography } from '../ui/theme';
 
 type Props = {
   meals: Meal[];
   targets: MacroTargets | null;
+  profile: UserProfile | null;
   onBack: () => void;
-  onCapture: () => void;
-  onPickPhoto: () => void;
-  onBarcodeScan: () => void;
-  onManualMeal: () => void;
   onOpenWeeklyReport: () => void;
   onOpenMeal: (meal: Meal) => void;
 };
@@ -30,44 +32,12 @@ function ProgressBar({ value, color }: { value: number | null; color: string }) 
   );
 }
 
-function ActionButton({
-  label,
-  icon,
-  onPress,
-}: {
-  label: string;
-  icon: 'camera' | 'image' | 'barcode' | 'manual';
-  onPress: () => void;
-}) {
-  const Icon = icon === 'camera' ? Camera : icon === 'image' ? ImagePlus : icon === 'barcode' ? Barcode : PenLine;
-
-  return (
-    <Pressable
-      onPress={onPress}
-      style={{
-        alignItems: 'center',
-        backgroundColor: colors.surface,
-        borderColor: colors.line,
-        borderRadius: radius.sm,
-        borderWidth: 1,
-        flex: 1,
-        flexDirection: 'row',
-        gap: spacing.xs,
-        justifyContent: 'center',
-        minWidth: 100,
-        padding: spacing.md,
-      }}
-    >
-      <Icon color={colors.ink} size={16} strokeWidth={2.4} />
-      <Text style={{ color: colors.ink, fontSize: typography.small, fontWeight: '800' }}>{label}</Text>
-    </Pressable>
-  );
-}
-
-export function TodayScreen({ meals, targets, onBack, onCapture, onPickPhoto, onBarcodeScan, onManualMeal, onOpenWeeklyReport, onOpenMeal }: Props) {
+export function TodayScreen({ meals, targets, profile, onBack, onOpenWeeklyReport, onOpenMeal }: Props) {
+  const [goalRange, setGoalRange] = useState<GoalRange>('90d');
   const today = new Date().toISOString().slice(0, 10);
   const viewModel = buildTodayViewModel(meals, today, targets);
   const summary = viewModel.summary;
+  const goalProgress = profile ? buildGoalProgress(meals, profile, today, goalRangeDays(goalRange, meals, today)) : null;
   const coach = targets
     ? buildTodayCoach({
         consumed: {
@@ -113,6 +83,30 @@ export function TodayScreen({ meals, targets, onBack, onCapture, onPickPhoto, on
         </View>
       ) : null}
 
+      {goalProgress ? (
+        <PremiumCard style={{ gap: spacing.lg }}>
+          <View style={{ flexDirection: 'row', gap: spacing.sm }}>
+            {goalRanges.map((range) => (
+              <Pressable
+                key={range.value}
+                onPress={() => setGoalRange(range.value)}
+                style={{
+                  alignItems: 'center',
+                  backgroundColor: goalRange === range.value ? colors.black : colors.surfaceMuted,
+                  borderRadius: radius.pill,
+                  flex: 1,
+                  minHeight: 34,
+                  justifyContent: 'center',
+                }}
+              >
+                <Text style={{ color: goalRange === range.value ? 'white' : colors.black, fontSize: typography.tiny, fontWeight: '900' }}>{range.label}</Text>
+              </Pressable>
+            ))}
+          </View>
+          <GoalProgressChart progress={goalProgress} />
+        </PremiumCard>
+      ) : null}
+
       <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: spacing.md }}>
         <MetricPill label="Calories" value={`${summary.calories}${targets ? ` / ${targets.calorieTarget}` : ''}`} />
         <MetricPill label="Proteines" value={`${summary.proteinG} g${targets ? ` / ${targets.proteinTargetG} g` : ''}`} accent={colors.protein} />
@@ -138,13 +132,6 @@ export function TodayScreen({ meals, targets, onBack, onCapture, onPickPhoto, on
           </View>
         </View>
       ) : null}
-
-      <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm }}>
-        <ActionButton label="Scan" icon="camera" onPress={onCapture} />
-        <ActionButton label="Produit" icon="barcode" onPress={onBarcodeScan} />
-        <ActionButton label="Galerie" icon="image" onPress={onPickPhoto} />
-        <ActionButton label="Manuel" icon="manual" onPress={onManualMeal} />
-      </View>
 
       <View style={{ gap: spacing.md }}>
         <Text style={{ color: colors.ink, fontSize: typography.heading, fontWeight: '900' }}>Repas du jour</Text>

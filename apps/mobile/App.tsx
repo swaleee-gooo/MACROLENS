@@ -315,11 +315,6 @@ function MacroLensApp() {
     setScreen({ name: 'result', meal, isSaved: false });
   }
 
-  function openBarcodeScan() {
-    analytics.track('barcode_scan_started');
-    setScreen({ name: 'scanner', initialMode: 'barcode' });
-  }
-
   async function handleBarcodeDetected(barcode: string) {
     analytics.track('barcode_scan_completed', { source: 'barcode' });
     setScreen({ name: 'analyzing', imageUri: `barcode://${barcode}` });
@@ -387,11 +382,8 @@ function MacroLensApp() {
         <TodayScreen
           meals={meals}
           targets={targets}
+          profile={profile}
           onBack={() => setScreen({ name: 'app', tab: 'home' })}
-          onCapture={captureMeal}
-          onPickPhoto={pickMealPhoto}
-          onBarcodeScan={openBarcodeScan}
-          onManualMeal={() => setScreen({ name: 'manualMeal' })}
           onOpenWeeklyReport={openWeeklyReport}
           onOpenMeal={(meal) => setScreen({ name: 'result', meal, isSaved: true })}
         />
@@ -402,10 +394,6 @@ function MacroLensApp() {
           meals={meals}
           targets={targets}
           profile={profile}
-          onCapture={captureMeal}
-          onPickPhoto={pickMealPhoto}
-          onBarcodeScan={openBarcodeScan}
-          onManualMeal={() => setScreen({ name: 'manualMeal' })}
           onOpenSettings={() => setScreen({ name: 'settings' })}
         />
       );
@@ -413,7 +401,7 @@ function MacroLensApp() {
     return (
       <View style={{ backgroundColor: colors.background, flex: 1 }}>
         <View style={{ flex: 1 }}>{content}</View>
-        <BottomTabs activeTab={tab} onChangeTab={(nextTab) => setScreen({ name: 'app', tab: nextTab })} />
+        <BottomTabs activeTab={tab} onChangeTab={(nextTab) => setScreen({ name: 'app', tab: nextTab })} onScanPress={captureMeal} />
       </View>
     );
   }

@@ -252,6 +252,12 @@ Current plan:
 - Barcode mode uses live detection, manual code fallback, torch, and an in-scanner product-not-found panel.
 - Verification passed: `npm test`, `npx tsc --noEmit`, `npx expo install --check`, and web smoke on `http://localhost:8086`.
 
+### Home / Coach Navigation Update - 2026-05-25
+
+- Home now shows daily calories followed immediately by macro cards; scan action blocks and Goal Progress were removed from Home.
+- Coach now owns Goal Progress with the 90 days / 6 months / 1 year / all-time range selector.
+- Bottom navigation now has a central camera scan button that opens the in-app scanner.
+
 ## Merge Gate For Current MVP
 
 Merge `codex/macrolens-mvp` into `master` only when:
