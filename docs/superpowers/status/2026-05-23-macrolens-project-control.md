@@ -257,6 +257,7 @@ Current plan:
 - Home now shows daily calories followed immediately by macro cards; scan action blocks and Goal Progress were removed from Home.
 - Coach now owns Goal Progress with the 90 days / 6 months / 1 year / all-time range selector.
 - Bottom navigation now has a central camera scan button that opens the in-app scanner.
+- Home streak days are now tappable: selecting a day reviews that day's calories, macros, and meals.
 
 ## Merge Gate For Current MVP
 

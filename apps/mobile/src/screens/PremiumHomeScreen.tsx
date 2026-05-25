@@ -1,11 +1,13 @@
-import { useEffect, useRef } from 'react';
-import { ScrollView, Text, View } from 'react-native';
+import { useEffect, useRef, useState } from 'react';
+import { Pressable, ScrollView, Text, View } from 'react-native';
 import { Flame, Star } from 'lucide-react-native';
 import { BrandHeader } from '../components/BrandHeader';
+import { MealCard } from '../components/MealCard';
 import { PremiumCard } from '../components/PremiumCard';
 import { RingProgress } from '../components/RingProgress';
 import type { MacroTargets, Meal, UserProfile } from '../domain/types';
 import type { HomeStreakCalendar } from '../domain/homeStreak';
+import { buildDayReviewViewModel } from '../ui/dayReviewViewModel';
 import { buildPremiumDashboardViewModel } from '../ui/premiumDashboardViewModel';
 import { colors, radius, spacing, typography } from '../ui/theme';
 
@@ -14,6 +16,7 @@ type Props = {
   targets: MacroTargets | null;
   profile: UserProfile | null;
   onOpenSettings: () => void;
+  onOpenMeal: (meal: Meal) => void;
 };
 
 function SmallStatCard({ label, value, icon }: { label: string; value: string; icon: 'flame' | 'star' }) {
@@ -32,7 +35,15 @@ function SmallStatCard({ label, value, icon }: { label: string; value: string; i
   );
 }
 
-function StreakCalendarStrip({ calendar }: { calendar: HomeStreakCalendar }) {
+function StreakCalendarStrip({
+  calendar,
+  selectedIsoDate,
+  onSelectDay,
+}: {
+  calendar: HomeStreakCalendar;
+  selectedIsoDate: string;
+  onSelectDay: (isoDate: string) => void;
+}) {
   const scrollRef = useRef<ScrollView>(null);
 
   useEffect(() => {
@@ -53,13 +64,14 @@ function StreakCalendarStrip({ calendar }: { calendar: HomeStreakCalendar }) {
       </View>
       <ScrollView ref={scrollRef} horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: spacing.sm, paddingRight: spacing.xl }}>
         {calendar.days.map((day) => {
-          const active = day.hasMeal || day.isToday;
-          const borderColor = day.isToday ? colors.black : day.hasMeal ? colors.green : colors.line;
-          const backgroundColor = day.isToday ? colors.black : day.hasMeal ? colors.greenSoft : colors.surface;
-          const textColor = day.isToday ? 'white' : day.isFuture ? colors.muted : colors.black;
+          const selected = day.isoDate === selectedIsoDate;
+          const active = selected || day.hasMeal || day.isToday;
+          const borderColor = selected ? colors.black : day.isToday ? colors.black : day.hasMeal ? colors.green : colors.line;
+          const backgroundColor = selected ? colors.black : day.hasMeal ? colors.greenSoft : colors.surface;
+          const textColor = selected ? 'white' : day.isFuture ? colors.muted : colors.black;
 
           return (
-            <View key={day.isoDate} style={{ alignItems: 'center', gap: spacing.xs, width: 44 }}>
+            <Pressable key={day.isoDate} onPress={() => onSelectDay(day.isoDate)} style={{ alignItems: 'center', gap: spacing.xs, width: 44 }}>
               <View
                 style={{
                   alignItems: 'center',
@@ -74,8 +86,8 @@ function StreakCalendarStrip({ calendar }: { calendar: HomeStreakCalendar }) {
               >
                 <Text style={{ color: textColor, fontSize: typography.small, fontWeight: '900' }}>{day.weekdayLabel}</Text>
               </View>
-              <Text style={{ color: day.isToday ? colors.black : colors.muted, fontSize: typography.tiny, fontWeight: '900' }}>{day.dayOfMonth}</Text>
-            </View>
+              <Text style={{ color: selected || day.isToday ? colors.black : colors.muted, fontSize: typography.tiny, fontWeight: '900' }}>{day.dayOfMonth}</Text>
+            </Pressable>
           );
         })}
       </ScrollView>
@@ -99,17 +111,19 @@ function MacroProgress({ label, consumed, target, color }: { label: string; cons
   );
 }
 
-export function PremiumHomeScreen({ meals, targets, profile, onOpenSettings }: Props) {
+export function PremiumHomeScreen({ meals, targets, profile, onOpenSettings, onOpenMeal }: Props) {
   const today = new Date().toISOString().slice(0, 10);
+  const [selectedIsoDate, setSelectedIsoDate] = useState(today);
   const vm = buildPremiumDashboardViewModel(meals, today, targets, profile);
+  const dayReview = buildDayReviewViewModel(meals, selectedIsoDate, today, targets);
 
   return (
     <ScrollView style={{ backgroundColor: colors.background, flex: 1 }} contentContainerStyle={{ gap: spacing.xl, paddingBottom: spacing.xxl }}>
       <BrandHeader onSettings={onOpenSettings} />
-      <StreakCalendarStrip calendar={vm.streakCalendar} />
+      <StreakCalendarStrip calendar={vm.streakCalendar} selectedIsoDate={selectedIsoDate} onSelectDay={setSelectedIsoDate} />
       <View style={{ gap: spacing.xs, paddingHorizontal: spacing.xl }}>
         <Text style={{ color: colors.black, fontSize: typography.heading, fontWeight: '900' }}>Apercu Quotidien</Text>
-        <Text style={{ color: colors.muted, fontSize: typography.body, fontWeight: '800' }}>Aujourd'hui</Text>
+        <Text style={{ color: colors.muted, fontSize: typography.body, fontWeight: '800' }}>{dayReview.subtitle}</Text>
       </View>
 
       <View style={{ flexDirection: 'row', gap: spacing.md, paddingHorizontal: spacing.xl }}>
@@ -120,17 +134,32 @@ export function PremiumHomeScreen({ meals, targets, profile, onOpenSettings }: P
       <View style={{ paddingHorizontal: spacing.xl }}>
         <PremiumCard style={{ alignItems: 'center', gap: spacing.lg, paddingVertical: spacing.xl }}>
           <Text style={{ alignSelf: 'flex-start', color: colors.muted, fontSize: typography.tiny, fontWeight: '900', textTransform: 'uppercase' }}>Calories totales</Text>
-          <RingProgress size={250} strokeWidth={16} progress={vm.calories.progress} label={`${vm.calories.consumed}`} detail={`/ ${vm.calories.target || '--'} kcal`} />
+          <RingProgress size={250} strokeWidth={16} progress={dayReview.calories.progress} label={`${dayReview.calories.consumed}`} detail={`/ ${dayReview.calories.target || '--'} kcal`} />
           <View style={{ backgroundColor: colors.surfaceMuted, borderColor: colors.line, borderRadius: radius.sm, borderWidth: 1, paddingHorizontal: spacing.md, paddingVertical: spacing.sm }}>
-            <Text style={{ color: colors.black, fontSize: typography.small, fontWeight: '900' }}>- {vm.calories.remaining} restantes</Text>
+            <Text style={{ color: colors.black, fontSize: typography.small, fontWeight: '900' }}>- {dayReview.calories.remaining} restantes</Text>
           </View>
         </PremiumCard>
       </View>
 
       <View style={{ gap: spacing.md, paddingHorizontal: spacing.xl }}>
-        <MacroProgress label="Proteines" consumed={vm.protein.consumed} target={vm.protein.target} color={colors.green} />
-        <MacroProgress label="Glucides" consumed={vm.carbs.consumed} target={vm.carbs.target} color={colors.blue} />
-        <MacroProgress label="Lipides" consumed={vm.fat.consumed} target={vm.fat.target} color={colors.amber} />
+        <MacroProgress label="Proteines" consumed={dayReview.protein.consumed} target={dayReview.protein.target} color={colors.green} />
+        <MacroProgress label="Glucides" consumed={dayReview.carbs.consumed} target={dayReview.carbs.target} color={colors.blue} />
+        <MacroProgress label="Lipides" consumed={dayReview.fat.consumed} target={dayReview.fat.target} color={colors.amber} />
+      </View>
+
+      <View style={{ gap: spacing.md, paddingHorizontal: spacing.xl }}>
+        <View style={{ alignItems: 'center', flexDirection: 'row', justifyContent: 'space-between' }}>
+          <Text style={{ color: colors.black, fontSize: typography.heading, fontWeight: '900' }}>Repas du jour</Text>
+          <Text style={{ color: colors.muted, fontSize: typography.small, fontWeight: '900' }}>{dayReview.mealCount} repas</Text>
+        </View>
+        {dayReview.meals.length === 0 ? (
+          <PremiumCard style={{ gap: spacing.xs }}>
+            <Text style={{ color: colors.black, fontSize: typography.body, fontWeight: '900' }}>Aucun repas enregistre</Text>
+            <Text style={{ color: colors.muted, fontSize: typography.small, fontWeight: '800', lineHeight: 19 }}>Selectionne un autre jour ou scanne ton prochain repas avec le bouton central.</Text>
+          </PremiumCard>
+        ) : (
+          dayReview.meals.map((meal) => <MealCard key={meal.id} meal={meal} onPress={onOpenMeal} />)
+        )}
       </View>
     </ScrollView>
   );

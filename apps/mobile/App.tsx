@@ -395,6 +395,7 @@ function MacroLensApp() {
           targets={targets}
           profile={profile}
           onOpenSettings={() => setScreen({ name: 'settings' })}
+          onOpenMeal={(meal) => setScreen({ name: 'result', meal, isSaved: true })}
         />
       );
 
