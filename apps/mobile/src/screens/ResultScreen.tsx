@@ -1,7 +1,8 @@
 import { Image, Pressable, ScrollView, Text, View } from 'react-native';
-import { ArrowLeft, Droplets, Save, Scale, SlidersHorizontal, Trash2 } from 'lucide-react-native';
+import { ArrowLeft, Droplets, Save, Scale, ShieldCheck, SlidersHorizontal, Trash2 } from 'lucide-react-native';
 import type { Meal } from '../domain/types';
 import type { MealCorrection } from '../domain/corrections';
+import { buildScanTrustViewModel } from '../domain/scanTrust';
 import { ConfidenceBadge } from '../components/ConfidenceBadge';
 import { MetricPill } from '../components/MetricPill';
 import { colors, radius, spacing, typography } from '../ui/theme';
@@ -24,9 +25,10 @@ const correctionButtons: { label: string; correction: MealCorrection; icon: 'sca
 export function ResultScreen({ meal, onApplyCorrection, onAdjustItem, onSave, onBack }: Props) {
   const isManual = meal.imageUri.startsWith('manual://');
   const isMockAnalysis = meal.source === 'mock';
+  const trust = buildScanTrustViewModel(meal);
 
   return (
-    <ScrollView style={{ backgroundColor: colors.background, flex: 1 }} contentContainerStyle={{ gap: spacing.xl, padding: spacing.xl }}>
+    <ScrollView style={{ backgroundColor: colors.background, flex: 1 }} contentContainerStyle={{ gap: spacing.xl, padding: spacing.xl, paddingBottom: spacing.xxxl }}>
       <Pressable onPress={onBack} style={{ alignItems: 'center', flexDirection: 'row', gap: spacing.sm }}>
         <ArrowLeft color={colors.black} size={28} strokeWidth={2.6} />
         <Text style={{ color: colors.black, fontSize: typography.heading, fontWeight: '900' }}>MACROLENS</Text>
@@ -51,10 +53,43 @@ export function ResultScreen({ meal, onApplyCorrection, onAdjustItem, onSave, on
       )}
       <View style={{ gap: spacing.sm }}>
         <Text style={{ color: colors.ink, fontSize: typography.title, fontWeight: '900' }}>{meal.mealName}</Text>
-        <Text style={{ color: colors.muted, fontSize: typography.body }}>
-          {meal.caloriesEstimate} kcal - probablement {meal.caloriesLow}-{meal.caloriesHigh}
+        <Text style={{ color: colors.muted, fontSize: typography.body, fontWeight: '800', lineHeight: 24 }}>
+          Une estimation photo reste une plage. Verifie les portions visibles avant d'enregistrer.
         </Text>
-        <ConfidenceBadge confidence={meal.confidence} />
+      </View>
+      <View style={{ backgroundColor: colors.surface, borderColor: colors.line, borderRadius: radius.md, borderWidth: 1, gap: spacing.lg, padding: spacing.lg }}>
+        <View style={{ alignItems: 'center', flexDirection: 'row', gap: spacing.sm, justifyContent: 'space-between' }}>
+          <View style={{ alignItems: 'center', flexDirection: 'row', gap: spacing.sm }}>
+            <ShieldCheck color={colors.green} size={22} strokeWidth={2.4} />
+            <Text style={{ color: colors.ink, fontSize: typography.body, fontWeight: '900' }}>Fiabilite du scan</Text>
+          </View>
+          <ConfidenceBadge confidence={meal.confidence} />
+        </View>
+        <View style={{ flexDirection: 'row', gap: spacing.md }}>
+          <View style={{ backgroundColor: colors.surfaceMuted, borderRadius: radius.sm, flex: 1, padding: spacing.md }}>
+            <Text style={{ color: colors.muted, fontSize: typography.tiny, fontWeight: '900', textTransform: 'uppercase' }}>Calories estimees</Text>
+            <Text style={{ color: colors.black, fontSize: typography.heading, fontWeight: '900', marginTop: spacing.xs }}>{meal.caloriesEstimate}</Text>
+            <Text style={{ color: colors.muted, fontSize: typography.small, fontWeight: '800' }}>kcal</Text>
+          </View>
+          <View style={{ backgroundColor: colors.surfaceMuted, borderRadius: radius.sm, flex: 1, padding: spacing.md }}>
+            <Text style={{ color: colors.muted, fontSize: typography.tiny, fontWeight: '900', textTransform: 'uppercase' }}>Plage probable</Text>
+            <Text style={{ color: colors.black, fontSize: typography.subheading, fontWeight: '900', marginTop: spacing.xs }}>{trust.calorieRangeLabel}</Text>
+            <Text style={{ color: colors.green, fontSize: typography.small, fontWeight: '900' }}>{trust.proteinLabel}</Text>
+          </View>
+        </View>
+        <Text style={{ color: colors.ink, fontSize: typography.body, fontWeight: '900' }}>{trust.confidenceLabel}</Text>
+        {trust.prompts.length > 0 ? (
+          <View style={{ gap: spacing.sm }}>
+            <Text style={{ color: colors.muted, fontSize: typography.tiny, fontWeight: '900', textTransform: 'uppercase' }}>A verifier</Text>
+            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm }}>
+              {trust.prompts.map((prompt) => (
+                <View key={prompt} style={{ backgroundColor: colors.amberSoft, borderColor: colors.amber, borderRadius: radius.pill, borderWidth: 1, paddingHorizontal: spacing.md, paddingVertical: spacing.xs }}>
+                  <Text style={{ color: colors.ink, fontSize: typography.small, fontWeight: '800' }}>{prompt}</Text>
+                </View>
+              ))}
+            </View>
+          </View>
+        ) : null}
       </View>
       {isMockAnalysis ? (
         <View

@@ -7,10 +7,11 @@ import { StatusBar } from 'expo-status-bar';
 import * as ImagePicker from 'expo-image-picker';
 import { createAnalyticsClient, createConsoleAnalyticsSink } from './src/analytics/analyticsClient';
 import { isNonFoodPhotoError } from './src/analysis/analysisErrors';
+import type { AnalysisResult } from './src/analysis/analysisSchema';
 import { createAnalysisService } from './src/analysis/analysisServiceFactory';
 import { appEnv } from './src/config/env';
 import { BottomTabs, type AppTab } from './src/components/BottomTabs';
-import { applyMealCorrection } from './src/domain/corrections';
+import { applyMealCorrection, getMealCorrectionType, type MealCorrection } from './src/domain/corrections';
 import { createManualMacroMeal } from './src/domain/manualMeal';
 import { calculateMealStreak } from './src/domain/streaks';
 import type { MacroTargets, Meal, UserProfile } from './src/domain/types';
@@ -60,6 +61,14 @@ function storedEntitlementFromCommercial(state: CommercialEntitlementState): Ent
     productId: state.productId,
     expiresAt: state.expiresAt,
     updatedAt: state.updatedAt,
+  };
+}
+
+function mealWithScanTrustMetadata(analysis: AnalysisResult): Meal {
+  return {
+    ...analysis.meal,
+    uncertaintyReasons: analysis.uncertaintyReasons,
+    correctionSuggestions: analysis.correctionSuggestions,
   };
 }
 
@@ -125,13 +134,14 @@ function MacroLensApp() {
 
     try {
       const analysis = await analysisService.analyzeMealPhoto({ imageUri, userId: localUserId });
+      const analyzedMeal = mealWithScanTrustMetadata(analysis);
       analytics.track('scan_completed', {
         source: 'photo',
-        confidence: analysis.meal.confidence,
-        caloriesEstimate: analysis.meal.caloriesEstimate,
+        confidence: analyzedMeal.confidence,
+        caloriesEstimate: analyzedMeal.caloriesEstimate,
         corrected: false,
       });
-      setScreen({ name: 'result', meal: analysis.meal, isSaved: false });
+      setScreen({ name: 'result', meal: analyzedMeal, isSaved: false });
     } catch (error) {
       if (isNonFoodPhotoError(error)) {
         analytics.track('non_food_detected', { source: 'photo' });
@@ -267,6 +277,15 @@ function MacroLensApp() {
     setScreen({ name: 'result', meal, isSaved: false });
   }
 
+  function applyCorrectionAndTrack(meal: Meal, correction: MealCorrection) {
+    const correctedMeal = applyMealCorrection(meal, correction);
+    analytics.track('correction_applied', {
+      correctionType: getMealCorrectionType(correction),
+      caloriesEstimate: correctedMeal.caloriesEstimate,
+    });
+    setScreen({ name: 'result', meal: correctedMeal, isSaved: false });
+  }
+
   function renderAppShell(tab: AppTab) {
     const content =
       tab === 'timeline' ? (
@@ -334,7 +353,7 @@ function MacroLensApp() {
     return (
       <ResultScreen
         meal={screen.meal}
-        onApplyCorrection={(correction) => setScreen({ name: 'result', meal: applyMealCorrection(screen.meal, correction), isSaved: false })}
+        onApplyCorrection={(correction) => applyCorrectionAndTrack(screen.meal, correction)}
         onAdjustItem={(itemId) => setScreen({ name: 'portionAdjust', meal: screen.meal, itemId })}
         onBack={() => setScreen({ name: 'app', tab: 'home' })}
         onSave={() => saveMeal(screen.meal)}

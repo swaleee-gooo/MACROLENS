@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { applyMealCorrection } from './corrections';
+import { applyMealCorrection, getMealCorrectionType } from './corrections';
 import type { Meal } from './types';
 
 const meal: Meal = {
@@ -58,5 +58,9 @@ describe('applyMealCorrection', () => {
 
     expect(corrected.items).toHaveLength(0);
     expect(corrected.caloriesEstimate).toBe(0);
+  });
+
+  it('exposes a stable correction type for analytics', () => {
+    expect(getMealCorrectionType({ type: 'add_sauce', targetItemId: null })).toBe('add_sauce');
   });
 });

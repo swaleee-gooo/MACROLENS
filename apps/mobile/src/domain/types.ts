@@ -2,6 +2,15 @@ export type ConfidenceTier = 'high' | 'medium' | 'low';
 
 export type NutritionSource = 'open_food_facts' | 'usda' | 'estimated' | 'mock';
 
+export type CorrectionType = 'portion_up' | 'portion_down' | 'add_oil' | 'add_sauce' | 'remove_item';
+
+export type CorrectionSuggestion = {
+  id: string;
+  label: string;
+  correctionType: CorrectionType;
+  targetItemId: string | null;
+};
+
 export type NutritionTotals = {
   calories: number;
   caloriesLow: number;
@@ -46,6 +55,8 @@ export type Meal = {
   notes: string;
   source: NutritionSource;
   items: FoodItem[];
+  uncertaintyReasons?: string[];
+  correctionSuggestions?: CorrectionSuggestion[];
 };
 
 export type UserGoal = 'lose_fat' | 'build_muscle' | 'maintain' | 'understand_eating';

@@ -8,6 +8,12 @@ export type MealCorrection =
   | { type: 'add_sauce'; targetItemId: string | null }
   | { type: 'remove_item'; targetItemId: string };
 
+export type MealCorrectionType = MealCorrection['type'];
+
+export function getMealCorrectionType(correction: MealCorrection): MealCorrectionType {
+  return correction.type;
+}
+
 function appliesToItem(item: FoodItem, targetItemId: string | null): boolean {
   return targetItemId === null || item.id === targetItemId;
 }
