@@ -21,12 +21,14 @@ import { buildWeeklyReport, buildWeeklyReportFromMeals } from './src/domain/week
 import { createEntitlementProvider } from './src/entitlements/entitlementProviderFactory';
 import type { CommercialEntitlementState, PurchasePlan } from './src/entitlements/entitlementTypes';
 import { createPackagedFoodLookupService, type SupabaseLookupClient } from './src/packagedFood/packagedFoodLookupService';
+import { normalizeProductLookupOutcome } from './src/packagedFood/productLookupOutcome';
 import { createNutritionLabelOcrService } from './src/packagedFood/labelOcrService';
 import { createPackagedFoodMeal } from './src/packagedFood/packagedFoodMeal';
 import type { PackagedFoodItem } from './src/packagedFood/packagedFoodSchema';
 import { createEntitlementRepository, type EntitlementState } from './src/storage/entitlementRepository';
 import { createMealRepository } from './src/storage/mealRepository';
 import { createOnboardingRepository, type OnboardingState } from './src/storage/onboardingRepository';
+import { createProductRepository } from './src/storage/productRepository';
 import { createProfileRepository } from './src/storage/profileRepository';
 import { createMacroLensSupabaseClient } from './src/supabase/client';
 import { colors } from './src/ui/theme';
@@ -62,7 +64,7 @@ type ScreenState =
   | { name: 'settings' }
   | { name: 'targets' }
   | { name: 'manualMeal' }
-  | { name: 'scanner'; initialMode: ScannerMode; productLookupError?: boolean }
+  | { name: 'scanner'; initialMode: ScannerMode; productLookupError?: boolean; productLookupIssue?: 'not_found' | 'needs_label' }
   | { name: 'packagedProduct'; item: PackagedFoodItem; initialServingGrams: number; imageUri: string }
   | { name: 'weeklyReport' };
 
@@ -104,6 +106,7 @@ function MacroLensApp() {
   const profileRepository = useMemo(() => createProfileRepository(AsyncStorage), []);
   const entitlementRepository = useMemo(() => createEntitlementRepository(AsyncStorage), []);
   const onboardingRepository = useMemo(() => createOnboardingRepository(AsyncStorage), []);
+  const productRepository = useMemo(() => createProductRepository(AsyncStorage), []);
   const supabaseClient = useMemo(() => {
     if (appEnv.analysisMode !== 'remote' || !appEnv.supabaseUrl || !appEnv.supabaseAnonKey) {
       return null;
@@ -326,11 +329,22 @@ function MacroLensApp() {
     setScreen({ name: 'analyzing', imageUri: `barcode://${barcode}` });
 
     try {
-      const item = await packagedFoodLookupService.lookupProduct(barcode);
-      setScreen({ name: 'packagedProduct', item, initialServingGrams: 30, imageUri: `product://${item.barcode}` });
-    } catch {
-      analytics.track('scan_failed', { source: 'barcode', reason: 'product_not_found' });
-      setScreen({ name: 'scanner', initialMode: 'barcode', productLookupError: true });
+      const cachedItem = await productRepository.getProduct(barcode);
+      const item = cachedItem ?? (await packagedFoodLookupService.lookupProduct(barcode));
+      const outcome = normalizeProductLookupOutcome(item);
+
+      if (outcome.status === 'needs_label') {
+        analytics.track('scan_failed', { source: 'barcode', reason: 'product_needs_label' });
+        setScreen({ name: 'scanner', initialMode: 'label', productLookupError: true, productLookupIssue: 'needs_label' });
+        return;
+      }
+
+      await productRepository.saveProduct(outcome.item);
+      setScreen({ name: 'packagedProduct', item: outcome.item, initialServingGrams: 30, imageUri: `product://${outcome.item.barcode}` });
+    } catch (error) {
+      const issue = error instanceof Error && error.message === 'product_nutrition_missing' ? 'needs_label' : 'not_found';
+      analytics.track('scan_failed', { source: 'barcode', reason: issue === 'needs_label' ? 'product_needs_label' : 'product_not_found' });
+      setScreen({ name: 'scanner', initialMode: issue === 'needs_label' ? 'label' : 'barcode', productLookupError: true, productLookupIssue: issue });
     }
   }
 
@@ -362,6 +376,7 @@ function MacroLensApp() {
   }
 
   async function savePackagedProduct(item: PackagedFoodItem, servingGrams: number, imageUri: string) {
+    await productRepository.saveProduct(item);
     const meal = createPackagedFoodMeal({ userId: localUserId, item, servingGrams, imageUri });
     await saveMeal(meal);
   }
@@ -523,6 +538,7 @@ function MacroLensApp() {
       <ScannerScreen
         initialMode={screen.initialMode}
         productLookupError={screen.productLookupError}
+        productLookupIssue={screen.productLookupIssue}
         onBack={() => setScreen({ name: 'app', tab: 'home' })}
         onMealPhoto={analyzeImageUri}
         onLabelPhoto={handleLabelPhoto}

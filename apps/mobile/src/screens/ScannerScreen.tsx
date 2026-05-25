@@ -8,6 +8,7 @@ import { colors, radius, spacing, typography } from '../ui/theme';
 type Props = {
   initialMode?: ScannerMode;
   productLookupError?: boolean;
+  productLookupIssue?: 'not_found' | 'needs_label';
   onBack: () => void;
   onMealPhoto: (imageUri: string) => void | Promise<void>;
   onLabelPhoto: (imageUri: string) => void | Promise<void>;
@@ -43,6 +44,7 @@ function frameSizeFor(mode: ScannerMode, width: number) {
 export function ScannerScreen({
   initialMode = 'meal',
   productLookupError = false,
+  productLookupIssue,
   onBack,
   onMealPhoto,
   onLabelPhoto,
@@ -59,7 +61,9 @@ export function ScannerScreen({
   const [cameraReady, setCameraReady] = useState(false);
   const [isCapturing, setIsCapturing] = useState(false);
   const [scanned, setScanned] = useState(false);
-  const [lookupErrorVisible, setLookupErrorVisible] = useState(productLookupError);
+  const [lookupIssue, setLookupIssue] = useState<'not_found' | 'needs_label' | null>(
+    productLookupError ? productLookupIssue ?? 'not_found' : null,
+  );
   const [manualEntryOpen, setManualEntryOpen] = useState(productLookupError);
   const [manualBarcode, setManualBarcode] = useState('');
   const { width } = useWindowDimensions();
@@ -73,10 +77,11 @@ export function ScannerScreen({
 
   useEffect(() => {
     if (productLookupError) {
-      setLookupErrorVisible(true);
-      setManualEntryOpen(true);
+      const nextIssue = productLookupIssue ?? 'not_found';
+      setLookupIssue(nextIssue);
+      setManualEntryOpen(nextIssue === 'not_found');
     }
-  }, [productLookupError]);
+  }, [productLookupError, productLookupIssue]);
 
   useEffect(() => {
     scanLine.setValue(0);
@@ -107,7 +112,7 @@ export function ScannerScreen({
 
     setMode(nextMode);
     setScanned(false);
-    setLookupErrorVisible(false);
+    setLookupIssue(null);
     setManualEntryOpen(false);
   }
 
@@ -244,15 +249,19 @@ export function ScannerScreen({
           </View>
 
           <View style={{ gap: spacing.md }}>
-            {lookupErrorVisible ? (
+            {lookupIssue ? (
               <View style={{ backgroundColor: 'rgba(255,255,255,0.96)', borderRadius: radius.lg, gap: spacing.sm, padding: spacing.md }}>
-                <Text style={{ color: colors.black, fontSize: typography.body, fontWeight: '900' }}>Produit introuvable</Text>
-                <Text style={{ color: colors.muted, fontSize: typography.small, fontWeight: '800', lineHeight: 18 }}>Essaie un autre angle, entre le code ou scanne l'etiquette nutritionnelle.</Text>
+                <Text style={{ color: colors.black, fontSize: typography.body, fontWeight: '900' }}>{lookupIssue === 'needs_label' ? 'Etiquette requise' : 'Produit introuvable'}</Text>
+                <Text style={{ color: colors.muted, fontSize: typography.small, fontWeight: '800', lineHeight: 18 }}>
+                  {lookupIssue === 'needs_label'
+                    ? "La base produit n'a pas assez de valeurs nutritionnelles. Cadre le tableau par 100 g pour creer la fiche."
+                    : "Essaie un autre angle, entre le code ou scanne l'etiquette nutritionnelle."}
+                </Text>
                 <View style={{ flexDirection: 'row', gap: spacing.sm }}>
                   <Pressable
                     onPress={() => {
                       setScanned(false);
-                      setLookupErrorVisible(false);
+                      setLookupIssue(null);
                     }}
                     style={{ alignItems: 'center', backgroundColor: colors.black, borderRadius: radius.pill, flex: 1, minHeight: 44, justifyContent: 'center' }}
                   >
@@ -262,6 +271,9 @@ export function ScannerScreen({
                     <Text style={{ color: colors.black, fontSize: typography.small, fontWeight: '900' }}>Etiquette</Text>
                   </Pressable>
                 </View>
+                <Pressable onPress={() => setManualEntryOpen((current) => !current)} style={{ alignItems: 'center', borderColor: colors.line, borderRadius: radius.pill, borderWidth: 1, minHeight: 42, justifyContent: 'center' }}>
+                  <Text style={{ color: colors.black, fontSize: typography.small, fontWeight: '900' }}>Entrer le code</Text>
+                </Pressable>
               </View>
             ) : null}
 
