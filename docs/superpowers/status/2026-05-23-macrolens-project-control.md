@@ -259,6 +259,13 @@ Current plan:
 - Bottom navigation now has a central camera scan button that opens the in-app scanner.
 - Home streak days are now tappable: selecting a day reviews that day's calories, macros, and meals.
 
+### Trust Result V1 - 2026-05-25
+
+- Result screen now presents source, confidence, calorie range, macro summary, and estimation explanation before save.
+- Detected food rows now show quantity, calories, macros, confidence, and nutrition source.
+- Each detected food row has quick corrections for `-15%`, `+15%`, grams adjustment, and removal when safe.
+- Empty detailed-food state is handled for manual/global meals.
+
 ## Merge Gate For Current MVP
 
 Merge `codex/macrolens-mvp` into `master` only when:

@@ -46,6 +46,28 @@ describe('applyMealCorrection', () => {
     expect(corrected.caloriesEstimate).toBe(266);
   });
 
+  it('can increase only the selected food item', () => {
+    const twoItemMeal: Meal = {
+      ...meal,
+      items: [
+        meal.items[0],
+        {
+          ...meal.items[0],
+          id: 'item-2',
+          estimatedQuantity: 100,
+          calories: 100,
+          proteinG: 10,
+        },
+      ],
+    };
+
+    const corrected = applyMealCorrection(twoItemMeal, { type: 'portion_up', targetItemId: 'item-2' });
+
+    expect(corrected.items[0].estimatedQuantity).toBe(140);
+    expect(corrected.items[1].estimatedQuantity).toBe(115);
+    expect(corrected.caloriesEstimate).toBe(346);
+  });
+
   it('adds oil as a new estimated item', () => {
     const corrected = applyMealCorrection(meal, { type: 'add_oil', targetItemId: null });
 
