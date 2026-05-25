@@ -34,7 +34,7 @@ function confidenceColors(confidence: Meal['confidence']) {
 
 function MacroTile({ label, value, accent }: { label: string; value: string; accent: string }) {
   return (
-    <View style={{ backgroundColor: colors.surfaceMuted, borderRadius: radius.sm, flex: 1, gap: spacing.xs, minWidth: 132, padding: spacing.md }}>
+    <View style={{ backgroundColor: colors.surfaceMuted, borderColor: colors.line, borderRadius: radius.sm, borderWidth: 1, flex: 1, gap: spacing.xs, minWidth: 118, padding: spacing.md }}>
       <Text style={{ color: colors.muted, fontSize: typography.tiny, fontWeight: '900', textTransform: 'uppercase' }}>{label}</Text>
       <Text style={{ color: accent, fontSize: typography.subheading, fontWeight: '900' }}>{value}</Text>
     </View>
@@ -57,11 +57,12 @@ function QuickCorrectionButton({ label, icon, onPress }: { label: string; icon: 
         flexDirection: 'row',
         gap: spacing.xs,
         minHeight: 38,
+        minWidth: 88,
         paddingHorizontal: spacing.md,
       }}
     >
       <Icon color={danger ? colors.red : colors.black} size={15} strokeWidth={2.6} />
-      <Text style={{ color: danger ? colors.red : colors.black, fontSize: typography.tiny, fontWeight: '900' }}>{label}</Text>
+      <Text numberOfLines={1} style={{ color: danger ? colors.red : colors.black, fontSize: typography.tiny, fontWeight: '900' }}>{label}</Text>
     </Pressable>
   );
 }
@@ -76,13 +77,13 @@ export function ResultScreen({ meal, onApplyCorrection, onAdjustItem, onSave, on
   const confidenceTone = confidenceColors(meal.confidence);
 
   return (
-    <ScrollView style={{ backgroundColor: colors.background, flex: 1 }} contentContainerStyle={{ gap: spacing.lg, padding: spacing.xl, paddingBottom: spacing.xxxl }}>
+    <ScrollView style={{ backgroundColor: colors.background, flex: 1 }} contentContainerStyle={{ gap: spacing.md, padding: spacing.xl, paddingBottom: spacing.xxxl + spacing.xl }}>
       <Pressable onPress={onBack} style={{ alignItems: 'center', flexDirection: 'row', gap: spacing.sm }}>
         <ArrowLeft color={colors.black} size={28} strokeWidth={2.6} />
         <Text style={{ color: colors.black, fontSize: typography.heading, fontWeight: '900' }}>MACROLENS</Text>
       </Pressable>
 
-      <View style={{ flexDirection: 'row', gap: spacing.sm }}>
+      <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm }}>
         <View style={{ backgroundColor: colors.surfaceMuted, borderRadius: radius.sm, paddingHorizontal: spacing.md, paddingVertical: spacing.sm }}>
           <Text style={{ color: colors.muted, fontSize: typography.tiny, fontWeight: '900', textTransform: 'uppercase' }}>{resultTrust.sourceLabel}</Text>
         </View>
@@ -95,11 +96,11 @@ export function ResultScreen({ meal, onApplyCorrection, onAdjustItem, onSave, on
         <View
           style={{
             alignItems: 'center',
-            minHeight: 176,
             backgroundColor: colors.surface,
             borderColor: colors.line,
-            borderRadius: radius.lg,
+            borderRadius: radius.md,
             borderWidth: 1,
+            minHeight: 148,
             justifyContent: 'center',
             width: '100%',
           }}
@@ -111,7 +112,7 @@ export function ResultScreen({ meal, onApplyCorrection, onAdjustItem, onSave, on
       )}
 
       <View style={{ gap: spacing.sm }}>
-        <Text style={{ color: colors.ink, fontSize: typography.title, fontWeight: '900' }}>{meal.mealName}</Text>
+        <Text style={{ color: colors.ink, fontSize: typography.heading, fontWeight: '900', lineHeight: 30 }}>{meal.mealName}</Text>
         <Text style={{ color: colors.muted, fontSize: typography.body, fontWeight: '800', lineHeight: 24 }}>{resultTrust.sourceDetail}</Text>
       </View>
 
@@ -123,13 +124,13 @@ export function ResultScreen({ meal, onApplyCorrection, onAdjustItem, onSave, on
           </View>
           <ConfidenceBadge confidence={meal.confidence} />
         </View>
-        <View style={{ flexDirection: 'row', gap: spacing.md }}>
-          <View style={{ backgroundColor: colors.black, borderRadius: radius.sm, flex: 1, padding: spacing.md }}>
+        <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: spacing.md }}>
+          <View style={{ backgroundColor: colors.black, borderRadius: radius.sm, flex: 1, minWidth: 132, padding: spacing.md }}>
             <Text style={{ color: colors.muted, fontSize: typography.tiny, fontWeight: '900', textTransform: 'uppercase' }}>Calories estimees</Text>
             <Text style={{ color: 'white', fontSize: typography.title, fontWeight: '900', marginTop: spacing.xs }}>{meal.caloriesEstimate}</Text>
             <Text style={{ color: '#EDEDED', fontSize: typography.small, fontWeight: '800' }}>kcal</Text>
           </View>
-          <View style={{ backgroundColor: colors.surfaceMuted, borderRadius: radius.sm, flex: 1, padding: spacing.md }}>
+          <View style={{ backgroundColor: colors.surfaceMuted, borderColor: colors.line, borderRadius: radius.sm, borderWidth: 1, flex: 1, minWidth: 132, padding: spacing.md }}>
             <Text style={{ color: colors.muted, fontSize: typography.tiny, fontWeight: '900', textTransform: 'uppercase' }}>Plage probable</Text>
             <Text style={{ color: colors.black, fontSize: typography.subheading, fontWeight: '900', marginTop: spacing.xs }}>{resultTrust.rangeLabel}</Text>
             <Text style={{ color: colors.green, fontSize: typography.small, fontWeight: '900' }}>{trust.proteinLabel}</Text>
@@ -223,39 +224,39 @@ export function ResultScreen({ meal, onApplyCorrection, onAdjustItem, onSave, on
             </Text>
           </View>
         ) : (
-        meal.items.map((item) => {
-          const row = resultTrust.items.find((candidate) => candidate.id === item.id);
+          meal.items.map((item) => {
+            const row = resultTrust.items.find((candidate) => candidate.id === item.id);
 
-          return (
-          <View key={item.id} style={{ backgroundColor: colors.surface, borderColor: colors.line, borderRadius: radius.md, borderWidth: 1, gap: spacing.md, padding: spacing.md }}>
-            <View style={{ alignItems: 'flex-start', flexDirection: 'row', gap: spacing.sm, justifyContent: 'space-between' }}>
-              <View style={{ flex: 1 }}>
-                <Text style={{ color: colors.ink, fontSize: typography.body, fontWeight: '800' }}>{item.name}</Text>
-                <Text style={{ color: colors.muted, fontSize: typography.small, fontWeight: '800', marginTop: spacing.xs }}>
-                  {row?.quantityLabel} - {row?.caloriesLabel}
-                </Text>
-                <Text style={{ color: colors.muted, fontSize: typography.tiny, fontWeight: '800', marginTop: spacing.xs }}>{row?.macroLine}</Text>
+            return (
+              <View key={item.id} style={{ backgroundColor: colors.surface, borderColor: colors.line, borderRadius: radius.md, borderWidth: 1, gap: spacing.md, padding: spacing.md }}>
+                <View style={{ alignItems: 'flex-start', flexDirection: 'row', gap: spacing.sm, justifyContent: 'space-between' }}>
+                  <View style={{ flex: 1 }}>
+                    <Text style={{ color: colors.ink, fontSize: typography.body, fontWeight: '800' }}>{item.name}</Text>
+                    <Text style={{ color: colors.muted, fontSize: typography.small, fontWeight: '800', marginTop: spacing.xs }}>
+                      {row?.quantityLabel} - {row?.caloriesLabel}
+                    </Text>
+                    <Text style={{ color: colors.muted, fontSize: typography.tiny, fontWeight: '800', marginTop: spacing.xs }}>{row?.macroLine}</Text>
+                  </View>
+                  <View style={{ alignItems: 'flex-end', gap: spacing.xs }}>
+                    <Text style={{ color: colors.green, fontSize: typography.tiny, fontWeight: '900' }}>{row?.confidenceLabel}</Text>
+                    <Text style={{ color: colors.muted, fontSize: typography.tiny, fontWeight: '800' }}>{row?.sourceLabel}</Text>
+                  </View>
+                </View>
+                <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm }}>
+                  <QuickCorrectionButton label="-15%" icon="minus" onPress={() => onApplyCorrection({ type: 'portion_down', targetItemId: item.id })} />
+                  <QuickCorrectionButton label="+15%" icon="plus" onPress={() => onApplyCorrection({ type: 'portion_up', targetItemId: item.id })} />
+                  {onAdjustItem ? <QuickCorrectionButton label="Grammes" icon="slider" onPress={() => onAdjustItem(item.id)} /> : null}
+                  {meal.items.length > 1 ? <QuickCorrectionButton label="Retirer" icon="trash" onPress={() => onApplyCorrection({ type: 'remove_item', targetItemId: item.id })} /> : null}
+                </View>
               </View>
-              <View style={{ alignItems: 'flex-end', gap: spacing.xs }}>
-                <Text style={{ color: colors.green, fontSize: typography.tiny, fontWeight: '900' }}>{row?.confidenceLabel}</Text>
-                <Text style={{ color: colors.muted, fontSize: typography.tiny, fontWeight: '800' }}>{row?.sourceLabel}</Text>
-              </View>
-            </View>
-            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm }}>
-              <QuickCorrectionButton label="-15%" icon="minus" onPress={() => onApplyCorrection({ type: 'portion_down', targetItemId: item.id })} />
-              <QuickCorrectionButton label="+15%" icon="plus" onPress={() => onApplyCorrection({ type: 'portion_up', targetItemId: item.id })} />
-              {onAdjustItem ? <QuickCorrectionButton label="Grammes" icon="slider" onPress={() => onAdjustItem(item.id)} /> : null}
-              {meal.items.length > 1 ? <QuickCorrectionButton label="Retirer" icon="trash" onPress={() => onApplyCorrection({ type: 'remove_item', targetItemId: item.id })} /> : null}
-            </View>
-          </View>
-          );
-        })
+            );
+          })
         )}
       </View>
 
       <Pressable
         onPress={onSave}
-        style={{ alignItems: 'center', backgroundColor: colors.black, borderRadius: radius.pill, flexDirection: 'row', gap: spacing.sm, justifyContent: 'center', padding: spacing.lg }}
+        style={{ alignItems: 'center', backgroundColor: colors.black, borderRadius: radius.pill, flexDirection: 'row', gap: spacing.sm, justifyContent: 'center', minHeight: 60, paddingHorizontal: spacing.lg }}
       >
         <Save color="white" size={20} strokeWidth={2.5} />
         <Text style={{ color: 'white', fontSize: typography.body, fontWeight: '900' }}>Enregistrer le repas</Text>

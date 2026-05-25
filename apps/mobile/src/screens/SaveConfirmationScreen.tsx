@@ -1,5 +1,5 @@
 import { Pressable, Text, View } from 'react-native';
-import { Check, Flame } from 'lucide-react-native';
+import { Check, Flame, Home, ListChecks } from 'lucide-react-native';
 import type { Meal } from '../domain/types';
 import { colors, radius, spacing, typography } from '../ui/theme';
 
@@ -15,11 +15,16 @@ export function SaveConfirmationScreen({ meal, streakDays, onHome, onTimeline }:
 
   return (
     <View style={{ backgroundColor: colors.background, flex: 1, justifyContent: 'space-between', padding: spacing.xl }}>
-      <View style={{ alignItems: 'center', gap: spacing.xl, paddingTop: spacing.xxxl }}>
-        <View style={{ alignItems: 'center', backgroundColor: colors.green, borderColor: colors.line, borderRadius: radius.pill, borderWidth: 4, height: 118, justifyContent: 'center', width: 118 }}>
-          <Check color="white" size={58} strokeWidth={2.8} />
+      <View style={{ alignItems: 'center', gap: spacing.lg, paddingTop: spacing.xxl }}>
+        <View style={{ alignItems: 'center', backgroundColor: colors.green, borderColor: colors.line, borderRadius: radius.pill, borderWidth: 4, height: 96, justifyContent: 'center', width: 96 }}>
+          <Check color="white" size={48} strokeWidth={2.8} />
         </View>
-        <Text style={{ color: colors.black, fontSize: typography.hero, fontWeight: '900', textAlign: 'center' }}>{isProduct ? 'Produit enregistre' : 'Repas enregistre'}</Text>
+        <View style={{ alignItems: 'center', gap: spacing.sm }}>
+          <Text style={{ color: colors.black, fontSize: typography.title, fontWeight: '900', textAlign: 'center' }}>{isProduct ? 'Produit enregistre' : 'Repas enregistre'}</Text>
+          <Text numberOfLines={2} style={{ color: colors.muted, fontSize: typography.body, fontWeight: '800', lineHeight: 22, textAlign: 'center' }}>
+            {meal.mealName} est ajoute a ta timeline.
+          </Text>
+        </View>
         {streakDays > 0 ? (
           <View style={{ alignItems: 'center', borderColor: colors.line, borderRadius: radius.sm, borderWidth: 1, flexDirection: 'row', gap: spacing.sm, paddingHorizontal: spacing.md, paddingVertical: spacing.sm }}>
             <Flame color={colors.black} size={18} strokeWidth={2.4} />
@@ -39,13 +44,14 @@ export function SaveConfirmationScreen({ meal, streakDays, onHome, onTimeline }:
         </View>
       </View>
       <View style={{ gap: spacing.md }}>
-        <Pressable onPress={onHome} style={{ alignItems: 'center', backgroundColor: colors.black, borderRadius: radius.pill, justifyContent: 'center', minHeight: 64 }}>
+        <Pressable onPress={onHome} style={{ alignItems: 'center', backgroundColor: colors.black, borderRadius: radius.pill, flexDirection: 'row', gap: spacing.sm, justifyContent: 'center', minHeight: 60 }}>
+          <Home color="white" size={19} strokeWidth={2.6} />
           <Text style={{ color: 'white', fontSize: typography.subheading, fontWeight: '900' }}>Retourner a l'accueil</Text>
         </Pressable>
-        <Pressable onPress={onTimeline} style={{ alignItems: 'center', backgroundColor: colors.surface, borderColor: colors.line, borderRadius: radius.pill, borderWidth: 1, justifyContent: 'center', minHeight: 56 }}>
+        <Pressable onPress={onTimeline} style={{ alignItems: 'center', backgroundColor: colors.surface, borderColor: colors.line, borderRadius: radius.pill, borderWidth: 1, flexDirection: 'row', gap: spacing.sm, justifyContent: 'center', minHeight: 54 }}>
+          <ListChecks color={colors.black} size={18} strokeWidth={2.5} />
           <Text style={{ color: colors.black, fontSize: typography.body, fontWeight: '900' }}>Voir la timeline</Text>
         </Pressable>
-        <Text style={{ color: colors.muted, fontSize: typography.small, fontWeight: '800', textAlign: 'center' }}>Pas de redirection automatique par timer.</Text>
       </View>
     </View>
   );

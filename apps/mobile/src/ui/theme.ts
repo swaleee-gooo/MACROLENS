@@ -18,6 +18,8 @@ export const colors = {
   carbs: '#2F5BFF',
   fat: '#FFAD66',
   fiber: '#7157D9',
+  scannerGlass: 'rgba(255,255,255,0.92)',
+  scannerPanel: 'rgba(8,8,8,0.42)',
 };
 
 export const spacing = {

@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Alert, Animated, Platform, Pressable, StyleSheet, Text, TextInput, useWindowDimensions, View } from 'react-native';
 import { CameraView, useCameraPermissions, type BarcodeScanningResult } from 'expo-camera';
-import { ArrowLeft, Barcode, Camera, ImagePlus, Keyboard, ScanText, Zap } from 'lucide-react-native';
+import { ArrowLeft, Barcode, Camera, ImagePlus, Keyboard, RefreshCw, ScanText, Zap } from 'lucide-react-native';
 import { getScannerModeConfig, scannerModes, type ScannerIconKey, type ScannerMode } from '../scanner/scannerModes';
 import { colors, radius, spacing, typography } from '../ui/theme';
 
@@ -26,6 +26,47 @@ const iconMap: Record<ScannerIconKey, typeof Camera> = {
   label: ScanText,
   library: ImagePlus,
 };
+
+function SheetAction({
+  label,
+  icon: Icon,
+  tone = 'light',
+  onPress,
+}: {
+  label: string;
+  icon: typeof Camera;
+  tone?: 'dark' | 'green' | 'light' | 'outline';
+  onPress: () => void;
+}) {
+  const backgroundColor = tone === 'dark' ? colors.black : tone === 'green' ? colors.greenSoft : tone === 'outline' ? 'transparent' : colors.surfaceMuted;
+  const foregroundColor = tone === 'dark' ? 'white' : tone === 'green' ? colors.green : colors.black;
+  const borderColor = tone === 'outline' ? colors.line : backgroundColor;
+
+  return (
+    <Pressable
+      onPress={onPress}
+      style={{
+        alignItems: 'center',
+        backgroundColor,
+        borderColor,
+        borderRadius: radius.pill,
+        borderWidth: 1,
+        flexDirection: 'row',
+        flexGrow: 1,
+        gap: spacing.xs,
+        justifyContent: 'center',
+        minHeight: 44,
+        minWidth: 132,
+        paddingHorizontal: spacing.md,
+      }}
+    >
+      <Icon color={foregroundColor} size={15} strokeWidth={2.6} />
+      <Text numberOfLines={1} style={{ color: foregroundColor, fontSize: typography.small, fontWeight: '900' }}>
+        {label}
+      </Text>
+    </Pressable>
+  );
+}
 
 function frameSizeFor(mode: ScannerMode, width: number) {
   const frameWidth = Math.min(width - spacing.xl * 2, 370);
@@ -210,11 +251,11 @@ export function ScannerScreen({
       <View pointerEvents="box-none" style={StyleSheet.absoluteFillObject}>
         <View style={{ backgroundColor: 'rgba(0,0,0,0.18)', flex: 1, justifyContent: 'space-between', paddingHorizontal: spacing.lg, paddingVertical: spacing.lg }}>
           <View style={{ alignItems: 'center', flexDirection: 'row', justifyContent: 'space-between' }}>
-            <Pressable onPress={onBack} style={{ alignItems: 'center', backgroundColor: 'rgba(255,255,255,0.92)', borderRadius: radius.pill, height: 44, justifyContent: 'center', width: 44 }}>
+            <Pressable onPress={onBack} style={{ alignItems: 'center', backgroundColor: colors.scannerGlass, borderRadius: radius.pill, height: 44, justifyContent: 'center', width: 44 }}>
               <ArrowLeft color={colors.black} size={24} strokeWidth={2.7} />
             </Pressable>
             <Text style={{ color: 'white', fontSize: typography.body, fontWeight: '900' }}>Scanner</Text>
-            <Pressable onPress={() => setTorchEnabled((current) => !current)} style={{ alignItems: 'center', backgroundColor: torchEnabled ? colors.greenSoft : 'rgba(255,255,255,0.92)', borderRadius: radius.pill, height: 44, justifyContent: 'center', width: 44 }}>
+            <Pressable onPress={() => setTorchEnabled((current) => !current)} style={{ alignItems: 'center', backgroundColor: torchEnabled ? colors.greenSoft : colors.scannerGlass, borderRadius: radius.pill, height: 44, justifyContent: 'center', width: 44 }}>
               <Zap color={colors.black} size={20} strokeWidth={2.5} />
             </Pressable>
           </View>
@@ -256,38 +297,37 @@ export function ScannerScreen({
 
           <View style={{ gap: spacing.md }}>
             {lookupIssue ? (
-              <View style={{ backgroundColor: 'rgba(255,255,255,0.96)', borderRadius: radius.lg, gap: spacing.sm, padding: spacing.md }}>
-                <Text style={{ color: colors.black, fontSize: typography.body, fontWeight: '900' }}>{lookupIssue === 'needs_label' ? 'Etiquette requise' : 'Produit introuvable'}</Text>
+              <View style={{ backgroundColor: colors.scannerGlass, borderColor: 'rgba(255,255,255,0.42)', borderRadius: radius.lg, borderWidth: 1, gap: spacing.sm, padding: spacing.md }}>
+                <View style={{ alignItems: 'center', flexDirection: 'row', gap: spacing.sm }}>
+                  <View style={{ alignItems: 'center', backgroundColor: lookupIssue === 'needs_label' ? colors.greenSoft : colors.amberSoft, borderRadius: radius.pill, height: 34, justifyContent: 'center', width: 34 }}>
+                    {lookupIssue === 'needs_label' ? <ScanText color={colors.green} size={18} strokeWidth={2.6} /> : <Barcode color={colors.amber} size={18} strokeWidth={2.6} />}
+                  </View>
+                  <Text style={{ color: colors.black, flex: 1, fontSize: typography.body, fontWeight: '900' }}>{lookupIssue === 'needs_label' ? 'Etiquette requise' : 'Produit introuvable'}</Text>
+                </View>
                 <Text style={{ color: colors.muted, fontSize: typography.small, fontWeight: '800', lineHeight: 18 }}>
                   {lookupIssue === 'needs_label'
                     ? "La base produit n'a pas assez de valeurs nutritionnelles. Cadre le tableau par 100 g pour creer la fiche."
                     : "Essaie un autre angle, entre le code ou scanne l'etiquette nutritionnelle."}
                 </Text>
                 <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm }}>
-                  <Pressable
+                  <SheetAction
+                    icon={RefreshCw}
+                    label="Reessayer"
                     onPress={() => {
                       setScanned(false);
                       setLookupIssue(null);
                     }}
-                    style={{ alignItems: 'center', backgroundColor: colors.black, borderRadius: radius.pill, flexGrow: 1, minHeight: 44, minWidth: 132, justifyContent: 'center' }}
-                  >
-                    <Text style={{ color: 'white', fontSize: typography.small, fontWeight: '900' }}>Reessayer</Text>
-                  </Pressable>
-                  <Pressable onPress={() => switchMode('label')} style={{ alignItems: 'center', backgroundColor: colors.greenSoft, borderRadius: radius.pill, flexGrow: 1, minHeight: 44, minWidth: 132, justifyContent: 'center' }}>
-                    <Text style={{ color: colors.green, fontSize: typography.small, fontWeight: '900' }}>Scanner l'etiquette</Text>
-                  </Pressable>
-                  <Pressable onPress={openManualBarcodeEntry} style={{ alignItems: 'center', backgroundColor: colors.surfaceMuted, borderRadius: radius.pill, flexGrow: 1, minHeight: 44, minWidth: 132, justifyContent: 'center' }}>
-                    <Text style={{ color: colors.black, fontSize: typography.small, fontWeight: '900' }}>Entrer le code</Text>
-                  </Pressable>
-                  <Pressable onPress={onManualMeal} style={{ alignItems: 'center', borderColor: colors.line, borderRadius: radius.pill, borderWidth: 1, flexGrow: 1, minHeight: 44, minWidth: 132, justifyContent: 'center' }}>
-                    <Text style={{ color: colors.black, fontSize: typography.small, fontWeight: '900' }}>Ajouter manuellement</Text>
-                  </Pressable>
+                    tone="dark"
+                  />
+                  <SheetAction icon={ScanText} label="Scanner l'etiquette" onPress={() => switchMode('label')} tone="green" />
+                  <SheetAction icon={Keyboard} label="Entrer le code" onPress={openManualBarcodeEntry} />
+                  <SheetAction icon={Camera} label="Ajouter manuellement" onPress={onManualMeal} tone="outline" />
                 </View>
               </View>
             ) : null}
 
             {mode === 'barcode' && manualEntryOpen ? (
-              <View style={{ backgroundColor: 'rgba(255,255,255,0.96)', borderRadius: radius.lg, gap: spacing.sm, padding: spacing.md }}>
+              <View style={{ backgroundColor: colors.scannerGlass, borderRadius: radius.lg, gap: spacing.sm, padding: spacing.md }}>
                 <TextInput
                   value={manualBarcode}
                   onChangeText={setManualBarcode}
@@ -318,10 +358,11 @@ export function ScannerScreen({
                       borderColor: isActive ? 'white' : 'rgba(255,255,255,0.22)',
                       borderRadius: radius.md,
                       borderWidth: 1,
+                      flex: 1,
                       gap: spacing.xs,
                       height: 70,
                       justifyContent: 'center',
-                      width: 74,
+                      maxWidth: 82,
                     }}
                   >
                     <Icon color={isActive ? colors.black : 'white'} size={19} strokeWidth={2.4} />
@@ -358,7 +399,7 @@ export function ScannerScreen({
                   <View style={{ backgroundColor: isCapturing ? colors.greenSoft : 'white', borderRadius: radius.pill, height: 62, width: 62 }} />
                 </Pressable>
               ) : (
-                <View style={{ alignItems: 'center', backgroundColor: 'rgba(0,0,0,0.42)', borderColor: 'rgba(255,255,255,0.3)', borderRadius: radius.pill, borderWidth: 1, height: 64, justifyContent: 'center', paddingHorizontal: spacing.md, width: 138 }}>
+                <View style={{ alignItems: 'center', backgroundColor: colors.scannerPanel, borderColor: 'rgba(255,255,255,0.3)', borderRadius: radius.pill, borderWidth: 1, height: 64, justifyContent: 'center', paddingHorizontal: spacing.md, width: 138 }}>
                   <Text style={{ color: 'white', fontSize: typography.small, fontWeight: '900', textAlign: 'center' }}>{scanned ? 'Recherche...' : 'Detection automatique'}</Text>
                 </View>
               )}

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { Pressable, ScrollView, Text, View } from 'react-native';
+import { Pressable, ScrollView, Text, useWindowDimensions, View } from 'react-native';
 import { Flame, Plus, RotateCcw, Star } from 'lucide-react-native';
 import { BrandHeader } from '../components/BrandHeader';
 import { MealCard } from '../components/MealCard';
@@ -26,12 +26,14 @@ function SmallStatCard({ label, value, icon }: { label: string; value: string; i
   const Icon = icon === 'flame' ? Flame : Star;
 
   return (
-    <PremiumCard style={{ flex: 1, minHeight: 104 }}>
+    <PremiumCard style={{ flex: 1, minHeight: 84, padding: spacing.md }}>
       <View style={{ alignItems: 'center', flexDirection: 'row', gap: spacing.md }}>
-        <Icon color={icon === 'flame' ? colors.amber : colors.black} size={26} strokeWidth={2.4} />
+        <Icon color={icon === 'flame' ? colors.amber : colors.black} size={22} strokeWidth={2.4} />
         <View style={{ flex: 1 }}>
           <Text style={{ color: colors.muted, fontSize: typography.tiny, fontWeight: '900', textTransform: 'uppercase' }}>{label}</Text>
-          <Text style={{ color: colors.black, fontSize: typography.subheading, fontWeight: '900', marginTop: spacing.xs }}>{value}</Text>
+          <Text numberOfLines={2} style={{ color: colors.black, fontSize: typography.body, fontWeight: '900', lineHeight: 20, marginTop: spacing.xs }}>
+            {value}
+          </Text>
         </View>
       </View>
     </PremiumCard>
@@ -180,15 +182,17 @@ function MealShortcutChip({
 }
 
 export function PremiumHomeScreen({ meals, targets, profile, onOpenSettings, onOpenMeal, onRelogMeal }: Props) {
+  const { width } = useWindowDimensions();
   const today = new Date().toISOString().slice(0, 10);
   const [selectedIsoDate, setSelectedIsoDate] = useState(today);
   const vm = buildPremiumDashboardViewModel(meals, today, targets, profile);
   const dayReview = buildDayReviewViewModel(meals, selectedIsoDate, today, targets);
   const mealShortcuts = buildMealShortcuts(meals, 5);
   const quickRelogMeals = buildRecurringMealSuggestions(meals, 3);
+  const calorieRingSize = Math.min(width - spacing.xl * 4, 228);
 
   return (
-    <ScrollView style={{ backgroundColor: colors.background, flex: 1 }} contentContainerStyle={{ gap: spacing.xl, paddingBottom: spacing.xxl }}>
+    <ScrollView style={{ backgroundColor: colors.background, flex: 1 }} contentContainerStyle={{ gap: spacing.lg, paddingBottom: spacing.xxl }}>
       <BrandHeader onSettings={onOpenSettings} />
       <StreakCalendarStrip calendar={vm.streakCalendar} selectedIsoDate={selectedIsoDate} onSelectDay={setSelectedIsoDate} />
       <View style={{ gap: spacing.xs, paddingHorizontal: spacing.xl }}>
@@ -202,9 +206,9 @@ export function PremiumHomeScreen({ meals, targets, profile, onOpenSettings, onO
       </View>
 
       <View style={{ paddingHorizontal: spacing.xl }}>
-        <PremiumCard style={{ alignItems: 'center', gap: spacing.lg, paddingVertical: spacing.xl }}>
+        <PremiumCard style={{ alignItems: 'center', gap: spacing.md, paddingVertical: spacing.lg }}>
           <Text style={{ alignSelf: 'flex-start', color: colors.muted, fontSize: typography.tiny, fontWeight: '900', textTransform: 'uppercase' }}>Calories totales</Text>
-          <RingProgress size={250} strokeWidth={16} progress={dayReview.calories.progress} label={`${dayReview.calories.consumed}`} detail={`/ ${dayReview.calories.target || '--'} kcal`} />
+          <RingProgress size={calorieRingSize} strokeWidth={16} progress={dayReview.calories.progress} label={`${dayReview.calories.consumed}`} detail={`/ ${dayReview.calories.target || '--'} kcal`} />
           <View style={{ backgroundColor: colors.surfaceMuted, borderColor: colors.line, borderRadius: radius.sm, borderWidth: 1, paddingHorizontal: spacing.md, paddingVertical: spacing.sm }}>
             <Text style={{ color: colors.black, fontSize: typography.small, fontWeight: '900' }}>- {dayReview.calories.remaining} restantes</Text>
           </View>

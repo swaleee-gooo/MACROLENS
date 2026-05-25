@@ -43,7 +43,7 @@ export function TodayScreen({ meals, targets, profile, onBack, onOpenWeeklyRepor
   const progressOverview = buildProgressOverview(summary);
 
   return (
-    <ScrollView style={{ backgroundColor: colors.background, flex: 1 }} contentContainerStyle={{ gap: spacing.xl, padding: spacing.xl }}>
+    <ScrollView style={{ backgroundColor: colors.background, flex: 1 }} contentContainerStyle={{ gap: spacing.lg, padding: spacing.xl, paddingBottom: spacing.xxxl }}>
       <Pressable onPress={onBack} style={{ alignItems: 'center', flexDirection: 'row', gap: spacing.xs }}>
         <ArrowLeft color={colors.blue} size={18} strokeWidth={2.5} />
         <Text style={{ color: colors.blue, fontSize: typography.body, fontWeight: '800' }}>Retour</Text>
@@ -51,17 +51,17 @@ export function TodayScreen({ meals, targets, profile, onBack, onOpenWeeklyRepor
 
       <View style={{ gap: spacing.xs }}>
         <Text style={{ color: colors.ink, fontSize: typography.title, fontWeight: '900' }}>Progres</Text>
-        <Text style={{ color: colors.muted, fontSize: typography.body }}>Metriques, objectifs et repas logges.</Text>
+        <Text style={{ color: colors.muted, fontSize: typography.body, fontWeight: '800', lineHeight: 22 }}>Metriques, objectifs et repas logges.</Text>
       </View>
 
-      <View style={{ backgroundColor: colors.black, borderRadius: radius.md, gap: spacing.md, padding: spacing.lg }}>
+      <View style={{ backgroundColor: colors.black, borderRadius: radius.md, gap: spacing.md, padding: spacing.md }}>
         <View style={{ alignItems: 'center', flexDirection: 'row', gap: spacing.sm }}>
           <TrendingUp color={colors.greenSoft} size={22} strokeWidth={2.5} />
           <Text style={{ color: 'white', fontSize: typography.heading, fontWeight: '900' }}>{progressOverview.title}</Text>
         </View>
-        <View style={{ flexDirection: 'row', gap: spacing.sm }}>
+        <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm }}>
           {progressOverview.metrics.map((metric) => (
-            <View key={metric.label} style={{ backgroundColor: '#171717', borderRadius: radius.sm, flex: 1, gap: spacing.xs, padding: spacing.md }}>
+            <View key={metric.label} style={{ backgroundColor: '#171717', borderRadius: radius.sm, flex: 1, gap: spacing.xs, minWidth: 118, padding: spacing.md }}>
               <Text style={{ color: '#B8F6CE', fontSize: typography.tiny, fontWeight: '900', textTransform: 'uppercase' }}>{metric.label}</Text>
               <Text style={{ color: 'white', fontSize: typography.subheading, fontWeight: '900' }}>{metric.value}</Text>
             </View>
@@ -141,7 +141,10 @@ export function TodayScreen({ meals, targets, profile, onBack, onOpenWeeklyRepor
       <View style={{ gap: spacing.md }}>
         <Text style={{ color: colors.ink, fontSize: typography.heading, fontWeight: '900' }}>Repas du jour</Text>
         {viewModel.meals.length === 0 ? (
-          <Text style={{ color: colors.muted, fontSize: typography.body }}>Aucun repas aujourd'hui.</Text>
+          <PremiumCard style={{ gap: spacing.xs }}>
+            <Text style={{ color: colors.black, fontSize: typography.body, fontWeight: '900' }}>Aucun repas aujourd'hui</Text>
+            <Text style={{ color: colors.muted, fontSize: typography.small, fontWeight: '800', lineHeight: 19 }}>Scanne un repas ou selectionne un autre jour depuis l'accueil pour revoir ton historique.</Text>
+          </PremiumCard>
         ) : (
           viewModel.meals.map((meal) => <MealCard key={meal.id} meal={meal} onPress={onOpenMeal} />)
         )}
