@@ -5,6 +5,7 @@ import { BrandHeader } from '../components/BrandHeader';
 import { MealCard } from '../components/MealCard';
 import { PremiumCard } from '../components/PremiumCard';
 import { RingProgress } from '../components/RingProgress';
+import { buildMealShortcuts, type MealShortcut } from '../domain/mealShortcuts';
 import { buildRecurringMealSuggestions, type RecurringMealSuggestion } from '../domain/recurringMeals';
 import type { MacroTargets, Meal, UserProfile } from '../domain/types';
 import type { HomeStreakCalendar } from '../domain/homeStreak';
@@ -138,11 +139,52 @@ function QuickRelogCard({ suggestion, onRelogMeal }: { suggestion: RecurringMeal
   );
 }
 
+function MealShortcutChip({
+  shortcut,
+  onOpenMeal,
+  onRelogMeal,
+}: {
+  shortcut: MealShortcut;
+  onOpenMeal: (meal: Meal) => void;
+  onRelogMeal: (meal: Meal) => void;
+}) {
+  return (
+    <Pressable
+      onPress={() => onRelogMeal(shortcut.latestMeal)}
+      onLongPress={() => onOpenMeal(shortcut.latestMeal)}
+      style={{
+        alignItems: 'center',
+        backgroundColor: colors.surface,
+        borderColor: colors.line,
+        borderRadius: radius.pill,
+        borderWidth: 1,
+        flexDirection: 'row',
+        gap: spacing.sm,
+        minHeight: 44,
+        paddingHorizontal: spacing.md,
+      }}
+    >
+      <View style={{ alignItems: 'center', backgroundColor: colors.black, borderRadius: radius.pill, height: 24, justifyContent: 'center', width: 24 }}>
+        <RotateCcw color="white" size={13} strokeWidth={3} />
+      </View>
+      <View style={{ maxWidth: 144 }}>
+        <Text numberOfLines={1} style={{ color: colors.black, fontSize: typography.small, fontWeight: '900' }}>
+          {shortcut.label}
+        </Text>
+        <Text numberOfLines={1} style={{ color: colors.muted, fontSize: typography.tiny, fontWeight: '900' }}>
+          {shortcut.count}x - {shortcut.latestMeal.caloriesEstimate} kcal
+        </Text>
+      </View>
+    </Pressable>
+  );
+}
+
 export function PremiumHomeScreen({ meals, targets, profile, onOpenSettings, onOpenMeal, onRelogMeal }: Props) {
   const today = new Date().toISOString().slice(0, 10);
   const [selectedIsoDate, setSelectedIsoDate] = useState(today);
   const vm = buildPremiumDashboardViewModel(meals, today, targets, profile);
   const dayReview = buildDayReviewViewModel(meals, selectedIsoDate, today, targets);
+  const mealShortcuts = buildMealShortcuts(meals, 5);
   const quickRelogMeals = buildRecurringMealSuggestions(meals, 3);
 
   return (
@@ -177,6 +219,19 @@ export function PremiumHomeScreen({ meals, targets, profile, onOpenSettings, onO
 
       {quickRelogMeals.length > 0 ? (
         <View style={{ gap: spacing.md, paddingHorizontal: spacing.xl }}>
+          {mealShortcuts.length > 0 ? (
+            <View style={{ gap: spacing.sm }}>
+              <View style={{ alignItems: 'center', flexDirection: 'row', justifyContent: 'space-between' }}>
+                <Text style={{ color: colors.black, fontSize: typography.subheading, fontWeight: '900' }}>Acces rapide</Text>
+                <Text style={{ color: colors.muted, fontSize: typography.tiny, fontWeight: '900', textTransform: 'uppercase' }}>Appui long: detail</Text>
+              </View>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: spacing.sm, paddingRight: spacing.xl }}>
+                {mealShortcuts.map((shortcut) => (
+                  <MealShortcutChip key={`${shortcut.latestMeal.id}-${shortcut.label}`} shortcut={shortcut} onOpenMeal={onOpenMeal} onRelogMeal={onRelogMeal} />
+                ))}
+              </ScrollView>
+            </View>
+          ) : null}
           <View style={{ alignItems: 'center', flexDirection: 'row', justifyContent: 'space-between' }}>
             <View style={{ alignItems: 'center', flexDirection: 'row', gap: spacing.sm }}>
               <RotateCcw color={colors.black} size={21} strokeWidth={2.5} />
