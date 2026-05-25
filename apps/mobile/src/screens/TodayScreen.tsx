@@ -4,6 +4,7 @@ import type { DimensionValue } from 'react-native';
 import { ArrowLeft, CalendarDays, TrendingUp } from 'lucide-react-native';
 import type { MacroTargets, Meal, UserProfile } from '../domain/types';
 import { buildGoalProgress } from '../domain/goalProgress';
+import { buildProgressMetrics } from '../domain/progressMetrics';
 import { GoalProgressChart } from '../components/GoalProgressChart';
 import { MealCard } from '../components/MealCard';
 import { MetricPill } from '../components/MetricPill';
@@ -38,6 +39,7 @@ export function TodayScreen({ meals, targets, profile, onBack, onOpenWeeklyRepor
   const viewModel = buildTodayViewModel(meals, today, targets);
   const summary = viewModel.summary;
   const goalProgress = profile ? buildGoalProgress(meals, profile, today, goalRangeDays(goalRange, meals, today)) : null;
+  const progressMetrics = profile ? buildProgressMetrics(meals, profile, today) : null;
   const progressOverview = buildProgressOverview(summary);
 
   return (
@@ -96,6 +98,18 @@ export function TodayScreen({ meals, targets, profile, onBack, onOpenWeeklyRepor
           </View>
           <GoalProgressChart progress={goalProgress} />
         </PremiumCard>
+      ) : null}
+
+      {progressMetrics ? (
+        <View style={{ gap: spacing.md }}>
+          <Text style={{ color: colors.ink, fontSize: typography.subheading, fontWeight: '900' }}>Tendances 7 jours</Text>
+          <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: spacing.md }}>
+            <MetricPill label="Kcal moy." value={`${progressMetrics.averageCalories7d}`} />
+            <MetricPill label="Prot moy." value={`${progressMetrics.averageProtein7d} g`} accent={colors.protein} />
+            <MetricPill label="Jours logges" value={`${progressMetrics.loggedDays7d}/7`} accent={colors.blue} />
+            <MetricPill label="Objectif kcal" value={`${progressMetrics.calorieAdherencePercent}%`} />
+          </View>
+        </View>
       ) : null}
 
       <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: spacing.md }}>
