@@ -15,7 +15,7 @@ import { createManualMacroMeal } from './src/domain/manualMeal';
 import { calculateMealStreak } from './src/domain/streaks';
 import type { MacroTargets, Meal, UserProfile } from './src/domain/types';
 import { createEntitlementProvider } from './src/entitlements/entitlementProviderFactory';
-import type { CommercialEntitlementState } from './src/entitlements/entitlementTypes';
+import type { CommercialEntitlementState, PurchasePlan } from './src/entitlements/entitlementTypes';
 import { createEntitlementRepository, type EntitlementState } from './src/storage/entitlementRepository';
 import { createMealRepository } from './src/storage/mealRepository';
 import { createOnboardingRepository, type OnboardingState } from './src/storage/onboardingRepository';
@@ -101,11 +101,13 @@ function MacroLensApp() {
         setOnboardingState(loadedOnboarding);
 
         if (!loadedOnboarding.isComplete || !loadedProfile) {
+          analytics.track('onboarding_started');
           setScreen({ name: 'onboarding' });
           return;
         }
 
         if (!loadedEntitlement.isPremium) {
+          analytics.track('paywall_viewed');
           setScreen({ name: 'paywall' });
           return;
         }
@@ -188,17 +190,36 @@ function MacroLensApp() {
     await onboardingRepository.saveState({ isComplete: true, completedAt });
     setProfile(nextProfile);
     setOnboardingState({ isComplete: true, completedAt });
+    analytics.track('paywall_viewed');
     setScreen({ name: 'paywall' });
+  }
+
+  async function applyPurchasedEntitlement(plan: PurchasePlan) {
+    const nextEntitlement = storedEntitlementFromCommercial(await entitlementProvider.purchase(plan));
+    await entitlementRepository.saveEntitlement(nextEntitlement);
+    setEntitlement(nextEntitlement);
+    if (nextEntitlement.isPremium) {
+      setScreen({ name: 'app', tab: 'home' });
+    }
+
+    return nextEntitlement;
+  }
+
+  async function purchasePlan(plan: PurchasePlan) {
+    try {
+      analytics.track('paywall_cta_tapped', { plan });
+      const nextEntitlement = await applyPurchasedEntitlement(plan);
+      analytics.track('purchase_completed', { plan, source: nextEntitlement.source });
+    } catch {
+      analytics.track('purchase_failed', { plan });
+      Alert.alert('Abonnement indisponible', 'Reessaie dans quelques instants.');
+    }
   }
 
   async function unlockForDevelopment() {
     try {
-      const nextEntitlement = storedEntitlementFromCommercial(await entitlementProvider.purchase('annual'));
-      await entitlementRepository.saveEntitlement(nextEntitlement);
-      setEntitlement(nextEntitlement);
-      if (nextEntitlement.isPremium) {
-        setScreen({ name: 'app', tab: 'home' });
-      }
+      const nextEntitlement = await applyPurchasedEntitlement('annual');
+      analytics.track('purchase_completed', { plan: 'annual', source: nextEntitlement.source });
     } catch {
       Alert.alert('Abonnement indisponible', 'Reessaie dans quelques instants.');
     }
@@ -206,6 +227,7 @@ function MacroLensApp() {
 
   async function restorePurchases() {
     try {
+      analytics.track('restore_purchases_tapped');
       const nextEntitlement = storedEntitlementFromCommercial(await entitlementProvider.restore());
       await entitlementRepository.saveEntitlement(nextEntitlement);
       setEntitlement(nextEntitlement);
@@ -279,11 +301,25 @@ function MacroLensApp() {
   }
 
   if (screen.name === 'onboarding') {
-    return <OnboardingScreen userId={localUserId} onComplete={completeOnboarding} />;
+    return (
+      <OnboardingScreen
+        userId={localUserId}
+        onComplete={completeOnboarding}
+        onStepCompleted={(step) => analytics.track('onboarding_step_completed', { step })}
+        onOnboardingCompleted={({ goal, friction }) => analytics.track('onboarding_completed', { goal, friction })}
+      />
+    );
   }
 
   if (screen.name === 'paywall') {
-    return <PaywallScreen onUnlockForDevelopment={unlockForDevelopment} onRestore={restorePurchases} />;
+    return (
+      <PaywallScreen
+        onPurchase={purchasePlan}
+        onUnlockForDevelopment={unlockForDevelopment}
+        onRestore={restorePurchases}
+        showDevelopmentUnlock={appEnv.entitlementMode === 'local_dev'}
+      />
+    );
   }
 
   if (screen.name === 'app') {
