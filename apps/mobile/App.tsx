@@ -4,6 +4,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { StatusBar } from 'expo-status-bar';
 import * as ImagePicker from 'expo-image-picker';
+import { createAnalyticsClient, createConsoleAnalyticsSink } from './src/analytics/analyticsClient';
 import { isNonFoodPhotoError } from './src/analysis/analysisErrors';
 import { createAnalysisService } from './src/analysis/analysisServiceFactory';
 import { appEnv } from './src/config/env';
@@ -46,6 +47,7 @@ type ScreenState =
   | { name: 'manualMeal' };
 
 const queryClient = new QueryClient();
+const analytics = createAnalyticsClient(createConsoleAnalyticsSink());
 const localUserId = 'local-user';
 
 function MacroLensApp() {
@@ -62,6 +64,7 @@ function MacroLensApp() {
   const targets: MacroTargets | null = profile?.targets ?? null;
 
   useEffect(() => {
+    analytics.track('app_opened');
     Promise.all([repository.listMeals(), profileRepository.getProfile(), entitlementRepository.getEntitlement(), onboardingRepository.getState()])
       .then(([loadedMeals, loadedProfile, loadedEntitlement, loadedOnboarding]) => {
         setMeals(loadedMeals);
@@ -87,18 +90,27 @@ function MacroLensApp() {
   }, [entitlementRepository, onboardingRepository, profileRepository, repository]);
 
   async function analyzeImageUri(imageUri: string) {
+    analytics.track('scan_started', { source: 'photo' });
     setScreen({ name: 'analyzing', imageUri });
 
     try {
       const analysis = await analysisService.analyzeMealPhoto({ imageUri, userId: localUserId });
+      analytics.track('scan_completed', {
+        source: 'photo',
+        confidence: analysis.meal.confidence,
+        caloriesEstimate: analysis.meal.caloriesEstimate,
+        corrected: false,
+      });
       setScreen({ name: 'result', meal: analysis.meal, isSaved: false });
     } catch (error) {
       if (isNonFoodPhotoError(error)) {
+        analytics.track('non_food_detected', { source: 'photo' });
         Alert.alert('Photo non reconnue', error.userMessage);
         setScreen({ name: 'app', tab: 'home' });
         return;
       }
 
+      analytics.track('scan_failed', { source: 'photo', reason: 'analysis_error' });
       Alert.alert('Analyse impossible', 'Reessaie avec une photo plus claire ou ajoute le repas manuellement.');
       setScreen({ name: 'app', tab: 'home' });
     }
@@ -168,6 +180,7 @@ function MacroLensApp() {
 
   async function saveMeal(meal: Meal) {
     await repository.saveMeal(meal);
+    analytics.track('meal_saved', { source: meal.source, caloriesEstimate: meal.caloriesEstimate });
     const nextMeals = await repository.listMeals();
     setMeals(nextMeals);
     setScreen({ name: 'saveConfirmation', meal, streakDays: calculateMealStreak(nextMeals, new Date().toISOString().slice(0, 10)) });
