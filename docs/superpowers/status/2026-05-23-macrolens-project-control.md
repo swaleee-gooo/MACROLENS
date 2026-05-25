@@ -243,6 +243,14 @@ Current design:
 Current plan:
 
 - `docs/superpowers/plans/2026-05-25-commercial-launch-v1.md`
+- `docs/superpowers/plans/2026-05-25-scanner-v2.md`
+
+### Scanner V2 Update - 2026-05-25
+
+- Replaced the separated barcode and label capture screens with a unified in-app `ScannerScreen`.
+- Meal and label capture now use `expo-camera` directly instead of launching the system camera.
+- Barcode mode uses live detection, manual code fallback, torch, and an in-scanner product-not-found panel.
+- Verification passed: `npm test`, `npx tsc --noEmit`, `npx expo install --check`, and web smoke on `http://localhost:8086`.
 
 ## Merge Gate For Current MVP
 

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Alert, Platform, SafeAreaView, Text, View } from 'react-native';
+import { Alert, SafeAreaView, Text, View } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import Constants from 'expo-constants';
@@ -30,9 +30,7 @@ import { createProfileRepository } from './src/storage/profileRepository';
 import { createMacroLensSupabaseClient } from './src/supabase/client';
 import { colors } from './src/ui/theme';
 import { AnalyzingScreen } from './src/screens/AnalyzingScreen';
-import { BarcodeScanScreen } from './src/screens/BarcodeScanScreen';
 import { EditProfileScreen } from './src/screens/EditProfileScreen';
-import { LabelScanScreen } from './src/screens/LabelScanScreen';
 import { ManualMealScreen } from './src/screens/ManualMealScreen';
 import { OnboardingScreen } from './src/screens/OnboardingScreen';
 import { PaywallScreen } from './src/screens/PaywallScreen';
@@ -42,11 +40,13 @@ import { PremiumHomeScreen } from './src/screens/PremiumHomeScreen';
 import { PremiumTimelineScreen } from './src/screens/PremiumTimelineScreen';
 import { ResultScreen } from './src/screens/ResultScreen';
 import { SaveConfirmationScreen } from './src/screens/SaveConfirmationScreen';
+import { ScannerScreen } from './src/screens/ScannerScreen';
 import { SettingsScreen } from './src/screens/SettingsScreen';
 import { SuccessProfileScreen } from './src/screens/SuccessProfileScreen';
 import { TargetsScreen } from './src/screens/TargetsScreen';
 import { TodayScreen } from './src/screens/TodayScreen';
 import { WeeklyReportScreen } from './src/screens/WeeklyReportScreen';
+import type { ScannerMode } from './src/scanner/scannerModes';
 
 type ScreenState =
   | { name: 'loading' }
@@ -61,8 +61,7 @@ type ScreenState =
   | { name: 'settings' }
   | { name: 'targets' }
   | { name: 'manualMeal' }
-  | { name: 'barcodeScan' }
-  | { name: 'labelScan' }
+  | { name: 'scanner'; initialMode: ScannerMode; productLookupError?: boolean }
   | { name: 'packagedProduct'; item: PackagedFoodItem; initialServingGrams: number; imageUri: string }
   | { name: 'weeklyReport' };
 
@@ -213,27 +212,9 @@ function MacroLensApp() {
     }
   }
 
-  async function captureMeal() {
-    if (Platform.OS !== 'web') {
-      const permission = await ImagePicker.requestCameraPermissionsAsync();
-      if (!permission.granted) {
-        Alert.alert('Camera indisponible', 'Autorise la camera ou choisis une photo depuis ta galerie.');
-        return;
-      }
-    }
-
-    const result = await ImagePicker.launchCameraAsync({
-      allowsEditing: true,
-      aspect: [1, 1],
-      mediaTypes: ['images'],
-      quality: 0.75,
-    });
-
-    if (result.canceled || result.assets.length === 0) {
-      return;
-    }
-
-    await analyzeImageUri(result.assets[0].uri);
+  function captureMeal() {
+    analytics.track('scan_started', { source: 'scanner_meal' });
+    setScreen({ name: 'scanner', initialMode: 'meal' });
   }
 
   async function pickMealPhoto() {
@@ -336,11 +317,7 @@ function MacroLensApp() {
 
   function openBarcodeScan() {
     analytics.track('barcode_scan_started');
-    setScreen({ name: 'barcodeScan' });
-  }
-
-  function openLabelScan() {
-    setScreen({ name: 'labelScan' });
+    setScreen({ name: 'scanner', initialMode: 'barcode' });
   }
 
   async function handleBarcodeDetected(barcode: string) {
@@ -351,8 +328,8 @@ function MacroLensApp() {
       const item = await packagedFoodLookupService.lookupProduct(barcode);
       setScreen({ name: 'packagedProduct', item, initialServingGrams: 30, imageUri: `product://${item.barcode}` });
     } catch {
-      Alert.alert('Produit introuvable', "Je n'ai pas trouve ce produit. Essaie de saisir le code, scanne l'etiquette ou ajoute le produit manuellement.");
-      setScreen({ name: 'barcodeScan' });
+      analytics.track('scan_failed', { source: 'barcode', reason: 'product_not_found' });
+      setScreen({ name: 'scanner', initialMode: 'barcode', productLookupError: true });
     }
   }
 
@@ -379,7 +356,7 @@ function MacroLensApp() {
     } catch {
       analytics.track('scan_failed', { source: 'label_ocr', reason: 'label_ocr_error' });
       Alert.alert('Etiquette illisible', 'Cadre le tableau nutritionnel de face, avec les valeurs par 100 g visibles, ou ajoute le produit manuellement.');
-      setScreen({ name: 'manualMeal' });
+      setScreen({ name: 'scanner', initialMode: 'label' });
     }
   }
 
@@ -545,20 +522,20 @@ function MacroLensApp() {
     return <ManualMealScreen onBack={() => setScreen({ name: 'app', tab: 'home' })} onSave={saveManualMeal} />;
   }
 
-  if (screen.name === 'barcodeScan') {
+  if (screen.name === 'scanner') {
     return (
-      <BarcodeScanScreen
+      <ScannerScreen
+        initialMode={screen.initialMode}
+        productLookupError={screen.productLookupError}
         onBack={() => setScreen({ name: 'app', tab: 'home' })}
+        onMealPhoto={analyzeImageUri}
+        onLabelPhoto={handleLabelPhoto}
         onBarcodeDetected={handleBarcodeDetected}
-        onOpenLabelScan={openLabelScan}
         onManualBarcode={handleBarcodeDetected}
-        onManualFallback={() => setScreen({ name: 'manualMeal' })}
+        onManualMeal={() => setScreen({ name: 'manualMeal' })}
+        onOpenLibrary={pickMealPhoto}
       />
     );
-  }
-
-  if (screen.name === 'labelScan') {
-    return <LabelScanScreen onBack={() => setScreen({ name: 'barcodeScan' })} onLabelPhoto={handleLabelPhoto} />;
   }
 
   if (screen.name === 'packagedProduct') {
@@ -566,7 +543,7 @@ function MacroLensApp() {
       <PackagedProductScreen
         item={screen.item}
         initialServingGrams={screen.initialServingGrams}
-        onBack={() => setScreen({ name: 'barcodeScan' })}
+        onBack={() => setScreen({ name: 'scanner', initialMode: 'barcode' })}
         onAddProduct={(servingGrams) => savePackagedProduct(screen.item, servingGrams, screen.imageUri)}
       />
     );
