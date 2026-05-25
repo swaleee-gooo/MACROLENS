@@ -1,5 +1,5 @@
 import { Image, Pressable, Text, View } from 'react-native';
-import { ScanLine } from 'lucide-react-native';
+import { Package, ScanLine } from 'lucide-react-native';
 import type { Meal } from '../domain/types';
 import { colors, radius, spacing, typography } from '../ui/theme';
 import { ConfidenceBadge } from './ConfidenceBadge';
@@ -11,6 +11,7 @@ type Props = {
 
 export function MealCard({ meal, onPress }: Props) {
   const isManual = meal.imageUri.startsWith('manual://');
+  const isProduct = meal.imageUri.startsWith('product://') || meal.imageUri.startsWith('barcode://');
 
   return (
     <Pressable
@@ -25,7 +26,7 @@ export function MealCard({ meal, onPress }: Props) {
         padding: spacing.md,
       }}
     >
-      {isManual ? (
+      {isManual || isProduct ? (
         <View
           style={{
             alignItems: 'center',
@@ -36,7 +37,7 @@ export function MealCard({ meal, onPress }: Props) {
             width: 76,
           }}
         >
-          <ScanLine color={colors.green} size={30} strokeWidth={2} />
+          {isProduct ? <Package color={colors.green} size={30} strokeWidth={2} /> : <ScanLine color={colors.green} size={30} strokeWidth={2} />}
         </View>
       ) : (
         <Image

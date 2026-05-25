@@ -1,4 +1,5 @@
-import { Text, useWindowDimensions, View } from 'react-native';
+import { useState } from 'react';
+import { Pressable, Text, useWindowDimensions, View } from 'react-native';
 import Svg, { Circle, Line, Path, Text as SvgText } from 'react-native-svg';
 import type { GoalProgress } from '../domain/goalProgress';
 import { colors, radius, spacing, typography } from '../ui/theme';
@@ -12,6 +13,7 @@ function buildLinePath(points: Array<{ x: number; y: number }>): string {
 }
 
 export function GoalProgressChart({ progress }: Props) {
+  const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
   const { width } = useWindowDimensions();
   const chartWidth = Math.max(280, Math.min(360, width - spacing.xl * 4));
   const chartHeight = 180;
@@ -43,8 +45,10 @@ export function GoalProgressChart({ progress }: Props) {
       break;
     }
   }
-  const activePoint = linePoints[latestLoggedIndex] ?? linePoints[linePoints.length - 1];
-  const activeWeight = progress.points[latestLoggedIndex]?.weightKg ?? progress.currentWeightKg;
+  const activeIndex = Math.min(selectedIndex ?? latestLoggedIndex, progress.points.length - 1);
+  const activePoint = linePoints[activeIndex] ?? linePoints[linePoints.length - 1];
+  const activeProgressPoint = progress.points[activeIndex] ?? progress.points[progress.points.length - 1];
+  const activeWeight = activeProgressPoint?.weightKg ?? progress.currentWeightKg;
   const targetY = progress.targetWeightKg ? yForValue(progress.targetWeightKg) : null;
   const firstPoint = progress.points[0];
   const middlePoint = progress.points[Math.floor(progress.points.length / 2)];
@@ -59,32 +63,43 @@ export function GoalProgressChart({ progress }: Props) {
         </View>
       </View>
 
-      <Svg height={chartHeight} width={chartWidth}>
-        {[0, 0.33, 0.66, 1].map((ratio) => {
-          const y = paddingTop + plotHeight * ratio;
-          return <Line key={ratio} x1={paddingX} x2={chartWidth - paddingX} y1={y} y2={y} stroke={colors.line} strokeDasharray="3 5" strokeWidth={1} />;
-        })}
-        {targetY ? <Line x1={paddingX} x2={chartWidth - paddingX} y1={targetY} y2={targetY} stroke={colors.greenSoft} strokeDasharray="6 5" strokeWidth={2} /> : null}
-        <Path d={path} fill="none" stroke={colors.black} strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} />
-        <Path d={path} fill="none" stroke={colors.greenSoft} strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.2} />
-        {progress.points.map((point, index) =>
-          point.logged ? <Circle key={point.isoDate} cx={linePoints[index].x} cy={linePoints[index].y} fill={colors.greenSoft} r={3.5} stroke={colors.green} strokeWidth={1.5} /> : null,
-        )}
-        <Circle cx={activePoint.x} cy={activePoint.y} fill={colors.surface} r={6} stroke={colors.green} strokeWidth={3} />
-        <SvgText fill={colors.muted} fontSize={11} fontWeight="700" x={paddingX} y={chartHeight - 8}>
-          {firstPoint.label}
-        </SvgText>
-        <SvgText fill={colors.muted} fontSize={11} fontWeight="700" textAnchor="middle" x={chartWidth / 2} y={chartHeight - 8}>
-          {middlePoint.label}
-        </SvgText>
-        <SvgText fill={colors.muted} fontSize={11} fontWeight="700" textAnchor="end" x={chartWidth - paddingX} y={chartHeight - 8}>
-          {lastPoint.label}
-        </SvgText>
-      </Svg>
+      <View style={{ height: chartHeight, position: 'relative', width: chartWidth }}>
+        <Svg height={chartHeight} width={chartWidth}>
+          {[0, 0.33, 0.66, 1].map((ratio) => {
+            const y = paddingTop + plotHeight * ratio;
+            return <Line key={ratio} x1={paddingX} x2={chartWidth - paddingX} y1={y} y2={y} stroke={colors.line} strokeDasharray="3 5" strokeWidth={1} />;
+          })}
+          {targetY ? <Line x1={paddingX} x2={chartWidth - paddingX} y1={targetY} y2={targetY} stroke={colors.greenSoft} strokeDasharray="6 5" strokeWidth={2} /> : null}
+          <Path d={path} fill="none" stroke={colors.black} strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} />
+          <Path d={path} fill="none" stroke={colors.greenSoft} strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.2} />
+          {progress.points.map((point, index) =>
+            point.logged ? <Circle key={point.isoDate} cx={linePoints[index].x} cy={linePoints[index].y} fill={colors.greenSoft} r={3.5} stroke={colors.green} strokeWidth={1.5} /> : null,
+          )}
+          <Circle cx={activePoint.x} cy={activePoint.y} fill={colors.surface} r={6} stroke={colors.green} strokeWidth={3} />
+          <SvgText fill={colors.muted} fontSize={11} fontWeight="700" x={paddingX} y={chartHeight - 8}>
+            {firstPoint.label}
+          </SvgText>
+          <SvgText fill={colors.muted} fontSize={11} fontWeight="700" textAnchor="middle" x={chartWidth / 2} y={chartHeight - 8}>
+            {middlePoint.label}
+          </SvgText>
+          <SvgText fill={colors.muted} fontSize={11} fontWeight="700" textAnchor="end" x={chartWidth - paddingX} y={chartHeight - 8}>
+            {lastPoint.label}
+          </SvgText>
+        </Svg>
+        <View style={{ bottom: paddingBottom, flexDirection: 'row', left: paddingX, position: 'absolute', right: paddingX, top: 0 }}>
+          {progress.points.map((point, index) => (
+            <Pressable key={`touch-${point.isoDate}`} onPress={() => setSelectedIndex(index)} style={{ flex: 1 }} />
+          ))}
+        </View>
+      </View>
 
       <View style={{ backgroundColor: colors.black, borderRadius: radius.md, gap: spacing.xs, paddingHorizontal: spacing.md, paddingVertical: spacing.sm }}>
-        <Text style={{ color: 'white', fontSize: typography.small, fontWeight: '900' }}>{activeWeight} kg</Text>
-        <Text style={{ color: '#EDEDED', fontSize: typography.tiny, fontWeight: '800' }}>{progress.insight}</Text>
+        <Text style={{ color: 'white', fontSize: typography.small, fontWeight: '900' }}>
+          {activeWeight} kg - {activeProgressPoint.label}
+        </Text>
+        <Text style={{ color: '#EDEDED', fontSize: typography.tiny, fontWeight: '800' }}>
+          {activeProgressPoint.logged ? `${activeProgressPoint.calories} kcal loggees` : progress.insight}
+        </Text>
       </View>
     </View>
   );

@@ -1,5 +1,5 @@
 import { Image, Pressable, ScrollView, Text, View } from 'react-native';
-import { Flame, Utensils } from 'lucide-react-native';
+import { Flame, Package, Utensils } from 'lucide-react-native';
 import { BrandHeader } from '../components/BrandHeader';
 import { PremiumCard } from '../components/PremiumCard';
 import type { Meal } from '../domain/types';
@@ -23,14 +23,15 @@ function confidenceLabel(confidence: Meal['confidence']): { label: string; backg
 
 function TimelineMealCard({ meal, onOpenMeal }: { meal: Meal; onOpenMeal: (meal: Meal) => void }) {
   const isManual = meal.imageUri.startsWith('manual://');
+  const isProduct = meal.imageUri.startsWith('product://') || meal.imageUri.startsWith('barcode://');
   const badge = confidenceLabel(meal.confidence);
 
   return (
     <Pressable onPress={() => onOpenMeal(meal)}>
       <PremiumCard style={{ alignItems: 'center', flexDirection: 'row', gap: spacing.md }}>
-        {isManual ? (
+        {isManual || isProduct ? (
           <View style={{ alignItems: 'center', backgroundColor: colors.surfaceMuted, borderRadius: radius.sm, height: 74, justifyContent: 'center', width: 74 }}>
-            <Utensils color={colors.muted} size={28} strokeWidth={2.4} />
+            {isProduct ? <Package color={colors.green} size={28} strokeWidth={2.4} /> : <Utensils color={colors.muted} size={28} strokeWidth={2.4} />}
           </View>
         ) : (
           <Image source={{ uri: meal.imageUri }} style={{ backgroundColor: colors.surfaceMuted, borderRadius: radius.sm, height: 74, width: 74 }} />

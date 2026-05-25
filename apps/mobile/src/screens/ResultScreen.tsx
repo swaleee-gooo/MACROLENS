@@ -1,5 +1,5 @@
 import { Image, Pressable, ScrollView, Text, View } from 'react-native';
-import { ArrowLeft, Droplets, Save, Scale, ShieldCheck, SlidersHorizontal, Trash2 } from 'lucide-react-native';
+import { ArrowLeft, Droplets, Package, Save, Scale, ShieldCheck, SlidersHorizontal, Trash2 } from 'lucide-react-native';
 import type { Meal } from '../domain/types';
 import type { MealCorrection } from '../domain/corrections';
 import { buildScanTrustViewModel } from '../domain/scanTrust';
@@ -24,6 +24,8 @@ const correctionButtons: { label: string; correction: MealCorrection; icon: 'sca
 
 export function ResultScreen({ meal, onApplyCorrection, onAdjustItem, onSave, onBack }: Props) {
   const isManual = meal.imageUri.startsWith('manual://');
+  const isProduct = meal.imageUri.startsWith('product://') || meal.imageUri.startsWith('barcode://');
+  const usesPlaceholderImage = isManual || isProduct;
   const isMockAnalysis = meal.source === 'mock';
   const trust = buildScanTrustViewModel(meal);
 
@@ -33,7 +35,7 @@ export function ResultScreen({ meal, onApplyCorrection, onAdjustItem, onSave, on
         <ArrowLeft color={colors.black} size={28} strokeWidth={2.6} />
         <Text style={{ color: colors.black, fontSize: typography.heading, fontWeight: '900' }}>MACROLENS</Text>
       </Pressable>
-      {isManual ? (
+      {usesPlaceholderImage ? (
         <View
           style={{
             alignItems: 'center',
@@ -46,7 +48,7 @@ export function ResultScreen({ meal, onApplyCorrection, onAdjustItem, onSave, on
             width: '100%',
           }}
         >
-          <Scale color={colors.green} size={72} strokeWidth={1.8} />
+          {isProduct ? <Package color={colors.green} size={72} strokeWidth={1.8} /> : <Scale color={colors.green} size={72} strokeWidth={1.8} />}
         </View>
       ) : (
         <Image source={{ uri: meal.imageUri }} style={{ aspectRatio: 1, borderRadius: radius.lg, width: '100%' }} />
@@ -54,7 +56,7 @@ export function ResultScreen({ meal, onApplyCorrection, onAdjustItem, onSave, on
       <View style={{ gap: spacing.sm }}>
         <Text style={{ color: colors.ink, fontSize: typography.title, fontWeight: '900' }}>{meal.mealName}</Text>
         <Text style={{ color: colors.muted, fontSize: typography.body, fontWeight: '800', lineHeight: 24 }}>
-          Une estimation photo reste une plage. Verifie les portions visibles avant d'enregistrer.
+          {isProduct ? 'Produit enregistre depuis une base nutritionnelle. Verifie seulement la portion consommee.' : "Une estimation photo reste une plage. Verifie les portions visibles avant d'enregistrer."}
         </Text>
       </View>
       <View style={{ backgroundColor: colors.surface, borderColor: colors.line, borderRadius: radius.md, borderWidth: 1, gap: spacing.lg, padding: spacing.lg }}>

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 import { Barcode, Camera, Flame, ImagePlus, PenLine, Star } from 'lucide-react-native';
 import { BrandHeader } from '../components/BrandHeader';
@@ -70,13 +70,25 @@ function SmallStatCard({ label, value, icon }: { label: string; value: string; i
 }
 
 function StreakCalendarStrip({ calendar }: { calendar: HomeStreakCalendar }) {
+  const scrollRef = useRef<ScrollView>(null);
+
+  useEffect(() => {
+    const todayIndex = calendar.days.findIndex((day) => day.isToday);
+    const targetX = Math.max(0, (todayIndex - 3) * 52);
+    const timeout = setTimeout(() => {
+      scrollRef.current?.scrollTo({ x: targetX, animated: false });
+    }, 0);
+
+    return () => clearTimeout(timeout);
+  }, [calendar.days]);
+
   return (
     <View style={{ gap: spacing.md, paddingHorizontal: spacing.xl }}>
       <View style={{ alignItems: 'center', flexDirection: 'row', justifyContent: 'space-between' }}>
         <Text style={{ color: colors.black, fontSize: typography.subheading, fontWeight: '900' }}>Serie {calendar.streakDays} jours</Text>
         <Text style={{ color: colors.muted, fontSize: typography.small, fontWeight: '800' }}>Cette semaine</Text>
       </View>
-      <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+      <ScrollView ref={scrollRef} horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: spacing.sm, paddingRight: spacing.xl }}>
         {calendar.days.map((day) => {
           const active = day.hasMeal || day.isToday;
           const borderColor = day.isToday ? colors.black : day.hasMeal ? colors.green : colors.line;
@@ -84,7 +96,7 @@ function StreakCalendarStrip({ calendar }: { calendar: HomeStreakCalendar }) {
           const textColor = day.isToday ? 'white' : day.isFuture ? colors.muted : colors.black;
 
           return (
-            <View key={day.isoDate} style={{ alignItems: 'center', gap: spacing.xs, width: 42 }}>
+            <View key={day.isoDate} style={{ alignItems: 'center', gap: spacing.xs, width: 44 }}>
               <View
                 style={{
                   alignItems: 'center',
@@ -103,7 +115,7 @@ function StreakCalendarStrip({ calendar }: { calendar: HomeStreakCalendar }) {
             </View>
           );
         })}
-      </View>
+      </ScrollView>
     </View>
   );
 }

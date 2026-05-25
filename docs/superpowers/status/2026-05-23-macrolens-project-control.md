@@ -76,6 +76,8 @@ Real-device QA status:
 - Mobile now shares one Supabase client between remote meal analysis and label OCR to avoid duplicate browser auth clients during web/dev smoke tests.
 - Pre-Goal-Progress safety backup is pushed to GitHub repository `swaleee-gooo/MACROLENS`: current app state exists on `main`, branch `codex/macrolens-mvp`, and tag `backup/pre-goal-progress-20260525-155618`.
 - Home Goal Progress is implemented locally: the home screen now has a weekly streak strip above `Apercu Quotidien`, a functional SVG goal progress chart driven by saved meals/profile, and Open Food Facts product lookup now normalizes UPC/EAN barcodes with world/fr host fallback.
+- Product scan UX is corrected locally: barcode/OCR products now open a product portion screen first, not the generic meal result screen, because packaged products like mayonnaise are ingredients/products rather than full meals. Barcode image placeholders no longer use invalid `barcode://` URIs in Expo image components.
+- `lookup-packaged-food` is deployed on Supabase project `wyrfncoiubvdnrvdpads` with JWT verification enabled; the mobile lookup service signs in anonymously before invoking it and falls back to direct Open Food Facts if auth/function lookup fails.
 
 Verified commands:
 
@@ -93,6 +95,7 @@ Verified commands:
 - `npm run repeatability:live`: passed on `Salmon_Poke.jpg` with 5 same-image live calls; calories 789-826 kcal, protein 39.7-41.5 g, no failed metrics.
 - Expo web smoke test for Commercial Task 6/7 on `http://localhost:8086/`: app served HTTP 200, onboarding rendered at mobile viewport, and console showed no runtime errors.
 - Expo web smoke test for Goal Progress on `http://localhost:8086/`: seeded local premium state rendered Home with `Serie 3 jours`, `Goal Progress`, range chips, SVG chart, and no runtime console errors.
+- Expo web smoke test after product-flow fix on `http://localhost:8086/`: seeded Home still renders `Serie 3 jours`, `Apercu Quotidien`, `Goal Progress`, and `Produit` without runtime console errors.
 
 Manual smoke test completed:
 

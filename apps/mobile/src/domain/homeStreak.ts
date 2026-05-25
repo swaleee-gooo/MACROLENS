@@ -15,6 +15,11 @@ export type HomeStreakCalendar = {
   days: HomeStreakDay[];
 };
 
+export type HomeStreakTimelineOptions = {
+  daysBefore: number;
+  daysAfter: number;
+};
+
 const weekdayLabels = ['D', 'L', 'M', 'M', 'J', 'V', 'S'];
 
 function isoDateAtNoon(isoDate: string): Date {
@@ -42,6 +47,33 @@ export function buildHomeStreakCalendar(meals: Meal[], todayIsoDate: string): Ho
     streakDays: calculateMealStreak(meals, todayIsoDate),
     days: Array.from({ length: 7 }, (_, index) => {
       const isoDate = shiftIsoDate(monday, index);
+      const date = isoDateAtNoon(isoDate);
+
+      return {
+        isoDate,
+        weekdayLabel: weekdayLabels[date.getUTCDay()],
+        dayOfMonth: date.getUTCDate(),
+        hasMeal: daysWithMeals.has(isoDate),
+        isToday: isoDate === todayIsoDate,
+        isFuture: isoDate > todayIsoDate,
+      };
+    }),
+  };
+}
+
+export function buildHomeStreakTimeline(
+  meals: Meal[],
+  todayIsoDate: string,
+  options: HomeStreakTimelineOptions = { daysBefore: 21, daysAfter: 7 },
+): HomeStreakCalendar {
+  const daysWithMeals = new Set(meals.map((meal) => meal.capturedAt.slice(0, 10)));
+  const totalDays = Math.max(1, options.daysBefore + options.daysAfter + 1);
+
+  return {
+    streakDays: calculateMealStreak(meals, todayIsoDate),
+    days: Array.from({ length: totalDays }, (_, index) => {
+      const offset = index - options.daysBefore;
+      const isoDate = shiftIsoDate(todayIsoDate, offset);
       const date = isoDateAtNoon(isoDate);
 
       return {

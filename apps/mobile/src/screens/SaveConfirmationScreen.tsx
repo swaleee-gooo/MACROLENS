@@ -11,13 +11,15 @@ type Props = {
 };
 
 export function SaveConfirmationScreen({ meal, streakDays, onHome, onTimeline }: Props) {
+  const isProduct = meal.source === 'open_food_facts' || meal.source === 'nutrition_label_ocr';
+
   return (
     <View style={{ backgroundColor: colors.background, flex: 1, justifyContent: 'space-between', padding: spacing.xl }}>
       <View style={{ alignItems: 'center', gap: spacing.xl, paddingTop: spacing.xxxl }}>
         <View style={{ alignItems: 'center', backgroundColor: colors.green, borderColor: colors.line, borderRadius: radius.pill, borderWidth: 4, height: 118, justifyContent: 'center', width: 118 }}>
           <Check color="white" size={58} strokeWidth={2.8} />
         </View>
-        <Text style={{ color: colors.black, fontSize: typography.hero, fontWeight: '900', textAlign: 'center' }}>Repas enregistre</Text>
+        <Text style={{ color: colors.black, fontSize: typography.hero, fontWeight: '900', textAlign: 'center' }}>{isProduct ? 'Produit enregistre' : 'Repas enregistre'}</Text>
         {streakDays > 0 ? (
           <View style={{ alignItems: 'center', borderColor: colors.line, borderRadius: radius.sm, borderWidth: 1, flexDirection: 'row', gap: spacing.sm, paddingHorizontal: spacing.md, paddingVertical: spacing.sm }}>
             <Flame color={colors.black} size={18} strokeWidth={2.4} />

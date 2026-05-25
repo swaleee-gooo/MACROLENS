@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { buildHomeStreakCalendar } from './homeStreak';
+import { buildHomeStreakCalendar, buildHomeStreakTimeline } from './homeStreak';
 import type { Meal } from './types';
 
 function meal(id: string, capturedAt: string): Meal {
@@ -43,5 +43,22 @@ describe('buildHomeStreakCalendar', () => {
     expect(calendar.days[1].hasMeal).toBe(true);
     expect(calendar.days[2]).toMatchObject({ dayOfMonth: 27, hasMeal: true, isToday: true });
     expect(calendar.days[3].isFuture).toBe(true);
+  });
+
+  it('builds a scrollable day timeline around today', () => {
+    const timeline = buildHomeStreakTimeline([meal('today', '2026-05-27T12:00:00.000Z')], '2026-05-27', {
+      daysBefore: 3,
+      daysAfter: 2,
+    });
+
+    expect(timeline.days.map((day) => day.isoDate)).toEqual([
+      '2026-05-24',
+      '2026-05-25',
+      '2026-05-26',
+      '2026-05-27',
+      '2026-05-28',
+      '2026-05-29',
+    ]);
+    expect(timeline.days[3]).toMatchObject({ isToday: true, hasMeal: true });
   });
 });
