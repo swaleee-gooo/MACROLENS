@@ -18,7 +18,7 @@ export type AnalyticsEventName =
   | 'barcode_scan_started'
   | 'barcode_scan_completed'
   | 'label_scan_completed'
-  | 'today_coach_viewed'
+  | 'progress_viewed'
   | 'weekly_report_viewed';
 
 export type AnalyticsPayload = Record<string, string | number | boolean | null>;

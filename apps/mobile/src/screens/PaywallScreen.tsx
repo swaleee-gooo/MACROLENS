@@ -12,7 +12,7 @@ type Props = {
   showDevelopmentUnlock: boolean;
 };
 
-const benefits = ['Analyse photo IA', 'Corrections de portions', 'Objectifs calories et proteines', 'Timeline, coach et progression'];
+const benefits = ['Analyse photo IA', 'Corrections de portions', 'Objectifs calories et proteines', 'Timeline et progres detailles'];
 
 export function PaywallScreen({ onPurchase, onUnlockForDevelopment, onRestore, showDevelopmentUnlock }: Props) {
   const [selectedPlan, setSelectedPlan] = useState<PaywallPlan>('annual');

@@ -28,7 +28,7 @@ Market references checked on 2026-05-25:
 - RevenueCat Expo docs state that Expo Go can preview subscription UI, but real purchases require a development build: https://www.revenuecat.com/docs/getting-started/installation/expo
 - Apple App Review Guidelines require complete metadata, live backend services, full app access for review, and clear IAP explanations in review notes: https://developer.apple.com/app-store/review/guidelines/
 
-The conclusion is blunt: photo scan is table stakes. MacroLens must differentiate on trust, speed of correction, European/French meal relevance, and daily coaching.
+The conclusion is blunt: photo scan is table stakes. MacroLens must differentiate on trust, speed of correction, European/French meal relevance, and progress tracking that feels intelligent without positioning the app as an AI coach.
 
 ## Product Positioning
 
@@ -90,7 +90,7 @@ Recommended stack:
 
 Entitlements:
 
-- `macrolens_pro`: unlocks scanning, barcode/OCR, corrections, coaching, weekly reports, and history;
+- `macrolens_pro`: unlocks scanning, barcode/OCR, corrections, progress metrics, weekly reports, and history;
 - local dev unlock exists only in development builds and must never appear in production;
 - App Review must receive either a fully functional demo path or a review account/subscription instructions through review notes.
 
@@ -141,21 +141,21 @@ Backend/data sources:
 - store source ids where available;
 - keep AI vision for meal composition and portion estimation, not packaged-food truth.
 
-### 5. Coaching And Retention
+### 5. Progress Tracking And Retention
 
-MacroLens should become a daily decision engine, not only a calculator.
+MacroLens should feel like an intelligent tracking layer, not an AI coaching app.
 
 Required surfaces:
 
-- Today coach: what to eat next based on remaining calories and macros;
-- protein-first guidance for fat loss and muscle gain users;
+- Progress tab: calories, macros, streak, Goal Progress, and daily/weekly trends;
+- neutral remaining-target metrics for calories, protein, carbs, and fats;
 - weekly report: adherence, average calories, protein consistency, scan consistency, best day, main blocker;
 - reminders that are tied to behavior, not spam;
 - streaks only when they reinforce useful logging behavior.
 
 Retention gates:
 
-- beta users understand what to do after saving a meal;
+- beta users understand their metrics after saving a meal;
 - at least 50 percent of beta testers save meals on 3 different days during the first week;
 - weekly report is opened by at least 40 percent of beta testers who qualify for it.
 
@@ -216,8 +216,8 @@ Launch metrics:
 - Production Paywall: RevenueCat-backed entitlement, subscription terms, restore purchases.
 - Scan Result V2: confidence, ranges, correction controls, hidden-calorie prompts, save action.
 - Barcode/OCR Flow: barcode scan, label scan fallback, manual confirmation.
-- Today Coach: next best action based on remaining macros.
-- Weekly Report: weekly macro adherence and practical recommendation.
+- Progress: daily metrics, Goal Progress, and remaining-target summary.
+- Weekly Report: weekly macro adherence and trend summary.
 - Settings/Legal: subscription, restore, support, privacy, terms, delete account/data.
 
 ### Out Of Scope For V1
@@ -323,7 +323,7 @@ Minimum event taxonomy:
 - `barcode_scan_started`
 - `barcode_scan_completed`
 - `label_scan_completed`
-- `today_coach_viewed`
+- `progress_viewed`
 - `weekly_report_viewed`
 
 Do not include raw image URLs, food photo contents, full free-text notes, or private health identifiers in analytics payloads.
@@ -335,7 +335,7 @@ Do not include raw image URLs, food photo contents, full free-text notes, or pri
 3. Conversion onboarding and production paywall.
 4. Scan Result V2 corrections and trust UI.
 5. Barcode/OCR packaged food flow.
-6. Today coach and weekly report.
+6. Progress tracking and weekly report.
 7. Legal/settings/App Store readiness.
 8. TestFlight beta and launch assets.
 
@@ -351,7 +351,7 @@ Commercial Launch V1 is complete when:
 - production paywall has clear terms and restore purchases;
 - onboarding V2 reaches a hard paywall with a personalized promise;
 - barcode/OCR packaged food flow works for common packaged foods;
-- Today Coach and Weekly Report exist;
+- Progress and Weekly Report exist;
 - privacy, terms, support, disclaimer, and delete/export flows are available;
 - TestFlight beta has 20 to 50 users or an explicit founder decision to launch smaller;
 - verification commands pass;
@@ -363,6 +363,5 @@ Recommended stance:
 
 - Do not public-launch until scan trust gates pass.
 - Do not spend on paid acquisition until onboarding and paywall analytics exist.
-- Do not attempt to beat MacroFactor on coaching depth in V1.
+- Do not position MacroLens as a coaching-depth product in V1.
 - Beat AI-first competitors on reliability, correction speed, and French/European meal fit.
-

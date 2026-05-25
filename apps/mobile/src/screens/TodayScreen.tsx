@@ -1,15 +1,15 @@
 import { useState } from 'react';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 import type { DimensionValue } from 'react-native';
-import { ArrowLeft, CalendarDays, Sparkles } from 'lucide-react-native';
+import { ArrowLeft, CalendarDays, TrendingUp } from 'lucide-react-native';
 import type { MacroTargets, Meal, UserProfile } from '../domain/types';
 import { buildGoalProgress } from '../domain/goalProgress';
-import { buildTodayCoach } from '../domain/todayCoach';
 import { GoalProgressChart } from '../components/GoalProgressChart';
 import { MealCard } from '../components/MealCard';
 import { MetricPill } from '../components/MetricPill';
 import { PremiumCard } from '../components/PremiumCard';
 import { goalRangeDays, goalRanges, type GoalRange } from '../ui/goalProgressRanges';
+import { buildProgressOverview } from '../ui/progressOverviewViewModel';
 import { buildTodayViewModel } from '../ui/todayViewModel';
 import { colors, radius, spacing, typography } from '../ui/theme';
 
@@ -38,24 +38,7 @@ export function TodayScreen({ meals, targets, profile, onBack, onOpenWeeklyRepor
   const viewModel = buildTodayViewModel(meals, today, targets);
   const summary = viewModel.summary;
   const goalProgress = profile ? buildGoalProgress(meals, profile, today, goalRangeDays(goalRange, meals, today)) : null;
-  const coach = targets
-    ? buildTodayCoach({
-        consumed: {
-          calories: summary.calories,
-          proteinG: summary.proteinG,
-          carbsG: summary.carbsG,
-          fatG: summary.fatG,
-          fiberG: summary.fiberG,
-        },
-        targets: {
-          calories: targets.calorieTarget,
-          proteinG: targets.proteinTargetG,
-          carbsG: targets.carbsTargetG,
-          fatG: targets.fatTargetG,
-          fiberG: targets.fiberTargetG,
-        },
-      })
-    : null;
+  const progressOverview = buildProgressOverview(summary);
 
   return (
     <ScrollView style={{ backgroundColor: colors.background, flex: 1 }} contentContainerStyle={{ gap: spacing.xl, padding: spacing.xl }}>
@@ -65,23 +48,31 @@ export function TodayScreen({ meals, targets, profile, onBack, onOpenWeeklyRepor
       </Pressable>
 
       <View style={{ gap: spacing.xs }}>
-        <Text style={{ color: colors.ink, fontSize: typography.title, fontWeight: '900' }}>Aujourd'hui</Text>
-        <Text style={{ color: colors.muted, fontSize: typography.body }}>{viewModel.meals.length} repas enregistres</Text>
+        <Text style={{ color: colors.ink, fontSize: typography.title, fontWeight: '900' }}>Progres</Text>
+        <Text style={{ color: colors.muted, fontSize: typography.body }}>Metriques, objectifs et repas logges.</Text>
       </View>
 
-      {coach ? (
-        <View style={{ backgroundColor: colors.black, borderRadius: radius.md, gap: spacing.md, padding: spacing.lg }}>
-          <View style={{ alignItems: 'center', flexDirection: 'row', gap: spacing.sm }}>
-            <Sparkles color={colors.greenSoft} size={22} strokeWidth={2.5} />
-            <Text style={{ color: 'white', fontSize: typography.heading, fontWeight: '900' }}>{coach.headline}</Text>
-          </View>
-          <Text style={{ color: '#EFEFEF', fontSize: typography.body, fontWeight: '800', lineHeight: 24 }}>{coach.action}</Text>
-          <Pressable onPress={onOpenWeeklyReport} style={{ alignItems: 'center', alignSelf: 'flex-start', backgroundColor: colors.greenSoft, borderRadius: radius.pill, flexDirection: 'row', gap: spacing.xs, paddingHorizontal: spacing.md, paddingVertical: spacing.sm }}>
-            <CalendarDays color={colors.green} size={16} strokeWidth={2.6} />
-            <Text style={{ color: colors.green, fontSize: typography.small, fontWeight: '900' }}>Rapport hebdo</Text>
-          </Pressable>
+      <View style={{ backgroundColor: colors.black, borderRadius: radius.md, gap: spacing.md, padding: spacing.lg }}>
+        <View style={{ alignItems: 'center', flexDirection: 'row', gap: spacing.sm }}>
+          <TrendingUp color={colors.greenSoft} size={22} strokeWidth={2.5} />
+          <Text style={{ color: 'white', fontSize: typography.heading, fontWeight: '900' }}>{progressOverview.title}</Text>
         </View>
-      ) : null}
+        <View style={{ flexDirection: 'row', gap: spacing.sm }}>
+          {progressOverview.metrics.map((metric) => (
+            <View key={metric.label} style={{ backgroundColor: '#171717', borderRadius: radius.sm, flex: 1, gap: spacing.xs, padding: spacing.md }}>
+              <Text style={{ color: '#B8F6CE', fontSize: typography.tiny, fontWeight: '900', textTransform: 'uppercase' }}>{metric.label}</Text>
+              <Text style={{ color: 'white', fontSize: typography.subheading, fontWeight: '900' }}>{metric.value}</Text>
+            </View>
+          ))}
+        </View>
+        <Pressable
+          onPress={onOpenWeeklyReport}
+          style={{ alignItems: 'center', alignSelf: 'flex-start', backgroundColor: colors.greenSoft, borderRadius: radius.pill, flexDirection: 'row', gap: spacing.xs, minHeight: 36, paddingHorizontal: spacing.md, paddingVertical: spacing.sm }}
+        >
+          <CalendarDays color={colors.green} size={16} strokeWidth={2.6} />
+          <Text style={{ color: colors.green, fontSize: typography.small, fontWeight: '900' }}>Rapport hebdo</Text>
+        </Pressable>
+      </View>
 
       {goalProgress ? (
         <PremiumCard style={{ gap: spacing.lg }}>

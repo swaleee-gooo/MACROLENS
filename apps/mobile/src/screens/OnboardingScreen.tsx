@@ -309,8 +309,8 @@ export function OnboardingScreen({ userId, onComplete, onStepCompleted, onOnboar
               <Text style={{ color: colors.black, fontSize: typography.hero, fontWeight: '900' }}>{preview?.targets.calorieTarget ?? '--'} kcal</Text>
               <Text style={{ color: colors.green, fontSize: typography.heading, fontWeight: '900' }}>{preview?.targets.proteinTargetG ?? '--'} g proteines</Text>
               <View style={{ backgroundColor: colors.surfaceMuted, borderRadius: radius.sm, gap: spacing.sm, padding: spacing.md }}>
-                <Text style={{ color: colors.ink, fontSize: typography.body, fontWeight: '900' }}>Analyse IA + corrections rapides + coach quotidien</Text>
-                <Text style={{ color: colors.muted, fontSize: typography.small, fontWeight: '800', lineHeight: 18 }}>La promesse est simple: scanner vite, corriger ce que l'IA ne peut pas deviner, puis savoir quoi faire au prochain repas.</Text>
+                <Text style={{ color: colors.ink, fontSize: typography.body, fontWeight: '900' }}>Analyse IA + corrections rapides + suivi des progres</Text>
+                <Text style={{ color: colors.muted, fontSize: typography.small, fontWeight: '800', lineHeight: 18 }}>La promesse est simple: scanner vite, corriger ce que l'IA ne peut pas deviner, puis suivre tes calories, macros et tendances.</Text>
               </View>
               <Text style={{ color: colors.muted, fontSize: typography.small, lineHeight: 18 }}>Les estimations nutritionnelles ne remplacent pas un avis medical.</Text>
             </View>

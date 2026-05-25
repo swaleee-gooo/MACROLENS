@@ -2,7 +2,7 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Build the commercial launch layer for MacroLens: measurable scan trust, production-ready subscriptions, conversion onboarding, packaged-food logging, coaching, App Store readiness, beta workflow, and launch assets.
+**Goal:** Build the commercial launch layer for MacroLens: measurable scan trust, production-ready subscriptions, conversion onboarding, packaged-food logging, progress tracking, App Store readiness, beta workflow, and launch assets.
 
 **Architecture:** Keep the work in small release tracks with independent commits. Pure business logic lives in `src/domain`, analytics and entitlement boundaries live behind interfaces, mobile UI stays in focused screen/components files, and backend packaged-food logic stays in Supabase Edge Functions. Expo Go keeps a development path, but production purchase behavior is validated only in an EAS development/TestFlight build.
 
@@ -46,11 +46,11 @@ Create or modify these files during execution:
 - `supabase/functions/lookup-packaged-food/index.ts`: barcode and label lookup Edge Function entry.
 - `supabase/functions/lookup-packaged-food/handler.ts`: lookup and OCR orchestration.
 - `supabase/functions/lookup-packaged-food/handler.test.ts`: packaged-food backend tests.
-- `apps/mobile/src/domain/todayCoach.ts`: next-action coaching logic.
-- `apps/mobile/src/domain/todayCoach.test.ts`: coaching tests.
 - `apps/mobile/src/domain/weeklyReport.ts`: weekly summary logic.
 - `apps/mobile/src/domain/weeklyReport.test.ts`: weekly report tests.
-- `apps/mobile/src/screens/TodayScreen.tsx`: Today Coach UI improvements.
+- `apps/mobile/src/ui/progressOverviewViewModel.ts`: neutral daily progress summary.
+- `apps/mobile/src/ui/progressOverviewViewModel.test.ts`: progress summary tests.
+- `apps/mobile/src/screens/TodayScreen.tsx`: Progress UI improvements.
 - `apps/mobile/src/screens/WeeklyReportScreen.tsx`: new weekly report screen.
 - `apps/mobile/src/screens/LegalScreen.tsx`: privacy, terms, disclaimer, delete/export entry points.
 - `docs/app-store/app-review-notes.md`: App Review notes.
@@ -157,7 +157,7 @@ export type AnalyticsEventName =
   | 'barcode_scan_started'
   | 'barcode_scan_completed'
   | 'label_scan_completed'
-  | 'today_coach_viewed'
+  | 'progress_viewed'
   | 'weekly_report_viewed';
 
 export type AnalyticsPayload = Record<string, string | number | boolean | null>;
@@ -938,7 +938,7 @@ On the proof screen, show:
 ```tsx
 <Text>Ton plan MacroLens</Text>
 <Text>{buildPersonalizedPromise({ goal, friction, proteinTargetG: profile.targets.proteinG })}</Text>
-<Text>Analyse IA + corrections rapides + coach quotidien</Text>
+<Text>Analyse IA + corrections rapides + suivi des progres</Text>
 ```
 
 Fire analytics events:
@@ -1408,187 +1408,69 @@ git commit -m "feat: add barcode and label scan flow"
 
 ---
 
-## Task 7: Today Coach And Weekly Report
+## Task 7: Progress Tracking And Weekly Report
+
+**Positioning rule:** MacroLens is a smart tracking app, not an AI coaching app. The product may show metrics, gaps, trends, streaks, and weekly summaries, but visible UI should avoid coach-style next-action instructions.
 
 **Files:**
-- Create: `apps/mobile/src/domain/todayCoach.ts`
-- Create: `apps/mobile/src/domain/todayCoach.test.ts`
-- Create: `apps/mobile/src/domain/weeklyReport.ts`
-- Create: `apps/mobile/src/domain/weeklyReport.test.ts`
+- Create/maintain: `apps/mobile/src/ui/progressOverviewViewModel.ts`
+- Create/maintain: `apps/mobile/src/ui/progressOverviewViewModel.test.ts`
+- Create/maintain: `apps/mobile/src/domain/weeklyReport.ts`
+- Create/maintain: `apps/mobile/src/domain/weeklyReport.test.ts`
 - Modify: `apps/mobile/src/screens/TodayScreen.tsx`
-- Create: `apps/mobile/src/screens/WeeklyReportScreen.tsx`
+- Create/maintain: `apps/mobile/src/screens/WeeklyReportScreen.tsx`
 - Modify: `apps/mobile/App.tsx`
 
-- [ ] **Step 1: Write Today Coach tests**
+- [ ] **Step 1: Write Progress Overview tests**
 
-Create `apps/mobile/src/domain/todayCoach.test.ts`:
-
-```ts
-import { describe, expect, it } from 'vitest';
-import { buildTodayCoach } from './todayCoach';
-
-describe('buildTodayCoach', () => {
-  it('prioritizes protein when protein remaining is high', () => {
-    const coach = buildTodayCoach({
-      consumed: { calories: 1300, proteinG: 70, carbsG: 140, fatG: 45, fiberG: 15 },
-      targets: { calories: 2200, proteinG: 150, carbsG: 240, fatG: 70, fiberG: 25 },
-    });
-
-    expect(coach.headline).toBe('Priorite proteines');
-    expect(coach.action).toBe('Ajoute un repas avec 40-60g de proteines et garde les lipides moderes.');
-  });
-});
-```
-
-- [ ] **Step 2: Write Weekly Report tests**
-
-Create `apps/mobile/src/domain/weeklyReport.test.ts`:
+Create tests proving the screen formats neutral tracking metrics:
 
 ```ts
-import { describe, expect, it } from 'vitest';
-import { buildWeeklyReport } from './weeklyReport';
-
-describe('buildWeeklyReport', () => {
-  it('summarizes adherence over saved meals', () => {
-    const report = buildWeeklyReport({
-      daysLogged: 4,
-      averageCalories: 2100,
-      averageProteinG: 142,
-      targetCalories: 2200,
-      targetProteinG: 150,
-    });
-
-    expect(report.title).toBe('Semaine solide');
-    expect(report.summary).toBe('4 jours logges, 2100 kcal en moyenne, 142g de proteines.');
-    expect(report.nextStep).toBe('Garde le rythme et vise encore 8g de proteines en moyenne.');
-  });
-});
+expect(overview.metrics).toEqual([
+  { label: 'Calories restantes', value: '600 kcal' },
+  { label: 'Proteines restantes', value: '45 g' },
+  { label: 'Repas logges', value: '2' },
+]);
 ```
 
-- [ ] **Step 3: Run red tests**
+- [ ] **Step 2: Implement Progress Overview**
 
-```powershell
-cd C:\Users\idris\OneDrive\Documents\AppMobile\apps\mobile
-npm test -- src/domain/todayCoach.test.ts src/domain/weeklyReport.test.ts
-```
-
-Expected: FAIL because files do not exist.
-
-- [ ] **Step 4: Implement Today Coach**
-
-Create `apps/mobile/src/domain/todayCoach.ts`:
+The overview should show remaining or tracked totals only:
 
 ```ts
-type MacroTotal = {
-  calories: number;
-  proteinG: number;
-  carbsG: number;
-  fatG: number;
-  fiberG: number;
-};
-
-type Input = {
-  consumed: MacroTotal;
-  targets: MacroTotal;
-};
-
-export type TodayCoach = {
-  headline: string;
-  action: string;
-};
-
-export function buildTodayCoach(input: Input): TodayCoach {
-  const proteinRemaining = input.targets.proteinG - input.consumed.proteinG;
-  const caloriesRemaining = input.targets.calories - input.consumed.calories;
-
-  if (proteinRemaining >= 40 && caloriesRemaining >= 500) {
-    return {
-      headline: 'Priorite proteines',
-      action: 'Ajoute un repas avec 40-60g de proteines et garde les lipides moderes.',
-    };
-  }
-
-  if (caloriesRemaining < 300) {
-    return {
-      headline: 'Finis leger',
-      action: 'Choisis une option riche en proteines et basse en calories.',
-    };
-  }
-
+export function buildProgressOverview(summary: DailySummary) {
   return {
-    headline: 'Journee bien cadree',
-    action: 'Continue avec un repas simple et garde tes portions proches du plan.',
+    title: 'Suivi du jour',
+    metrics: [
+      { label: 'Calories restantes', value: '600 kcal' },
+      { label: 'Proteines restantes', value: '45 g' },
+      { label: 'Repas logges', value: '2' },
+    ],
   };
 }
 ```
 
-- [ ] **Step 5: Implement Weekly Report**
+- [ ] **Step 3: Keep Weekly Report**
 
-Create `apps/mobile/src/domain/weeklyReport.ts`:
+Weekly report may summarize adherence and trends, but copy should remain metric-led rather than coach-led.
 
-```ts
-type WeeklyReportInput = {
-  daysLogged: number;
-  averageCalories: number;
-  averageProteinG: number;
-  targetCalories: number;
-  targetProteinG: number;
-};
+- [ ] **Step 4: Update screens**
 
-export type WeeklyReport = {
-  title: string;
-  summary: string;
-  nextStep: string;
-};
+`TodayScreen.tsx` should become the `Progres` surface:
 
-export function buildWeeklyReport(input: WeeklyReportInput): WeeklyReport {
-  const proteinGap = Math.max(0, Math.round(input.targetProteinG - input.averageProteinG));
-  return {
-    title: input.daysLogged >= 3 ? 'Semaine solide' : 'Semaine a construire',
-    summary: `${input.daysLogged} jours logges, ${Math.round(input.averageCalories)} kcal en moyenne, ${Math.round(input.averageProteinG)}g de proteines.`,
-    nextStep: proteinGap > 0 ? `Garde le rythme et vise encore ${proteinGap}g de proteines en moyenne.` : 'Tes proteines sont dans la cible, concentre-toi sur la regularite.',
-  };
-}
-```
+- title: `Progres`
+- neutral daily metrics card
+- Goal Progress chart
+- weekly report CTA
+- meals logged for the day
 
-- [ ] **Step 6: Update screens**
+- [ ] **Step 5: Wire navigation and analytics**
 
-Modify `TodayScreen.tsx` to render:
+- Bottom navigation label: `Progres`
+- Analytics event: `progress_viewed`
+- Weekly report event remains `weekly_report_viewed`
 
-```tsx
-<Text>{coach.headline}</Text>
-<Text>{coach.action}</Text>
-```
-
-Create `WeeklyReportScreen.tsx` that accepts:
-
-```ts
-type Props = {
-  report: WeeklyReport;
-  onBack: () => void;
-};
-```
-
-and renders title, summary, next step, and a back button.
-
-- [ ] **Step 7: Wire navigation and analytics**
-
-Modify `App.tsx`:
-
-Add screen state:
-
-```ts
-| { name: 'weeklyReport' }
-```
-
-When opening the report:
-
-```ts
-analytics.track('weekly_report_viewed');
-setScreen({ name: 'weeklyReport' });
-```
-
-- [ ] **Step 8: Verify**
+- [ ] **Step 6: Verify**
 
 ```powershell
 cd C:\Users\idris\OneDrive\Documents\AppMobile\apps\mobile
@@ -1598,12 +1480,12 @@ npx tsc --noEmit
 
 Expected: tests and TypeScript pass.
 
-- [ ] **Step 9: Commit**
+- [ ] **Step 7: Commit**
 
 ```powershell
 cd C:\Users\idris\OneDrive\Documents\AppMobile
-git add apps/mobile/App.tsx apps/mobile/src/domain/todayCoach.ts apps/mobile/src/domain/todayCoach.test.ts apps/mobile/src/domain/weeklyReport.ts apps/mobile/src/domain/weeklyReport.test.ts apps/mobile/src/screens/TodayScreen.tsx apps/mobile/src/screens/WeeklyReportScreen.tsx
-git commit -m "feat: add today coach and weekly report"
+git add apps/mobile/App.tsx apps/mobile/src/ui/progressOverviewViewModel.ts apps/mobile/src/ui/progressOverviewViewModel.test.ts apps/mobile/src/domain/weeklyReport.ts apps/mobile/src/domain/weeklyReport.test.ts apps/mobile/src/screens/TodayScreen.tsx apps/mobile/src/screens/WeeklyReportScreen.tsx
+git commit -m "feat: add progress tracking and weekly report"
 ```
 
 ---
@@ -1777,7 +1659,7 @@ Create `docs/qa/testflight-commercial-launch-v1.md`:
 6. Scan 1 packaged food barcode.
 7. Try label scan if barcode fails.
 8. Save meals on 3 different days.
-9. Open Today Coach.
+9. Open Progress.
 10. Open Weekly Report.
 11. Open Settings and Legal.
 
@@ -1825,9 +1707,9 @@ Close: Estimate honestly, correct quickly.
 
 ### Script 3: Protein Gap
 
-Hook: You do not need another calorie app, you need to know what to eat next.
-Demo: Today Coach shows remaining protein.
-Close: Scan the meal, then follow the next action.
+Hook: You do not need another generic calorie app, you need clear metrics.
+Demo: Progress shows remaining protein and calories.
+Close: Scan the meal, then track the numbers that matter.
 ```
 
 - [ ] **Step 8: Update project status**
@@ -1901,7 +1783,7 @@ Manual checklist:
 Update project status with one of these exact lines:
 
 ```md
-- Commercial Launch V1 release gate passed: scan trust, subscriptions, onboarding, barcode/OCR, coaching, legal, and TestFlight checks are ready for App Store submission.
+- Commercial Launch V1 release gate passed: scan trust, subscriptions, onboarding, barcode/OCR, progress tracking, legal, and TestFlight checks are ready for App Store submission.
 ```
 
 or:
@@ -1928,7 +1810,7 @@ Spec coverage:
 - Real monetization: Tasks 3 and 4.
 - Conversion onboarding: Task 4.
 - Barcode/OCR: Task 6.
-- Coaching and retention: Task 7.
+- Progress tracking and retention: Task 7.
 - App Store compliance: Task 8.
 - TestFlight beta: Task 8 and Task 9.
 - Acquisition assets: Task 8.

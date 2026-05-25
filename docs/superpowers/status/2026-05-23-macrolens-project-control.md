@@ -65,14 +65,14 @@ Real-device QA status:
 - Mobile now stops sending body `userId` to `analyze-meal`, preserves typed non-food errors without demo fallback, and shows `Photo non reconnue` with the French retry message.
 - App Core V2 screens are implemented locally: Profile, Targets, Today, Settings, and Manual Meal. Profile/targets persist in AsyncStorage and Home/Today compare daily totals against targets.
 - Premium Conversion V1 is implemented in Expo Go mode: four-step onboarding, local hard paywall gate, premium Home/Timeline/Profile shell, portion adjustment, and save confirmation. Real App Store monetization still requires RevenueCat or StoreKit in a development/TestFlight build.
-- Commercial Launch V1 design is drafted: it defines the minimum commercial scope for scan trust, real App Store monetization, conversion onboarding, barcode/OCR, coaching, compliance, TestFlight, and acquisition.
-- Commercial Launch V1 implementation plan is drafted: it decomposes launch into analytics, benchmark expansion, entitlements, onboarding/paywall, scan trust UI, barcode/OCR, coaching, compliance, TestFlight, and final release gates.
+- Commercial Launch V1 design is drafted: it defines the minimum commercial scope for scan trust, real App Store monetization, conversion onboarding, barcode/OCR, progress tracking, compliance, TestFlight, and acquisition.
+- Commercial Launch V1 implementation plan is drafted: it decomposes launch into analytics, benchmark expansion, entitlements, onboarding/paywall, scan trust UI, barcode/OCR, progress tracking, compliance, TestFlight, and final release gates.
 - Commercial analytics foundation is implemented and committed: privacy-safe event names now cover app open, scan start/completion/failure, non-food detection, and meal save without sending image URIs or raw notes.
 - Commercial repeatability benchmark now supports case-file runs through `npm run repeatability:live:cases`; public launch still requires adding 8 real test images and recording 10 passing same-photo cases.
 - Production entitlement architecture is implemented locally: RevenueCat dependency, EAS development build config, iOS bundle id, store/local entitlement provider boundary, and entitlement persistence metadata are in place. Real purchase validation still requires App Store Connect products and a TestFlight/development build.
 - Conversion onboarding and paywall UX are now wired locally: onboarding captures goal, friction, measures, activity, and a personalized proof screen; the paywall CTA calls the entitlement provider while the Expo Go unlock remains hidden outside local dev mode.
 - Scan Result V2 trust UI is implemented locally: result screens now show confidence wording, calorie range, protein summary, verification prompts, and correction analytics for quick corrections.
-- Commercial Task 6 and Task 7 are implemented locally: barcode scanning uses Expo Camera and Open Food Facts, nutrition label OCR is wired through a Supabase Edge Function contract, Today has a daily coach, the Coach tab opens a weekly report, and the analysis screen now uses a staged animated scan experience. The OCR Edge Function still needs deployment before device QA.
+- Commercial Task 6 and Task 7 are implemented locally: barcode scanning uses Expo Camera and Open Food Facts, nutrition label OCR is wired through a Supabase Edge Function contract, Progress owns metrics/Goal Progress/weekly report, and the analysis screen now uses a staged animated scan experience. The OCR Edge Function still needs deployment before device QA.
 - Mobile now shares one Supabase client between remote meal analysis and label OCR to avoid duplicate browser auth clients during web/dev smoke tests.
 - Pre-Goal-Progress safety backup is pushed to GitHub repository `swaleee-gooo/MACROLENS`: current app state exists on `main`, branch `codex/macrolens-mvp`, and tag `backup/pre-goal-progress-20260525-155618`.
 - Home Goal Progress is implemented locally: the home screen now has a weekly streak strip above `Apercu Quotidien`, a functional SVG goal progress chart driven by saved meals/profile, and Open Food Facts product lookup now normalizes UPC/EAN barcodes with world/fr host fallback.
@@ -252,12 +252,16 @@ Current plan:
 - Barcode mode uses live detection, manual code fallback, torch, and an in-scanner product-not-found panel.
 - Verification passed: `npm test`, `npx tsc --noEmit`, `npx expo install --check`, and web smoke on `http://localhost:8086`.
 
-### Home / Coach Navigation Update - 2026-05-25
+### Home / Progress Navigation Update - 2026-05-25
 
 - Home now shows daily calories followed immediately by macro cards; scan action blocks and Goal Progress were removed from Home.
-- Coach now owns Goal Progress with the 90 days / 6 months / 1 year / all-time range selector.
+- Progress now owns Goal Progress with the 90 days / 6 months / 1 year / all-time range selector.
 - Bottom navigation now has a central camera scan button that opens the in-app scanner.
 - Home streak days are now tappable: selecting a day reviews that day's calories, macros, and meals.
+
+### Progress Positioning Update - 2026-05-25
+
+- The app positioning is now tracking-first: bottom navigation says `Progres`, onboarding/paywall copy sells metrics and progress tracking, and the old recommendation logic has been removed from the visible product.
 
 ### Trust Result V1 - 2026-05-25
 
