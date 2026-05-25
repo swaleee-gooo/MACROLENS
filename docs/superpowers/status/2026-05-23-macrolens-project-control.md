@@ -69,6 +69,7 @@ Real-device QA status:
 - Commercial Launch V1 implementation plan is drafted: it decomposes launch into analytics, benchmark expansion, entitlements, onboarding/paywall, scan trust UI, barcode/OCR, coaching, compliance, TestFlight, and final release gates.
 - Commercial analytics foundation is implemented and committed: privacy-safe event names now cover app open, scan start/completion/failure, non-food detection, and meal save without sending image URIs or raw notes.
 - Commercial repeatability benchmark now supports case-file runs through `npm run repeatability:live:cases`; public launch still requires adding 8 real test images and recording 10 passing same-photo cases.
+- Production entitlement architecture is implemented locally: RevenueCat dependency, EAS development build config, iOS bundle id, store/local entitlement provider boundary, and entitlement persistence metadata are in place. Real purchase validation still requires App Store Connect products and a TestFlight/development build.
 
 Verified commands:
 

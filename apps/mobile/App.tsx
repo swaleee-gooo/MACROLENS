@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Alert, Platform, SafeAreaView, Text, View } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import Constants from 'expo-constants';
 import { StatusBar } from 'expo-status-bar';
 import * as ImagePicker from 'expo-image-picker';
 import { createAnalyticsClient, createConsoleAnalyticsSink } from './src/analytics/analyticsClient';
@@ -13,6 +14,8 @@ import { applyMealCorrection } from './src/domain/corrections';
 import { createManualMacroMeal } from './src/domain/manualMeal';
 import { calculateMealStreak } from './src/domain/streaks';
 import type { MacroTargets, Meal, UserProfile } from './src/domain/types';
+import { createEntitlementProvider } from './src/entitlements/entitlementProviderFactory';
+import type { CommercialEntitlementState } from './src/entitlements/entitlementTypes';
 import { createEntitlementRepository, type EntitlementState } from './src/storage/entitlementRepository';
 import { createMealRepository } from './src/storage/mealRepository';
 import { createOnboardingRepository, type OnboardingState } from './src/storage/onboardingRepository';
@@ -50,17 +53,42 @@ const queryClient = new QueryClient();
 const analytics = createAnalyticsClient(createConsoleAnalyticsSink());
 const localUserId = 'local-user';
 
+function storedEntitlementFromCommercial(state: CommercialEntitlementState): EntitlementState {
+  return {
+    isPremium: state.isPremium,
+    source: state.source,
+    productId: state.productId,
+    expiresAt: state.expiresAt,
+    updatedAt: state.updatedAt,
+  };
+}
+
 function MacroLensApp() {
   const [screen, setScreen] = useState<ScreenState>({ name: 'loading' });
   const [meals, setMeals] = useState<Meal[]>([]);
   const [profile, setProfile] = useState<UserProfile | null>(null);
-  const [entitlement, setEntitlement] = useState<EntitlementState>({ isPremium: false, source: 'none', updatedAt: null });
+  const [entitlement, setEntitlement] = useState<EntitlementState>({
+    isPremium: false,
+    source: 'none',
+    productId: null,
+    expiresAt: null,
+    updatedAt: null,
+  });
   const [onboardingState, setOnboardingState] = useState<OnboardingState>({ isComplete: false });
   const repository = useMemo(() => createMealRepository(AsyncStorage), []);
   const profileRepository = useMemo(() => createProfileRepository(AsyncStorage), []);
   const entitlementRepository = useMemo(() => createEntitlementRepository(AsyncStorage), []);
   const onboardingRepository = useMemo(() => createOnboardingRepository(AsyncStorage), []);
   const analysisService = useMemo(() => createAnalysisService(appEnv), []);
+  const entitlementProvider = useMemo(
+    () =>
+      createEntitlementProvider({
+        entitlementMode: appEnv.entitlementMode,
+        revenueCatAppleApiKey: appEnv.revenueCatAppleApiKey,
+        isExpoGo: Constants.appOwnership === 'expo',
+      }),
+    [],
+  );
   const targets: MacroTargets | null = profile?.targets ?? null;
 
   useEffect(() => {
@@ -164,18 +192,32 @@ function MacroLensApp() {
   }
 
   async function unlockForDevelopment() {
-    const nextEntitlement: EntitlementState = {
-      isPremium: true,
-      source: 'local_dev',
-      updatedAt: new Date().toISOString(),
-    };
-    await entitlementRepository.saveEntitlement(nextEntitlement);
-    setEntitlement(nextEntitlement);
-    setScreen({ name: 'app', tab: 'home' });
+    try {
+      const nextEntitlement = storedEntitlementFromCommercial(await entitlementProvider.purchase('annual'));
+      await entitlementRepository.saveEntitlement(nextEntitlement);
+      setEntitlement(nextEntitlement);
+      if (nextEntitlement.isPremium) {
+        setScreen({ name: 'app', tab: 'home' });
+      }
+    } catch {
+      Alert.alert('Abonnement indisponible', 'Reessaie dans quelques instants.');
+    }
   }
 
-  function restorePurchases() {
-    Alert.alert('Restore en developpement', 'La restauration sera activee avec RevenueCat dans une development build.');
+  async function restorePurchases() {
+    try {
+      const nextEntitlement = storedEntitlementFromCommercial(await entitlementProvider.restore());
+      await entitlementRepository.saveEntitlement(nextEntitlement);
+      setEntitlement(nextEntitlement);
+      if (nextEntitlement.isPremium) {
+        setScreen({ name: 'app', tab: 'home' });
+        return;
+      }
+
+      Alert.alert('Aucun achat trouve', 'Aucun abonnement actif n a ete trouve pour ce compte App Store.');
+    } catch {
+      Alert.alert('Restauration impossible', 'La restauration sera testee dans une development build avec RevenueCat.');
+    }
   }
 
   async function saveMeal(meal: Meal) {

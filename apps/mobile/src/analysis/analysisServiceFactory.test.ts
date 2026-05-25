@@ -66,6 +66,8 @@ describe('createAnalysisService', () => {
     const service = createAnalysisService(
       {
         analysisMode: 'remote',
+        entitlementMode: 'local_dev',
+        revenueCatAppleApiKey: '',
         supabaseUrl: 'https://example.supabase.co',
         supabaseAnonKey: 'sb_publishable_123',
       },
@@ -86,6 +88,8 @@ describe('createAnalysisService', () => {
     const service = createAnalysisService(
       {
         analysisMode: 'remote',
+        entitlementMode: 'local_dev',
+        revenueCatAppleApiKey: '',
         supabaseUrl: 'https://example.supabase.co',
         supabaseAnonKey: 'sb_publishable_123',
       },
@@ -109,6 +113,8 @@ describe('createAnalysisService', () => {
     const service = createAnalysisService(
       {
         analysisMode: 'remote',
+        entitlementMode: 'local_dev',
+        revenueCatAppleApiKey: '',
         supabaseUrl: 'https://example.supabase.co',
         supabaseAnonKey: 'sb_publishable_123',
       },
