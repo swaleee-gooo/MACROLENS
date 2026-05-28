@@ -10,6 +10,9 @@ import { colors, radius, spacing, typography } from '../ui/theme';
 
 type Props = {
   userId: string;
+  authEmail?: string | null;
+  onEmailSignUp?: (email: string, password: string) => Promise<void>;
+  onOAuthSignIn?: (provider: 'apple' | 'google') => Promise<void>;
   onComplete: (profile: UserProfile) => void;
   onStepCompleted?: (step: OnboardingStep) => void;
   onOnboardingCompleted?: (payload: { goal: UserGoal; friction: TrackingFriction }) => void;
@@ -384,7 +387,7 @@ function FoodMockup() {
   );
 }
 
-export function OnboardingScreen({ userId, onComplete, onStepCompleted, onOnboardingCompleted }: Props) {
+export function OnboardingScreen({ userId, authEmail, onEmailSignUp, onOAuthSignIn, onComplete, onStepCompleted, onOnboardingCompleted }: Props) {
   const [stepIndex, setStepIndex] = useState(0);
   const [draft, setDraft] = useState<OnboardingProfileDraft>(emptyDraft('lose_fat'));
   const [friction, setFriction] = useState<TrackingFriction>('restaurant_meals');
@@ -396,6 +399,8 @@ export function OnboardingScreen({ userId, onComplete, onStepCompleted, onOnboar
   const [restrictions, setRestrictions] = useState<string[]>([]);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [authStatus, setAuthStatus] = useState<string | null>(null);
+  const [authLoading, setAuthLoading] = useState(false);
   const [cameraPermission, requestCameraPermission] = useCameraPermissions();
   const [loadingProgress] = useState(() => new Animated.Value(0));
   const step = steps[stepIndex];
@@ -455,7 +460,7 @@ export function OnboardingScreen({ userId, onComplete, onStepCompleted, onOnboar
           : step === 'plan'
             ? preview !== null
             : step === 'auth'
-              ? email.length === 0 || (email.includes('@') && password.length >= 6)
+              ? Boolean(authEmail) || (email.includes('@') && password.length >= 8)
               : true;
 
   function goBack() {
@@ -469,11 +474,35 @@ export function OnboardingScreen({ userId, onComplete, onStepCompleted, onOnboar
   }
 
   async function continueFlow() {
-    if (!canContinue || step === 'planLoading') {
+    if (!canContinue || step === 'planLoading' || authLoading) {
       return;
     }
 
     onStepCompleted?.(step);
+
+    if (step === 'auth') {
+      if (authEmail) {
+        setStepIndex((current) => Math.min(current + 1, steps.length - 1));
+        return;
+      }
+
+      if (!onEmailSignUp) {
+        setAuthStatus('Connexion indisponible: configure Supabase pour activer le compte.');
+        return;
+      }
+
+      setAuthLoading(true);
+      setAuthStatus(null);
+      try {
+        await onEmailSignUp(email, password);
+        setStepIndex((current) => Math.min(current + 1, steps.length - 1));
+      } catch (error) {
+        setAuthStatus(error instanceof Error ? error.message : 'Creation de compte impossible.');
+      } finally {
+        setAuthLoading(false);
+      }
+      return;
+    }
 
     if (step === 'camera') {
       if (!cameraPermission?.granted) {
@@ -495,9 +524,13 @@ export function OnboardingScreen({ userId, onComplete, onStepCompleted, onOnboar
       : step === 'value'
         ? 'Voir mon plan'
         : step === 'plan'
-          ? 'Continuer'
-          : step === 'auth'
-            ? 'Creer mon compte'
+        ? 'Continuer'
+        : step === 'auth'
+          ? authLoading
+            ? 'Creation...'
+            : authEmail
+              ? 'Continuer'
+              : 'Creer mon compte'
             : step === 'notifications'
               ? 'Activer les rappels'
               : step === 'health'
@@ -705,8 +738,34 @@ export function OnboardingScreen({ userId, onComplete, onStepCompleted, onOnboar
           <View style={{ gap: spacing.xl, padding: spacing.xl }}>
             <SectionTitle centered title="Cree ton compte" subtitle="Sauvegarde tes progres et retrouve-les sur tous tes appareils." />
             <View style={{ gap: spacing.md }}>
-              <OptionCard icon={Sparkles} selected={false} title="Continuer avec Apple" onPress={continueFlow} />
-              <OptionCard icon={Target} selected={false} title="Continuer avec Google" onPress={continueFlow} />
+              <OptionCard
+                icon={Sparkles}
+                selected={false}
+                title="Continuer avec Apple"
+                onPress={async () => {
+                  setAuthStatus(null);
+                  try {
+                    await onOAuthSignIn?.('apple');
+                    setAuthStatus('Valide la connexion puis reviens dans MacroLens.');
+                  } catch (error) {
+                    setAuthStatus(error instanceof Error ? error.message : 'Connexion Apple indisponible.');
+                  }
+                }}
+              />
+              <OptionCard
+                icon={Target}
+                selected={false}
+                title="Continuer avec Google"
+                onPress={async () => {
+                  setAuthStatus(null);
+                  try {
+                    await onOAuthSignIn?.('google');
+                    setAuthStatus('Valide la connexion puis reviens dans MacroLens.');
+                  } catch (error) {
+                    setAuthStatus(error instanceof Error ? error.message : 'Connexion Google indisponible.');
+                  }
+                }}
+              />
               <PrimaryCard>
                 <View style={{ gap: spacing.md }}>
                   <View style={{ alignItems: 'center', flexDirection: 'row', gap: spacing.sm }}>
@@ -717,6 +776,16 @@ export function OnboardingScreen({ userId, onComplete, onStepCompleted, onOnboar
                   <TextInput value={password} onChangeText={setPassword} secureTextEntry placeholder="Mot de passe" placeholderTextColor={colors.muted} style={{ borderColor: colors.line, borderRadius: radius.sm, borderWidth: 1, color: colors.black, minHeight: 46, paddingHorizontal: spacing.md }} />
                 </View>
               </PrimaryCard>
+              {authEmail ? (
+                <View style={{ backgroundColor: colors.greenSoft, borderColor: colors.green, borderRadius: radius.md, borderWidth: 1, padding: spacing.md }}>
+                  <Text style={{ color: colors.green, fontSize: typography.small, fontWeight: '900', lineHeight: 18 }}>Compte connecte: {authEmail}</Text>
+                </View>
+              ) : null}
+              {authStatus ? (
+                <View style={{ backgroundColor: colors.surfaceMuted, borderColor: colors.line, borderRadius: radius.md, borderWidth: 1, padding: spacing.md }}>
+                  <Text style={{ color: colors.muted, fontSize: typography.small, fontWeight: '900', lineHeight: 18 }}>{authStatus}</Text>
+                </View>
+              ) : null}
               <Text style={{ color: colors.muted, fontSize: typography.tiny, fontWeight: '800', lineHeight: 18, textAlign: 'center' }}>Tes donnees restent privees. MacroLens ne revend pas tes informations.</Text>
             </View>
           </View>

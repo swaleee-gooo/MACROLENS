@@ -1,7 +1,23 @@
-type MacroLensUser = { id: string };
-type MacroLensSession = { access_token?: string; user?: MacroLensUser } | null;
+export type MacroLensUser = { id: string; email?: string | null };
+export type MacroLensSession = {
+  access_token?: string;
+  refresh_token?: string;
+  expires_at?: number;
+  expires_in?: number;
+  user?: MacroLensUser;
+} | null;
 
 type JsonPayload = Record<string, unknown> | null;
+type OAuthProvider = 'apple' | 'google';
+
+type PasswordCredentials = {
+  email: string;
+  password: string;
+};
+
+type RedirectOptions = {
+  redirectTo?: string;
+};
 
 type FunctionInvokeOptions = {
   body?: unknown;
@@ -58,6 +74,28 @@ function buildRequestError(response: Response, payload: unknown, text: string): 
   };
 }
 
+function parseSessionPayload(payload: unknown): { session: MacroLensSession; user: MacroLensUser | null } {
+  const body = typeof payload === 'object' && payload !== null ? (payload as Record<string, unknown>) : {};
+  const session = (body.session ?? (body.access_token || body.user ? body : null)) as MacroLensSession;
+  const user = ((body.user as MacroLensUser | undefined) ?? session?.user ?? null) as MacroLensUser | null;
+
+  if (session && !session.user && user) {
+    session.user = user;
+  }
+
+  return { session, user };
+}
+
+function queryStringFromParts(parts: Record<string, string | undefined>): string {
+  const params = new URLSearchParams();
+  Object.entries(parts).forEach(([key, value]) => {
+    if (value !== undefined) {
+      params.set(key, value);
+    }
+  });
+  return params.toString();
+}
+
 export function createMacroLensSupabaseClient(supabaseUrl: string, supabaseAnonKey: string, fetcher: typeof fetch = fetch) {
   const baseUrl = trimTrailingSlash(supabaseUrl);
   let currentSession: MacroLensSession = null;
@@ -82,6 +120,10 @@ export function createMacroLensSupabaseClient(supabaseUrl: string, supabaseAnonK
           error: null,
         };
       },
+      setSession(session: MacroLensSession) {
+        currentSession = session;
+        return { data: { session }, error: null };
+      },
       async signInAnonymously() {
         try {
           const response = await fetcher(`${baseUrl}/auth/v1/signup`, {
@@ -105,9 +147,7 @@ export function createMacroLensSupabaseClient(supabaseUrl: string, supabaseAnonK
             };
           }
 
-          const body = typeof payload === 'object' && payload !== null ? (payload as Record<string, unknown>) : {};
-          const session = (body.session ?? (body.access_token || body.user ? body : null)) as MacroLensSession;
-          const user = ((body.user as MacroLensUser | undefined) ?? session?.user ?? null) as MacroLensUser | null;
+          const { session, user } = parseSessionPayload(payload);
           currentSession = session;
 
           return {
@@ -119,6 +159,215 @@ export function createMacroLensSupabaseClient(supabaseUrl: string, supabaseAnonK
             data: { session: null, user: null },
             error,
           };
+        }
+      },
+      async signUpWithPassword(credentials: PasswordCredentials) {
+        try {
+          const response = await fetcher(`${baseUrl}/auth/v1/signup`, {
+            method: 'POST',
+            headers: {
+              apikey: supabaseAnonKey,
+              Authorization: `Bearer ${supabaseAnonKey}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              email: credentials.email.trim(),
+              password: credentials.password,
+            }),
+          });
+          const { payload, text } = await readResponse(response);
+
+          if (!response.ok) {
+            return { data: { session: null, user: null }, error: buildRequestError(response, payload, text) };
+          }
+
+          const { session, user } = parseSessionPayload(payload);
+          currentSession = session;
+          return { data: { session, user }, error: null };
+        } catch (error) {
+          return { data: { session: null, user: null }, error };
+        }
+      },
+      async signInWithPassword(credentials: PasswordCredentials) {
+        try {
+          const response = await fetcher(`${baseUrl}/auth/v1/token?grant_type=password`, {
+            method: 'POST',
+            headers: {
+              apikey: supabaseAnonKey,
+              Authorization: `Bearer ${supabaseAnonKey}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              email: credentials.email.trim(),
+              password: credentials.password,
+            }),
+          });
+          const { payload, text } = await readResponse(response);
+
+          if (!response.ok) {
+            return { data: { session: null, user: null }, error: buildRequestError(response, payload, text) };
+          }
+
+          const { session, user } = parseSessionPayload(payload);
+          currentSession = session;
+          return { data: { session, user }, error: null };
+        } catch (error) {
+          return { data: { session: null, user: null }, error };
+        }
+      },
+      async refreshSession(refreshToken: string) {
+        try {
+          const response = await fetcher(`${baseUrl}/auth/v1/token?grant_type=refresh_token`, {
+            method: 'POST',
+            headers: {
+              apikey: supabaseAnonKey,
+              Authorization: `Bearer ${supabaseAnonKey}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ refresh_token: refreshToken }),
+          });
+          const { payload, text } = await readResponse(response);
+
+          if (!response.ok) {
+            return { data: { session: null, user: null }, error: buildRequestError(response, payload, text) };
+          }
+
+          const { session, user } = parseSessionPayload(payload);
+          currentSession = session;
+          return { data: { session, user }, error: null };
+        } catch (error) {
+          return { data: { session: null, user: null }, error };
+        }
+      },
+      async resetPasswordForEmail(email: string, options: RedirectOptions = {}) {
+        try {
+          const response = await fetcher(`${baseUrl}/auth/v1/recover`, {
+            method: 'POST',
+            headers: {
+              apikey: supabaseAnonKey,
+              Authorization: `Bearer ${supabaseAnonKey}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              email: email.trim(),
+              ...(options.redirectTo ? { redirect_to: options.redirectTo } : {}),
+            }),
+          });
+          const { payload, text } = await readResponse(response);
+
+          if (!response.ok) {
+            return { data: payload, error: buildRequestError(response, payload, text) };
+          }
+
+          return { data: payload, error: null };
+        } catch (error) {
+          return { data: null, error };
+        }
+      },
+      async signOut() {
+        try {
+          const response = await fetcher(`${baseUrl}/auth/v1/logout`, {
+            method: 'POST',
+            headers: headers('application/json'),
+          });
+          const { payload, text } = await readResponse(response);
+
+          if (!response.ok) {
+            return { data: payload, error: buildRequestError(response, payload, text) };
+          }
+
+          currentSession = null;
+          return { data: payload, error: null };
+        } catch (error) {
+          return { data: null, error };
+        }
+      },
+      async getUser() {
+        try {
+          const response = await fetcher(`${baseUrl}/auth/v1/user`, {
+            method: 'GET',
+            headers: headers('application/json'),
+          });
+          const { payload, text } = await readResponse(response);
+
+          if (!response.ok) {
+            return { data: { user: null }, error: buildRequestError(response, payload, text) };
+          }
+
+          const user = typeof payload === 'object' && payload !== null ? (payload as MacroLensUser) : null;
+          if (currentSession && user?.id) {
+            currentSession.user = user;
+          }
+
+          return { data: { user }, error: null };
+        } catch (error) {
+          return { data: { user: null }, error };
+        }
+      },
+      getOAuthUrl(provider: OAuthProvider, redirectTo: string) {
+        return `${baseUrl}/auth/v1/authorize?${queryStringFromParts({ provider, redirect_to: redirectTo })}`;
+      },
+    },
+    rest: {
+      async get(table: string, query = '') {
+        try {
+          const suffix = query.length > 0 ? `?${query}` : '';
+          const response = await fetcher(`${baseUrl}/rest/v1/${encodeURIComponent(table)}${suffix}`, {
+            method: 'GET',
+            headers: headers('application/json'),
+          });
+          const { payload, text } = await readResponse(response);
+
+          if (!response.ok) {
+            return { data: payload, error: buildRequestError(response, payload, text) };
+          }
+
+          return { data: payload, error: null };
+        } catch (error) {
+          return { data: null, error };
+        }
+      },
+      async upsert(table: string, body: unknown, options: { onConflict?: string } = {}) {
+        try {
+          const suffix = options.onConflict ? `?on_conflict=${encodeURIComponent(options.onConflict)}` : '';
+          const response = await fetcher(`${baseUrl}/rest/v1/${encodeURIComponent(table)}${suffix}`, {
+            method: 'POST',
+            headers: {
+              ...headers('application/json'),
+              Prefer: 'resolution=merge-duplicates,return=representation',
+            },
+            body: JSON.stringify(body),
+          });
+          const { payload, text } = await readResponse(response);
+
+          if (!response.ok) {
+            return { data: payload, error: buildRequestError(response, payload, text) };
+          }
+
+          return { data: payload, error: null };
+        } catch (error) {
+          return { data: null, error };
+        }
+      },
+      async delete(table: string, query: string) {
+        try {
+          const suffix = query.length > 0 ? `?${query}` : '';
+          const response = await fetcher(`${baseUrl}/rest/v1/${encodeURIComponent(table)}${suffix}`, {
+            method: 'DELETE',
+            headers: {
+              ...headers('application/json'),
+              Prefer: 'return=minimal',
+            },
+          });
+          const { payload, text } = await readResponse(response);
+
+          if (!response.ok) {
+            return { data: payload, error: buildRequestError(response, payload, text) };
+          }
+
+          return { data: payload, error: null };
+        } catch (error) {
+          return { data: null, error };
         }
       },
     },

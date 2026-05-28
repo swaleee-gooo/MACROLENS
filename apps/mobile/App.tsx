@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Alert, SafeAreaView, Text, View } from 'react-native';
+import { Alert, Linking, SafeAreaView, Share, Text, View } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import Constants from 'expo-constants';
@@ -26,14 +26,21 @@ import { createNutritionLabelOcrService } from './src/packagedFood/labelOcrServi
 import { createPackagedFoodMeal } from './src/packagedFood/packagedFoodMeal';
 import type { PackagedFoodItem } from './src/packagedFood/packagedFoodSchema';
 import { createEntitlementRepository, type EntitlementState } from './src/storage/entitlementRepository';
+import { createAuthSessionRepository } from './src/storage/authSessionRepository';
+import { createSyncedMealRepository, createSyncedProfileRepository } from './src/storage/cloudSyncRepository';
 import { createMealRepository } from './src/storage/mealRepository';
 import { createOnboardingRepository, type OnboardingState } from './src/storage/onboardingRepository';
 import { createProductRepository } from './src/storage/productRepository';
 import { createProfileRepository } from './src/storage/profileRepository';
-import { createMacroLensSupabaseClient } from './src/supabase/client';
+import { parseSupabaseAuthCallback } from './src/auth/deepLinkSession';
+import { createMacroLensSupabaseClient, type MacroLensSession } from './src/supabase/client';
 import { colors, radius, spacing, typography } from './src/ui/theme';
 import { AnalyzingScreen } from './src/screens/AnalyzingScreen';
+import { AuthScreen } from './src/screens/AuthScreen';
+import { DataPrivacyScreen } from './src/screens/DataPrivacyScreen';
 import { EditProfileScreen } from './src/screens/EditProfileScreen';
+import { HealthSettingsScreen } from './src/screens/HealthSettingsScreen';
+import { LegalSupportScreen } from './src/screens/LegalSupportScreen';
 import { ManualMealScreen } from './src/screens/ManualMealScreen';
 import { OnboardingScreen } from './src/screens/OnboardingScreen';
 import { PaywallScreen } from './src/screens/PaywallScreen';
@@ -50,7 +57,9 @@ import { ScanErrorScreen } from './src/screens/ScanErrorScreen';
 import { ScanHubScreen } from './src/screens/ScanHubScreen';
 import { ScannerScreen } from './src/screens/ScannerScreen';
 import { SettingsScreen } from './src/screens/SettingsScreen';
+import { ReminderSettingsScreen } from './src/screens/ReminderSettingsScreen';
 import { SuccessProfileScreen } from './src/screens/SuccessProfileScreen';
+import { SubscriptionSettingsScreen } from './src/screens/SubscriptionSettingsScreen';
 import { TargetsScreen } from './src/screens/TargetsScreen';
 import { TodayScreen } from './src/screens/TodayScreen';
 import { WeighInScreen } from './src/screens/WeighInScreen';
@@ -67,8 +76,14 @@ type ScreenState =
   | { name: 'result'; meal: Meal; isSaved: boolean }
   | { name: 'portionAdjust'; meal: Meal; itemId: string }
   | { name: 'saveConfirmation'; meal: Meal; streakDays: number }
+  | { name: 'auth'; mode?: 'login' | 'signup' | 'reset' }
   | { name: 'editProfile' }
   | { name: 'settings' }
+  | { name: 'subscriptionSettings' }
+  | { name: 'reminderSettings' }
+  | { name: 'healthSettings' }
+  | { name: 'legalSupport' }
+  | { name: 'dataPrivacy' }
   | { name: 'targets' }
   | { name: 'manualMeal' }
   | { name: 'foodSearch' }
@@ -114,9 +129,11 @@ function MacroLensApp() {
     updatedAt: null,
   });
   const [onboardingState, setOnboardingState] = useState<OnboardingState>({ isComplete: false });
-  const repository = useMemo(() => createMealRepository(AsyncStorage), []);
-  const profileRepository = useMemo(() => createProfileRepository(AsyncStorage), []);
+  const [authSession, setAuthSession] = useState<MacroLensSession>(null);
+  const localMealRepository = useMemo(() => createMealRepository(AsyncStorage), []);
+  const localProfileRepository = useMemo(() => createProfileRepository(AsyncStorage), []);
   const entitlementRepository = useMemo(() => createEntitlementRepository(AsyncStorage), []);
+  const authSessionRepository = useMemo(() => createAuthSessionRepository(AsyncStorage), []);
   const onboardingRepository = useMemo(() => createOnboardingRepository(AsyncStorage), []);
   const productRepository = useMemo(() => createProductRepository(AsyncStorage), []);
   const supabaseClient = useMemo(() => {
@@ -126,6 +143,20 @@ function MacroLensApp() {
 
     return createMacroLensSupabaseClient(appEnv.supabaseUrl, appEnv.supabaseAnonKey);
   }, []);
+  const repository = useMemo(
+    () =>
+      supabaseClient
+        ? createSyncedMealRepository(localMealRepository, supabaseClient as Parameters<typeof createSyncedMealRepository>[1])
+        : localMealRepository,
+    [localMealRepository, supabaseClient],
+  );
+  const profileRepository = useMemo(
+    () =>
+      supabaseClient
+        ? createSyncedProfileRepository(localProfileRepository, supabaseClient as Parameters<typeof createSyncedProfileRepository>[1])
+        : localProfileRepository,
+    [localProfileRepository, supabaseClient],
+  );
   const analysisService = useMemo(() => {
     if (!supabaseClient || !appEnv.supabaseUrl || !appEnv.supabaseAnonKey) {
       return createAnalysisService(appEnv);
@@ -171,11 +202,26 @@ function MacroLensApp() {
     [],
   );
   const targets: MacroTargets | null = profile?.targets ?? null;
+  const activeUserId = authSession?.user?.id ?? localUserId;
+  const authEmail = authSession?.user?.email ?? null;
+  const authRedirectUri = 'macrolens://auth-callback';
 
   useEffect(() => {
     analytics.track('app_opened');
-    Promise.all([repository.listMeals(), profileRepository.getProfile(), entitlementRepository.getEntitlement(), onboardingRepository.getState()])
-      .then(([loadedMeals, loadedProfile, loadedEntitlement, loadedOnboarding]) => {
+    async function boot() {
+      const storedSession = await authSessionRepository.getSession();
+      if (storedSession && supabaseClient) {
+        supabaseClient.auth.setSession(storedSession);
+        setAuthSession(storedSession);
+      }
+
+      const [loadedMeals, loadedProfile, loadedEntitlement, loadedOnboarding] = await Promise.all([
+        repository.listMeals(),
+        profileRepository.getProfile(),
+        entitlementRepository.getEntitlement(),
+        onboardingRepository.getState(),
+      ]);
+
         setMeals(loadedMeals);
         setProfile(loadedProfile);
         setEntitlement(loadedEntitlement);
@@ -194,18 +240,122 @@ function MacroLensApp() {
         }
 
         setScreen({ name: 'app', tab: 'home' });
-      })
-      .catch(() => {
+    }
+
+    boot().catch(() => {
         setScreen({ name: 'onboarding' });
       });
-  }, [entitlementRepository, onboardingRepository, profileRepository, repository]);
+  }, [authSessionRepository, entitlementRepository, onboardingRepository, profileRepository, repository, supabaseClient]);
+
+  useEffect(() => {
+    if (!supabaseClient) {
+      return undefined;
+    }
+
+    async function handleUrl(url: string | null) {
+      if (!url || !supabaseClient) {
+        return;
+      }
+
+      const parsedSession = parseSupabaseAuthCallback(url);
+      if (parsedSession) {
+        await persistAuthSession(parsedSession);
+      }
+    }
+
+    Linking.getInitialURL().then(handleUrl).catch(() => undefined);
+    const subscription = Linking.addEventListener('url', (event) => {
+      handleUrl(event.url).catch(() => undefined);
+    });
+
+    return () => subscription.remove();
+  }, [supabaseClient]);
+
+  async function persistAuthSession(nextSession: MacroLensSession) {
+    if (!nextSession || !supabaseClient) {
+      return null;
+    }
+
+    supabaseClient.auth.setSession(nextSession);
+    let hydratedSession = nextSession;
+
+    if (!hydratedSession.user?.id) {
+      const userResult = await supabaseClient.auth.getUser();
+      if (userResult.error || !userResult.data.user) {
+        throw new Error('Session creee, mais utilisateur Supabase introuvable.');
+      }
+      hydratedSession = { ...hydratedSession, user: userResult.data.user };
+      supabaseClient.auth.setSession(hydratedSession);
+    }
+
+    await authSessionRepository.saveSession(hydratedSession);
+    setAuthSession(hydratedSession);
+
+    const [syncedMeals, syncedProfile] = await Promise.all([repository.listMeals(), profileRepository.getProfile()]);
+    setMeals(syncedMeals);
+    if (syncedProfile) {
+      setProfile(syncedProfile);
+    }
+
+    return hydratedSession;
+  }
+
+  async function signUpWithEmail(email: string, password: string) {
+    if (!supabaseClient) {
+      throw new Error('Active Supabase remote pour creer un compte.');
+    }
+
+    const result = await supabaseClient.auth.signUpWithPassword({ email, password });
+    if (result.error) {
+      throw new Error('Creation impossible. Verifie email, mot de passe ou configuration Supabase.');
+    }
+
+    if (!result.data.session) {
+      throw new Error('Compte cree. Verifie ton email, puis connecte-toi.');
+    }
+
+    await persistAuthSession(result.data.session);
+  }
+
+  async function signInWithEmail(email: string, password: string) {
+    if (!supabaseClient) {
+      throw new Error('Active Supabase remote pour te connecter.');
+    }
+
+    const result = await supabaseClient.auth.signInWithPassword({ email, password });
+    if (result.error || !result.data.session) {
+      throw new Error('Connexion impossible. Verifie tes identifiants.');
+    }
+
+    await persistAuthSession(result.data.session);
+    setScreen({ name: 'app', tab: 'profile' });
+  }
+
+  async function resetPassword(email: string) {
+    if (!supabaseClient) {
+      throw new Error('Active Supabase remote pour reinitialiser le mot de passe.');
+    }
+
+    const result = await supabaseClient.auth.resetPasswordForEmail(email, { redirectTo: authRedirectUri });
+    if (result.error) {
+      throw new Error('Email de reinitialisation impossible a envoyer.');
+    }
+  }
+
+  async function startOAuthSignIn(provider: 'apple' | 'google') {
+    if (!supabaseClient) {
+      throw new Error('Active Supabase remote pour te connecter.');
+    }
+
+    await Linking.openURL(supabaseClient.auth.getOAuthUrl(provider, authRedirectUri));
+  }
 
   async function analyzeImageUri(imageUri: string) {
     analytics.track('scan_started', { source: 'photo' });
     setScreen({ name: 'analyzing', imageUri });
 
     try {
-      const analysis = await analysisService.analyzeMealPhoto({ imageUri, userId: localUserId });
+      const analysis = await analysisService.analyzeMealPhoto({ imageUri, userId: activeUserId });
       const analyzedMeal = mealWithScanTrustMetadata(analysis);
       analytics.track('scan_completed', {
         source: 'photo',
@@ -334,8 +484,68 @@ function MacroLensApp() {
     setScreen({ name: 'app', tab: 'home' });
   }
 
+  async function exportData() {
+    const payload = {
+      exportedAt: new Date().toISOString(),
+      account: authSession?.user ?? null,
+      profile,
+      meals,
+      entitlement,
+      onboarding: onboardingState,
+    };
+
+    await Share.share({
+      title: 'MacroLens data export',
+      message: JSON.stringify(payload, null, 2),
+    });
+  }
+
+  async function clearLocalAccountData() {
+    await Promise.all([
+      localMealRepository.clearMeals(),
+      localProfileRepository.clearProfile(),
+      onboardingRepository.clearState(),
+      entitlementRepository.clearEntitlement(),
+      authSessionRepository.clearSession(),
+    ]);
+    setMeals([]);
+    setProfile(null);
+    setEntitlement({ isPremium: false, source: 'none', productId: null, expiresAt: null, updatedAt: null });
+    setOnboardingState({ isComplete: false });
+    setAuthSession(null);
+  }
+
+  async function logout() {
+    if (supabaseClient) {
+      await supabaseClient.auth.signOut();
+      supabaseClient.auth.setSession(null);
+    }
+
+    await clearLocalAccountData();
+    setScreen({ name: 'onboarding' });
+  }
+
+  async function deleteAccount() {
+    try {
+      if (authSession?.user?.id) {
+        await repository.clearMeals();
+        await profileRepository.clearProfile();
+        if (supabaseClient) {
+          await supabaseClient.functions.invoke('delete-account', { method: 'POST' });
+          await supabaseClient.auth.signOut();
+          supabaseClient.auth.setSession(null);
+        }
+      }
+
+      await clearLocalAccountData();
+      setScreen({ name: 'onboarding' });
+    } catch {
+      Alert.alert('Suppression incomplete', 'Les donnees locales ont ete conservees pour eviter une perte silencieuse. Reessaie dans quelques instants.');
+    }
+  }
+
   function saveManualMeal(input: { name: string; calories: number; proteinG: number; carbsG: number; fatG: number; fiberG: number }) {
-    const meal = createManualMacroMeal({ userId: localUserId, ...input });
+    const meal = createManualMacroMeal({ userId: activeUserId, ...input });
     setScreen({ name: 'result', meal, isSaved: false });
   }
 
@@ -391,7 +601,7 @@ function MacroLensApp() {
 
   async function savePackagedProduct(item: PackagedFoodItem, servingGrams: number, imageUri: string) {
     await productRepository.saveProduct(item);
-    const meal = createPackagedFoodMeal({ userId: localUserId, item, servingGrams, imageUri });
+    const meal = createPackagedFoodMeal({ userId: activeUserId, item, servingGrams, imageUri });
     await saveMeal(meal);
   }
 
@@ -463,7 +673,10 @@ function MacroLensApp() {
   if (screen.name === 'onboarding') {
     return (
       <OnboardingScreen
-        userId={localUserId}
+        userId={activeUserId}
+        authEmail={authEmail}
+        onEmailSignUp={signUpWithEmail}
+        onOAuthSignIn={startOAuthSignIn}
         onComplete={completeOnboarding}
         onStepCompleted={(step) => analytics.track('onboarding_step_completed', { step })}
         onOnboardingCompleted={({ goal, friction }) => analytics.track('onboarding_completed', { goal, friction })}
@@ -528,19 +741,71 @@ function MacroLensApp() {
     );
   }
 
+  if (screen.name === 'auth') {
+    return (
+      <AuthScreen
+        defaultMode={screen.mode}
+        onBack={() => setScreen({ name: 'settings' })}
+        onEmailLogin={signInWithEmail}
+        onEmailSignup={async (email, password) => {
+          await signUpWithEmail(email, password);
+          setScreen({ name: 'app', tab: 'profile' });
+        }}
+        onResetPassword={resetPassword}
+        onOAuth={startOAuthSignIn}
+      />
+    );
+  }
+
   if (screen.name === 'editProfile') {
-    return <EditProfileScreen profile={profile} userId={localUserId} onBack={() => setScreen({ name: 'app', tab: 'profile' })} onSave={saveProfile} />;
+    return <EditProfileScreen profile={profile} userId={activeUserId} onBack={() => setScreen({ name: 'app', tab: 'profile' })} onSave={saveProfile} />;
   }
 
   if (screen.name === 'settings') {
     return (
       <SettingsScreen
         analysisMode={appEnv.analysisMode}
+        authEmail={authEmail}
+        isAuthenticated={Boolean(authSession?.user?.id)}
         mealCount={meals.length}
         onBack={() => setScreen({ name: 'app', tab: 'profile' })}
+        onOpenAuth={() => setScreen({ name: 'auth', mode: authSession ? 'login' : 'signup' })}
         onOpenProfile={() => setScreen({ name: 'editProfile' })}
         onOpenTargets={() => setScreen({ name: 'targets' })}
-        onClearMeals={clearMeals}
+        onOpenSubscription={() => setScreen({ name: 'subscriptionSettings' })}
+        onOpenReminders={() => setScreen({ name: 'reminderSettings' })}
+        onOpenHealth={() => setScreen({ name: 'healthSettings' })}
+        onOpenData={() => setScreen({ name: 'dataPrivacy' })}
+        onOpenLegal={() => setScreen({ name: 'legalSupport' })}
+      />
+    );
+  }
+
+  if (screen.name === 'subscriptionSettings') {
+    return <SubscriptionSettingsScreen entitlement={entitlement} onBack={() => setScreen({ name: 'settings' })} onRestore={restorePurchases} />;
+  }
+
+  if (screen.name === 'reminderSettings') {
+    return <ReminderSettingsScreen onBack={() => setScreen({ name: 'settings' })} />;
+  }
+
+  if (screen.name === 'healthSettings') {
+    return <HealthSettingsScreen onBack={() => setScreen({ name: 'settings' })} />;
+  }
+
+  if (screen.name === 'legalSupport') {
+    return <LegalSupportScreen onBack={() => setScreen({ name: 'settings' })} />;
+  }
+
+  if (screen.name === 'dataPrivacy') {
+    return (
+      <DataPrivacyScreen
+        isAuthenticated={Boolean(authSession?.user?.id)}
+        mealCount={meals.length}
+        onBack={() => setScreen({ name: 'settings' })}
+        onDeleteAccount={deleteAccount}
+        onExportData={exportData}
+        onLogout={logout}
       />
     );
   }
@@ -601,7 +866,7 @@ function MacroLensApp() {
   }
 
   if (screen.name === 'weighIn') {
-    return <WeighInScreen profile={profile} userId={localUserId} onBack={() => setScreen({ name: 'app', tab: 'today' })} onSave={saveProfile} />;
+    return <WeighInScreen profile={profile} userId={activeUserId} onBack={() => setScreen({ name: 'app', tab: 'today' })} onSave={saveProfile} />;
   }
 
   if (screen.name === 'manualMeal') {

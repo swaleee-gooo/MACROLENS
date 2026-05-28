@@ -41,6 +41,7 @@ module.exports = {
   expo: {
     name: variant.name,
     slug: 'macrolens',
+    scheme: 'macrolens',
     version: '1.0.0',
     orientation: 'portrait',
     icon: './assets/icon.png',
