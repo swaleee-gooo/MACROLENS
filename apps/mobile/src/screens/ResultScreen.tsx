@@ -1,9 +1,9 @@
 import { Image, Pressable, ScrollView, Text, View } from 'react-native';
-import { ArrowLeft, Droplets, Minus, Package, Plus, Save, Scale, ShieldCheck, SlidersHorizontal, Trash2 } from 'lucide-react-native';
-import type { Meal } from '../domain/types';
+import { ArrowLeft, Droplets, Package, Pencil, Save, Scale, ShieldCheck } from 'lucide-react-native';
+import type { FoodItem, Meal } from '../domain/types';
 import type { MealCorrection } from '../domain/corrections';
 import { buildScanTrustViewModel } from '../domain/scanTrust';
-import { buildResultTrustViewModel } from '../ui/resultTrustViewModel';
+import { buildResultTrustViewModel, type ResultTrustItemRow } from '../ui/resultTrustViewModel';
 import { ConfidenceBadge } from '../components/ConfidenceBadge';
 import { colors, radius, spacing, typography } from '../ui/theme';
 
@@ -34,35 +34,57 @@ function confidenceColors(confidence: Meal['confidence']) {
 
 function MacroTile({ label, value, accent }: { label: string; value: string; accent: string }) {
   return (
-    <View style={{ backgroundColor: colors.surfaceMuted, borderColor: colors.line, borderRadius: radius.sm, borderWidth: 1, flex: 1, gap: spacing.xs, minWidth: 118, padding: spacing.md }}>
-      <Text style={{ color: colors.muted, fontSize: typography.tiny, fontWeight: '900', textTransform: 'uppercase' }}>{label}</Text>
-      <Text style={{ color: accent, fontSize: typography.subheading, fontWeight: '900' }}>{value}</Text>
+    <View style={{ backgroundColor: colors.surface, borderColor: colors.line, borderRadius: radius.md, borderWidth: 1, flex: 1, gap: spacing.xs, minWidth: 94, padding: spacing.md }}>
+      <View style={{ alignItems: 'center', flexDirection: 'row', gap: spacing.xs }}>
+        <View style={{ backgroundColor: accent, borderRadius: radius.pill, height: 8, width: 8 }} />
+        <Text style={{ color: colors.muted, fontSize: typography.tiny, fontWeight: '900' }}>{label}</Text>
+      </View>
+      <Text style={{ color: colors.black, fontSize: typography.subheading, fontWeight: '900' }}>{value}</Text>
     </View>
   );
 }
 
-function QuickCorrectionButton({ label, icon, onPress }: { label: string; icon: 'minus' | 'plus' | 'slider' | 'trash'; onPress: () => void }) {
-  const Icon = icon === 'minus' ? Minus : icon === 'plus' ? Plus : icon === 'trash' ? Trash2 : SlidersHorizontal;
-  const danger = icon === 'trash';
+function FoodThumb({ name }: { name: string }) {
+  const initials = name
+    .split(' ')
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase())
+    .join('');
+
+  return (
+    <View style={{ alignItems: 'center', backgroundColor: colors.surfaceMuted, borderRadius: radius.pill, height: 36, justifyContent: 'center', width: 36 }}>
+      <Text style={{ color: colors.green, fontSize: typography.small, fontWeight: '900' }}>{initials || 'ML'}</Text>
+    </View>
+  );
+}
+
+function DetectedFoodRow({
+  item,
+  row,
+  onAdjust,
+}: {
+  item: FoodItem;
+  row: ResultTrustItemRow | undefined;
+  onAdjust?: (itemId: string) => void;
+}) {
+  function adjustItem() {
+    if (onAdjust) {
+      onAdjust(item.id);
+    }
+  }
 
   return (
     <Pressable
-      onPress={onPress}
-      style={{
-        alignItems: 'center',
-        backgroundColor: danger ? colors.redSoft : colors.surfaceMuted,
-        borderColor: danger ? colors.redSoft : colors.line,
-        borderRadius: radius.pill,
-        borderWidth: 1,
-        flexDirection: 'row',
-        gap: spacing.xs,
-        minHeight: 38,
-        minWidth: 88,
-        paddingHorizontal: spacing.md,
-      }}
+      disabled={!onAdjust}
+      onPress={adjustItem}
+      style={{ alignItems: 'center', borderBottomColor: colors.line, borderBottomWidth: 1, flexDirection: 'row', gap: spacing.md, minHeight: 62, paddingHorizontal: spacing.md, paddingVertical: spacing.sm }}
     >
-      <Icon color={danger ? colors.red : colors.black} size={15} strokeWidth={2.6} />
-      <Text numberOfLines={1} style={{ color: danger ? colors.red : colors.black, fontSize: typography.tiny, fontWeight: '900' }}>{label}</Text>
+      <FoodThumb name={item.name} />
+      <View style={{ flex: 1, gap: spacing.xs }}>
+        <Text numberOfLines={1} style={{ color: colors.black, fontSize: typography.small, fontWeight: '900' }}>{item.name}</Text>
+        <Text style={{ color: colors.muted, fontSize: typography.tiny, fontWeight: '800' }}>{row?.caloriesLabel} - {row?.quantityLabel}</Text>
+      </View>
     </Pressable>
   );
 }
@@ -77,71 +99,91 @@ export function ResultScreen({ meal, onApplyCorrection, onAdjustItem, onSave, on
   const confidenceTone = confidenceColors(meal.confidence);
 
   return (
-    <ScrollView style={{ backgroundColor: colors.background, flex: 1 }} contentContainerStyle={{ gap: spacing.md, padding: spacing.xl, paddingBottom: spacing.xxxl + spacing.xl }}>
-      <Pressable onPress={onBack} style={{ alignItems: 'center', flexDirection: 'row', gap: spacing.sm }}>
-        <ArrowLeft color={colors.black} size={28} strokeWidth={2.6} />
-        <Text style={{ color: colors.black, fontSize: typography.heading, fontWeight: '900' }}>MACROLENS</Text>
+    <ScrollView style={{ backgroundColor: colors.background, flex: 1 }} contentContainerStyle={{ gap: spacing.lg, padding: spacing.xl, paddingBottom: spacing.xxxl + spacing.xl }}>
+      <View style={{ alignItems: 'center', flexDirection: 'row', justifyContent: 'space-between' }}>
+        <Pressable onPress={onBack} style={{ alignItems: 'center', height: 42, justifyContent: 'center', width: 42 }}>
+          <ArrowLeft color={colors.black} size={24} strokeWidth={2.6} />
+        </Pressable>
+        <Text style={{ color: colors.black, fontSize: typography.body, fontWeight: '900' }}>Scan result</Text>
+        <View style={{ backgroundColor: confidenceTone.background, borderRadius: radius.pill, paddingHorizontal: spacing.md, paddingVertical: spacing.xs }}>
+          <Text style={{ color: confidenceTone.foreground, fontSize: typography.tiny, fontWeight: '900' }}>{resultTrust.confidenceTitle}</Text>
+        </View>
+      </View>
+
+      <View style={{ alignItems: 'center', flexDirection: 'row', gap: spacing.lg }}>
+        {usesPlaceholderImage ? (
+          <View
+            style={{
+              alignItems: 'center',
+              backgroundColor: colors.surface,
+              borderColor: colors.line,
+              borderRadius: radius.lg,
+              borderWidth: 1,
+              height: 122,
+              justifyContent: 'center',
+              width: 142,
+            }}
+          >
+            {isProduct ? <Package color={colors.green} size={52} strokeWidth={1.8} /> : <Scale color={colors.green} size={52} strokeWidth={1.8} />}
+          </View>
+        ) : (
+          <Image source={{ uri: meal.imageUri }} style={{ backgroundColor: colors.surfaceMuted, borderRadius: radius.lg, height: 122, width: 142 }} />
+        )}
+        <View style={{ flex: 1, gap: spacing.xs }}>
+          <Text style={{ color: colors.black, fontSize: typography.heading, fontWeight: '900' }}>{resultTrust.calorieRangeLabel}</Text>
+          <Text style={{ color: colors.muted, fontSize: typography.small, fontWeight: '800' }}>Estimated range</Text>
+          <Text numberOfLines={2} style={{ color: colors.muted, fontSize: typography.tiny, fontWeight: '800', lineHeight: 16 }}>{meal.mealName}</Text>
+        </View>
+      </View>
+
+      <View style={{ flexDirection: 'row', gap: spacing.sm }}>
+        <MacroTile label="Protein" value={resultTrust.macroRanges.protein} accent={colors.protein} />
+        <MacroTile label="Carbs" value={resultTrust.macroRanges.carbs} accent={colors.carbs} />
+        <MacroTile label="Fat" value={resultTrust.macroRanges.fat} accent={colors.fat} />
+      </View>
+
+      <View style={{ gap: spacing.md }}>
+        <View style={{ alignItems: 'center', flexDirection: 'row', justifyContent: 'space-between' }}>
+          <Text style={{ color: colors.black, fontSize: typography.body, fontWeight: '900' }}>Detected foods ({meal.items.length})</Text>
+          {meal.items.length > 0 && onAdjustItem ? (
+            <Pressable onPress={() => onAdjustItem(meal.items[0].id)} style={{ alignItems: 'center', flexDirection: 'row', gap: spacing.xs }}>
+              <Pencil color={colors.green} size={14} strokeWidth={2.5} />
+              <Text style={{ color: colors.green, fontSize: typography.small, fontWeight: '900' }}>Edit</Text>
+            </Pressable>
+          ) : null}
+        </View>
+        {meal.items.length === 0 ? (
+          <View style={{ backgroundColor: colors.surface, borderColor: colors.line, borderRadius: radius.lg, borderWidth: 1, gap: spacing.xs, padding: spacing.lg }}>
+            <Text style={{ color: colors.black, fontSize: typography.body, fontWeight: '900' }}>Aucun aliment detaille</Text>
+            <Text style={{ color: colors.muted, fontSize: typography.small, fontWeight: '800', lineHeight: 19 }}>Ce repas vient d'une saisie globale.</Text>
+          </View>
+        ) : (
+          <View style={{ backgroundColor: colors.surface, borderColor: colors.line, borderRadius: radius.lg, borderWidth: 1, overflow: 'hidden' }}>
+            {meal.items.slice(0, 5).map((item) => (
+              <DetectedFoodRow key={item.id} item={item} row={resultTrust.items.find((candidate) => candidate.id === item.id)} onAdjust={onAdjustItem} />
+            ))}
+          </View>
+        )}
+      </View>
+
+      <Pressable
+        onPress={onSave}
+        style={{ alignItems: 'center', backgroundColor: colors.black, borderRadius: radius.pill, flexDirection: 'row', gap: spacing.sm, justifyContent: 'center', minHeight: 58, paddingHorizontal: spacing.lg }}
+      >
+        <Save color="white" size={19} strokeWidth={2.5} />
+        <Text style={{ color: 'white', fontSize: typography.body, fontWeight: '900' }}>Save meal</Text>
       </Pressable>
 
-      <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm }}>
-        <View style={{ backgroundColor: colors.surfaceMuted, borderRadius: radius.sm, paddingHorizontal: spacing.md, paddingVertical: spacing.sm }}>
-          <Text style={{ color: colors.muted, fontSize: typography.tiny, fontWeight: '900', textTransform: 'uppercase' }}>{resultTrust.sourceLabel}</Text>
-        </View>
-        <View style={{ backgroundColor: confidenceTone.background, borderRadius: radius.sm, paddingHorizontal: spacing.md, paddingVertical: spacing.sm }}>
-          <Text style={{ color: confidenceTone.foreground, fontSize: typography.tiny, fontWeight: '900', textTransform: 'uppercase' }}>{resultTrust.confidenceTitle}</Text>
-        </View>
-      </View>
-
-      {usesPlaceholderImage ? (
-        <View
-          style={{
-            alignItems: 'center',
-            backgroundColor: colors.surface,
-            borderColor: colors.line,
-            borderRadius: radius.md,
-            borderWidth: 1,
-            minHeight: 148,
-            justifyContent: 'center',
-            width: '100%',
-          }}
-        >
-          {isProduct ? <Package color={colors.green} size={72} strokeWidth={1.8} /> : <Scale color={colors.green} size={72} strokeWidth={1.8} />}
-        </View>
-      ) : (
-        <Image source={{ uri: meal.imageUri }} style={{ aspectRatio: 1.12, borderRadius: radius.lg, width: '100%' }} />
-      )}
-
-      <View style={{ gap: spacing.sm }}>
-        <Text style={{ color: colors.ink, fontSize: typography.heading, fontWeight: '900', lineHeight: 30 }}>{meal.mealName}</Text>
-        <Text style={{ color: colors.muted, fontSize: typography.body, fontWeight: '800', lineHeight: 24 }}>{resultTrust.sourceDetail}</Text>
-      </View>
-
-      <View style={{ backgroundColor: colors.surface, borderColor: colors.line, borderRadius: radius.md, borderWidth: 1, gap: spacing.lg, padding: spacing.lg }}>
+      <View style={{ backgroundColor: colors.surface, borderColor: colors.line, borderRadius: radius.lg, borderWidth: 1, gap: spacing.md, padding: spacing.lg }}>
         <View style={{ alignItems: 'center', flexDirection: 'row', gap: spacing.sm, justifyContent: 'space-between' }}>
           <View style={{ alignItems: 'center', flexDirection: 'row', gap: spacing.sm }}>
             <ShieldCheck color={colors.green} size={22} strokeWidth={2.4} />
-            <Text style={{ color: colors.ink, fontSize: typography.body, fontWeight: '900' }}>Controle avant sauvegarde</Text>
+            <Text style={{ color: colors.ink, fontSize: typography.body, fontWeight: '900' }}>Review details</Text>
           </View>
           <ConfidenceBadge confidence={meal.confidence} />
         </View>
-        <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: spacing.md }}>
-          <View style={{ backgroundColor: colors.black, borderRadius: radius.sm, flex: 1, minWidth: 132, padding: spacing.md }}>
-            <Text style={{ color: colors.muted, fontSize: typography.tiny, fontWeight: '900', textTransform: 'uppercase' }}>Calories estimees</Text>
-            <Text style={{ color: 'white', fontSize: typography.title, fontWeight: '900', marginTop: spacing.xs }}>{meal.caloriesEstimate}</Text>
-            <Text style={{ color: '#EDEDED', fontSize: typography.small, fontWeight: '800' }}>kcal</Text>
-          </View>
-          <View style={{ backgroundColor: colors.surfaceMuted, borderColor: colors.line, borderRadius: radius.sm, borderWidth: 1, flex: 1, minWidth: 132, padding: spacing.md }}>
-            <Text style={{ color: colors.muted, fontSize: typography.tiny, fontWeight: '900', textTransform: 'uppercase' }}>Plage probable</Text>
-            <Text style={{ color: colors.black, fontSize: typography.subheading, fontWeight: '900', marginTop: spacing.xs }}>{resultTrust.rangeLabel}</Text>
-            <Text style={{ color: colors.green, fontSize: typography.small, fontWeight: '900' }}>{trust.proteinLabel}</Text>
-          </View>
-        </View>
-        <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm }}>
-          <MacroTile label="Proteines" value={`${meal.proteinG} g`} accent={colors.protein} />
-          <MacroTile label="Glucides" value={`${meal.carbsG} g`} accent={colors.carbs} />
-          <MacroTile label="Lipides" value={`${meal.fatG} g`} accent={colors.fat} />
-          <MacroTile label="Fibres" value={`${meal.fiberG} g`} accent={colors.fiber} />
-        </View>
+        <Text style={{ color: colors.muted, fontSize: typography.small, fontWeight: '800', lineHeight: 20 }}>{resultTrust.sourceDetail}</Text>
+        <Text style={{ color: colors.green, fontSize: typography.small, fontWeight: '900' }}>{trust.proteinLabel}</Text>
       </View>
 
       {isMockAnalysis ? (
@@ -214,53 +256,6 @@ export function ResultScreen({ meal, onApplyCorrection, onAdjustItem, onSave, on
         </View>
       </View>
 
-      <View style={{ gap: spacing.md }}>
-        <Text style={{ color: colors.ink, fontSize: typography.heading, fontWeight: '900' }}>Aliments detectes</Text>
-        {meal.items.length === 0 ? (
-          <View style={{ backgroundColor: colors.surface, borderColor: colors.line, borderRadius: radius.md, borderWidth: 1, gap: spacing.xs, padding: spacing.md }}>
-            <Text style={{ color: colors.black, fontSize: typography.body, fontWeight: '900' }}>Aucun aliment detaille</Text>
-            <Text style={{ color: colors.muted, fontSize: typography.small, fontWeight: '800', lineHeight: 19 }}>
-              Ce repas vient d'une saisie globale. Les corrections huile et sauce restent disponibles.
-            </Text>
-          </View>
-        ) : (
-          meal.items.map((item) => {
-            const row = resultTrust.items.find((candidate) => candidate.id === item.id);
-
-            return (
-              <View key={item.id} style={{ backgroundColor: colors.surface, borderColor: colors.line, borderRadius: radius.md, borderWidth: 1, gap: spacing.md, padding: spacing.md }}>
-                <View style={{ alignItems: 'flex-start', flexDirection: 'row', gap: spacing.sm, justifyContent: 'space-between' }}>
-                  <View style={{ flex: 1 }}>
-                    <Text style={{ color: colors.ink, fontSize: typography.body, fontWeight: '800' }}>{item.name}</Text>
-                    <Text style={{ color: colors.muted, fontSize: typography.small, fontWeight: '800', marginTop: spacing.xs }}>
-                      {row?.quantityLabel} - {row?.caloriesLabel}
-                    </Text>
-                    <Text style={{ color: colors.muted, fontSize: typography.tiny, fontWeight: '800', marginTop: spacing.xs }}>{row?.macroLine}</Text>
-                  </View>
-                  <View style={{ alignItems: 'flex-end', gap: spacing.xs }}>
-                    <Text style={{ color: colors.green, fontSize: typography.tiny, fontWeight: '900' }}>{row?.confidenceLabel}</Text>
-                    <Text style={{ color: colors.muted, fontSize: typography.tiny, fontWeight: '800' }}>{row?.sourceLabel}</Text>
-                  </View>
-                </View>
-                <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm }}>
-                  <QuickCorrectionButton label="-15%" icon="minus" onPress={() => onApplyCorrection({ type: 'portion_down', targetItemId: item.id })} />
-                  <QuickCorrectionButton label="+15%" icon="plus" onPress={() => onApplyCorrection({ type: 'portion_up', targetItemId: item.id })} />
-                  {onAdjustItem ? <QuickCorrectionButton label="Grammes" icon="slider" onPress={() => onAdjustItem(item.id)} /> : null}
-                  {meal.items.length > 1 ? <QuickCorrectionButton label="Retirer" icon="trash" onPress={() => onApplyCorrection({ type: 'remove_item', targetItemId: item.id })} /> : null}
-                </View>
-              </View>
-            );
-          })
-        )}
-      </View>
-
-      <Pressable
-        onPress={onSave}
-        style={{ alignItems: 'center', backgroundColor: colors.black, borderRadius: radius.pill, flexDirection: 'row', gap: spacing.sm, justifyContent: 'center', minHeight: 60, paddingHorizontal: spacing.lg }}
-      >
-        <Save color="white" size={20} strokeWidth={2.5} />
-        <Text style={{ color: 'white', fontSize: typography.body, fontWeight: '900' }}>Enregistrer le repas</Text>
-      </Pressable>
     </ScrollView>
   );
 }

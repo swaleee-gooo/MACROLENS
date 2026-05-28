@@ -67,6 +67,23 @@ describe('buildResultTrustViewModel', () => {
     });
   });
 
+  it('formats macro ranges for the scan result overview', () => {
+    const vm = buildResultTrustViewModel(
+      meal({
+        caloriesLow: 520,
+        caloriesHigh: 560,
+        proteinG: 41,
+        carbsG: 52,
+        fatG: 21,
+      }),
+    );
+
+    expect(vm.calorieRangeLabel).toBe('520-560 kcal');
+    expect(vm.macroRanges.protein).toBe('38-44g');
+    expect(vm.macroRanges.carbs).toBe('48-56g');
+    expect(vm.macroRanges.fat).toBe('18-24g');
+  });
+
   it('uses uncertainty reasons before fallback confidence guidance', () => {
     const uncertain = buildResultTrustViewModel(
       meal({

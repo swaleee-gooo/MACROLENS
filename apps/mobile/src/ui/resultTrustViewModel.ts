@@ -16,6 +16,12 @@ export type ResultTrustViewModel = {
   sourceDetail: string;
   confidenceTitle: string;
   rangeLabel: string;
+  calorieRangeLabel: string;
+  macroRanges: {
+    protein: string;
+    carbs: string;
+    fat: string;
+  };
   explanationTitle: string;
   explanationBullets: string[];
   items: ResultTrustItemRow[];
@@ -111,12 +117,26 @@ function buildItemRow(item: FoodItem): ResultTrustItemRow {
   };
 }
 
+function macroRangeLabel(value: number, spread: number): string {
+  const low = Math.max(0, Math.round(value * (1 - spread)));
+  const high = Math.max(low, Math.round(value * (1 + spread)));
+  return `${low}-${high}g`;
+}
+
 export function buildResultTrustViewModel(meal: Meal): ResultTrustViewModel {
+  const calorieRangeLabel = `${meal.caloriesLow}-${meal.caloriesHigh} kcal`;
+
   return {
     sourceLabel: sourceLabel(meal.source, meal.imageUri),
     sourceDetail: sourceDetail(meal),
     confidenceTitle: formatConfidenceLabel(meal.confidence),
-    rangeLabel: `${meal.caloriesLow}-${meal.caloriesHigh} kcal`,
+    rangeLabel: calorieRangeLabel,
+    calorieRangeLabel,
+    macroRanges: {
+      protein: macroRangeLabel(meal.proteinG, 0.08),
+      carbs: macroRangeLabel(meal.carbsG, 0.08),
+      fat: macroRangeLabel(meal.fatG, 0.14),
+    },
     explanationTitle: 'Pourquoi cette estimation ?',
     explanationBullets: uncertaintyBullets(meal),
     items: meal.items.map(buildItemRow),
