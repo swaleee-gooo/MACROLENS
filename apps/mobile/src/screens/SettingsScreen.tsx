@@ -1,5 +1,5 @@
 import { Alert, Pressable, ScrollView, Text, View } from 'react-native';
-import { ArrowLeft, ShieldCheck, Target, Trash2, User } from 'lucide-react-native';
+import { ArrowLeft, Bell, CreditCard, Download, FileText, Heart, ShieldCheck, Target, Trash2, User } from 'lucide-react-native';
 import { colors, radius, spacing, typography } from '../ui/theme';
 
 type Props = {
@@ -20,11 +20,26 @@ function RowButton({
 }: {
   label: string;
   detail: string;
-  icon: 'profile' | 'targets' | 'delete';
+  icon: 'profile' | 'targets' | 'delete' | 'subscription' | 'reminders' | 'export' | 'legal' | 'health';
   onPress: () => void;
   danger?: boolean;
 }) {
-  const Icon = icon === 'profile' ? User : icon === 'targets' ? Target : Trash2;
+  const Icon =
+    icon === 'profile'
+      ? User
+      : icon === 'targets'
+        ? Target
+        : icon === 'subscription'
+          ? CreditCard
+          : icon === 'reminders'
+            ? Bell
+            : icon === 'export'
+              ? Download
+              : icon === 'legal'
+                ? FileText
+                : icon === 'health'
+                  ? Heart
+                  : Trash2;
 
   return (
     <Pressable
@@ -57,19 +72,23 @@ export function SettingsScreen({ analysisMode, mealCount, onBack, onOpenProfile,
     ]);
   }
 
+  function unavailable(label: string) {
+    Alert.alert(label, 'Cette section sera connectee dans la prochaine build native.');
+  }
+
   return (
-    <ScrollView style={{ backgroundColor: colors.background, flex: 1 }} contentContainerStyle={{ gap: spacing.xl, padding: spacing.xl }}>
+    <ScrollView style={{ backgroundColor: colors.background, flex: 1 }} contentContainerStyle={{ gap: spacing.xl, padding: spacing.xl, paddingBottom: spacing.xxxl }}>
       <Pressable onPress={onBack} style={{ alignItems: 'center', flexDirection: 'row', gap: spacing.xs }}>
-        <ArrowLeft color={colors.blue} size={18} strokeWidth={2.5} />
-        <Text style={{ color: colors.blue, fontSize: typography.body, fontWeight: '800' }}>Retour</Text>
+        <ArrowLeft color={colors.black} size={24} strokeWidth={2.5} />
+        <Text style={{ color: colors.black, fontSize: typography.body, fontWeight: '900' }}>Retour</Text>
       </Pressable>
 
       <View style={{ gap: spacing.xs }}>
-        <Text style={{ color: colors.ink, fontSize: typography.title, fontWeight: '900' }}>Parametres</Text>
-        <Text style={{ color: colors.muted, fontSize: typography.body }}>{mealCount} repas dans l historique local</Text>
+        <Text style={{ color: colors.ink, fontSize: typography.hero, fontWeight: '900' }}>Settings</Text>
+        <Text style={{ color: colors.muted, fontSize: typography.body, fontWeight: '800' }}>{mealCount} repas dans l historique local</Text>
       </View>
 
-      <View style={{ backgroundColor: colors.surface, borderColor: colors.line, borderRadius: radius.sm, borderWidth: 1, gap: spacing.sm, padding: spacing.md }}>
+      <View style={{ backgroundColor: colors.surface, borderColor: colors.line, borderRadius: radius.lg, borderWidth: 1, gap: spacing.sm, padding: spacing.lg }}>
         <View style={{ alignItems: 'center', flexDirection: 'row', gap: spacing.sm }}>
           <ShieldCheck color={analysisMode === 'remote' ? colors.green : colors.amber} size={20} strokeWidth={2.4} />
           <Text style={{ color: colors.ink, fontSize: typography.body, fontWeight: '900' }}>
@@ -81,16 +100,28 @@ export function SettingsScreen({ analysisMode, mealCount, onBack, onOpenProfile,
         </Text>
       </View>
 
-      <View style={{ backgroundColor: '#FFF7E8', borderColor: '#F1C27D', borderRadius: radius.sm, borderWidth: 1, padding: spacing.md }}>
-        <Text style={{ color: colors.amber, fontSize: typography.small, fontWeight: '900', lineHeight: 18 }}>
-          Les estimations nutritionnelles ne remplacent pas un avis medical ou dietetique.
-        </Text>
+      <View style={{ gap: spacing.md }}>
+        <Text style={{ color: colors.black, fontSize: typography.subheading, fontWeight: '900' }}>Compte</Text>
+        <RowButton label="Profil" detail="Mettre a jour objectif, taille, poids et activite." icon="profile" onPress={onOpenProfile} />
+        <RowButton label="Objectifs macros" detail="Calories, proteines, glucides, lipides et fibres cibles." icon="targets" onPress={onOpenTargets} />
+        <RowButton label="Abonnement" detail="Gerer MacroLens Pro, restaurer les achats et consulter la facturation." icon="subscription" onPress={() => unavailable('Abonnement')} />
       </View>
 
       <View style={{ gap: spacing.md }}>
-        <RowButton label="Profil" detail="Mettre a jour objectif, taille, poids et activite." icon="profile" onPress={onOpenProfile} />
-        <RowButton label="Objectifs macros" detail="Voir les calories, proteines, glucides, lipides et fibres cibles." icon="targets" onPress={onOpenTargets} />
+        <Text style={{ color: colors.black, fontSize: typography.subheading, fontWeight: '900' }}>Tracking</Text>
+        <RowButton label="Rappels repas" detail="Petit-dejeuner, dejeuner, diner et eau." icon="reminders" onPress={() => unavailable('Rappels')} />
+        <RowButton label="Apple Health" detail="Pas, poids et activite pour enrichir le progress." icon="health" onPress={() => unavailable('Apple Health')} />
+      </View>
+
+      <View style={{ gap: spacing.md }}>
+        <Text style={{ color: colors.black, fontSize: typography.subheading, fontWeight: '900' }}>Donnees</Text>
+        <RowButton label="Exporter mes donnees" detail="Telecharger repas, poids, progres et reglages." icon="export" onPress={() => unavailable('Export')} />
+        <RowButton label="Legal et support" detail="Privacy Policy, Terms of Use et contact." icon="legal" onPress={() => unavailable('Legal et support')} />
         <RowButton label="Supprimer l historique" detail="Effacer uniquement les repas stockes sur cet appareil." icon="delete" onPress={confirmClearMeals} danger />
+      </View>
+
+      <View style={{ backgroundColor: '#FFF7E8', borderColor: '#F1C27D', borderRadius: radius.md, borderWidth: 1, padding: spacing.md }}>
+        <Text style={{ color: colors.amber, fontSize: typography.small, fontWeight: '900', lineHeight: 18 }}>MacroLens n'est pas un dispositif medical. Les estimations nutritionnelles ne remplacent pas un avis medical ou dietetique.</Text>
       </View>
     </ScrollView>
   );

@@ -47,12 +47,14 @@ function BoxInput({ label, value, onChangeText, placeholder }: { label: string; 
 export function EditProfileScreen({ profile, userId, onBack, onSave }: Props) {
   const [goal, setGoal] = useState<UserGoal>(profile?.goal ?? 'maintain');
   const [weight, setWeight] = useState(profile?.weightKg ? String(profile.weightKg) : '');
+  const [targetWeight, setTargetWeight] = useState(profile?.targetWeightKg ? String(profile.targetWeightKg) : '');
   const [height, setHeight] = useState(profile?.heightCm ? String(profile.heightCm) : '');
   const [sex, setSex] = useState<UserProfile['sex']>(profile?.sex ?? 'female');
   const [activityLevel, setActivityLevel] = useState<UserProfile['activityLevel']>(profile?.activityLevel ?? 'moderate');
   const weightKg = parseNumber(weight);
+  const targetWeightKg = targetWeight.trim().length > 0 ? parseNumber(targetWeight) : null;
   const heightCm = parseNumber(height);
-  const canSave = weightKg >= 35 && weightKg <= 250 && heightCm >= 120 && heightCm <= 230;
+  const canSave = weightKg >= 35 && weightKg <= 250 && heightCm >= 120 && heightCm <= 230 && (targetWeightKg === null || (targetWeightKg >= 35 && targetWeightKg <= 250));
   const nextTargets = useMemo(() => {
     if (!canSave) {
       return null;
@@ -66,11 +68,11 @@ export function EditProfileScreen({ profile, userId, onBack, onSave }: Props) {
       heightCm,
       weightKg,
       activityLevel,
-      targetWeightKg: profile?.targetWeightKg ?? null,
+      targetWeightKg,
       targets: profile?.targets ?? emptyTargets,
       updatedAt: profile?.updatedAt ?? new Date().toISOString(),
     });
-  }, [activityLevel, canSave, goal, heightCm, profile, sex, userId, weightKg]);
+  }, [activityLevel, canSave, goal, heightCm, profile, sex, targetWeightKg, userId, weightKg]);
 
   function save() {
     if (!canSave || !nextTargets) {
@@ -85,7 +87,7 @@ export function EditProfileScreen({ profile, userId, onBack, onSave }: Props) {
       heightCm,
       weightKg,
       activityLevel,
-      targetWeightKg: profile?.targetWeightKg ?? null,
+      targetWeightKg,
       targets: nextTargets,
       updatedAt: new Date().toISOString(),
     });
@@ -110,18 +112,20 @@ export function EditProfileScreen({ profile, userId, onBack, onSave }: Props) {
 
         <View style={{ flexDirection: 'row', gap: spacing.lg }}>
           <BoxInput label="Poids actuel (kg)" value={weight} onChangeText={setWeight} placeholder="72.5" />
-          <BoxInput label="Taille (cm)" value={height} onChangeText={setHeight} placeholder="178" />
+          <BoxInput label="Poids cible (kg)" value={targetWeight} onChangeText={setTargetWeight} placeholder="62.0" />
         </View>
 
         <View style={{ flexDirection: 'row', gap: spacing.lg }}>
+          <BoxInput label="Taille (cm)" value={height} onChangeText={setHeight} placeholder="178" />
           <BoxInput label="Age" value={profile?.ageRange === '18-24' ? '22' : '28'} onChangeText={() => undefined} placeholder="28" />
-          <View style={{ flex: 1, gap: spacing.sm }}>
-            <Text style={{ color: colors.muted, fontSize: typography.small, fontWeight: '900', textTransform: 'uppercase' }}>Sexe</Text>
-            <Pressable onPress={() => setSex(sex === 'female' ? 'male' : 'female')} style={{ alignItems: 'center', backgroundColor: colors.surface, borderColor: colors.line, borderRadius: radius.sm, borderWidth: 1, flexDirection: 'row', justifyContent: 'space-between', minHeight: 66, padding: spacing.lg }}>
-              <Text style={{ color: colors.black, fontSize: typography.subheading, fontWeight: '900' }}>{sex === 'female' ? 'Femme' : 'Homme'}</Text>
-              <ChevronDown color={colors.muted} size={22} strokeWidth={2.4} />
-            </Pressable>
-          </View>
+        </View>
+
+        <View style={{ gap: spacing.sm }}>
+          <Text style={{ color: colors.muted, fontSize: typography.small, fontWeight: '900', textTransform: 'uppercase' }}>Sexe</Text>
+          <Pressable onPress={() => setSex(sex === 'female' ? 'male' : 'female')} style={{ alignItems: 'center', backgroundColor: colors.surface, borderColor: colors.line, borderRadius: radius.sm, borderWidth: 1, flexDirection: 'row', justifyContent: 'space-between', minHeight: 66, padding: spacing.lg }}>
+            <Text style={{ color: colors.black, fontSize: typography.subheading, fontWeight: '900' }}>{sex === 'female' ? 'Femme' : 'Homme'}</Text>
+            <ChevronDown color={colors.muted} size={22} strokeWidth={2.4} />
+          </Pressable>
         </View>
 
         <View style={{ gap: spacing.sm }}>

@@ -31,7 +31,7 @@ import { createOnboardingRepository, type OnboardingState } from './src/storage/
 import { createProductRepository } from './src/storage/productRepository';
 import { createProfileRepository } from './src/storage/profileRepository';
 import { createMacroLensSupabaseClient } from './src/supabase/client';
-import { colors } from './src/ui/theme';
+import { colors, radius, spacing, typography } from './src/ui/theme';
 import { AnalyzingScreen } from './src/screens/AnalyzingScreen';
 import { EditProfileScreen } from './src/screens/EditProfileScreen';
 import { ManualMealScreen } from './src/screens/ManualMealScreen';
@@ -41,13 +41,19 @@ import { PackagedProductScreen } from './src/screens/PackagedProductScreen';
 import { PortionAdjustScreen } from './src/screens/PortionAdjustScreen';
 import { PremiumHomeScreen } from './src/screens/PremiumHomeScreen';
 import { PremiumTimelineScreen } from './src/screens/PremiumTimelineScreen';
+import { PremiumUnlockedScreen } from './src/screens/PremiumUnlockedScreen';
 import { ResultScreen } from './src/screens/ResultScreen';
 import { SaveConfirmationScreen } from './src/screens/SaveConfirmationScreen';
+import { FoodSearchScreen } from './src/screens/FoodSearchScreen';
+import { SavedMealsScreen } from './src/screens/SavedMealsScreen';
+import { ScanErrorScreen } from './src/screens/ScanErrorScreen';
+import { ScanHubScreen } from './src/screens/ScanHubScreen';
 import { ScannerScreen } from './src/screens/ScannerScreen';
 import { SettingsScreen } from './src/screens/SettingsScreen';
 import { SuccessProfileScreen } from './src/screens/SuccessProfileScreen';
 import { TargetsScreen } from './src/screens/TargetsScreen';
 import { TodayScreen } from './src/screens/TodayScreen';
+import { WeighInScreen } from './src/screens/WeighInScreen';
 import { WeeklyReportScreen } from './src/screens/WeeklyReportScreen';
 import type { ScannerMode } from './src/scanner/scannerModes';
 
@@ -55,6 +61,7 @@ type ScreenState =
   | { name: 'loading' }
   | { name: 'onboarding' }
   | { name: 'paywall' }
+  | { name: 'premiumUnlocked' }
   | { name: 'app'; tab: AppTab }
   | { name: 'analyzing'; imageUri: string }
   | { name: 'result'; meal: Meal; isSaved: boolean }
@@ -64,6 +71,11 @@ type ScreenState =
   | { name: 'settings' }
   | { name: 'targets' }
   | { name: 'manualMeal' }
+  | { name: 'foodSearch' }
+  | { name: 'savedMeals' }
+  | { name: 'weighIn' }
+  | { name: 'scanHub' }
+  | { name: 'scanError'; variant: 'non_food' | 'low_light' | 'label' }
   | { name: 'scanner'; initialMode: ScannerMode; productLookupError?: boolean; productLookupIssue?: 'not_found' | 'needs_label' }
   | { name: 'packagedProduct'; item: PackagedFoodItem; initialServingGrams: number; imageUri: string }
   | { name: 'weeklyReport' };
@@ -205,20 +217,23 @@ function MacroLensApp() {
     } catch (error) {
       if (isNonFoodPhotoError(error)) {
         analytics.track('non_food_detected', { source: 'photo' });
-        Alert.alert('Photo non reconnue', error.userMessage);
-        setScreen({ name: 'app', tab: 'home' });
+        setScreen({ name: 'scanError', variant: 'non_food' });
         return;
       }
 
       analytics.track('scan_failed', { source: 'photo', reason: 'analysis_error' });
-      Alert.alert('Analyse impossible', 'Reessaie avec une photo plus claire ou ajoute le repas manuellement.');
-      setScreen({ name: 'app', tab: 'home' });
+      setScreen({ name: 'scanError', variant: 'low_light' });
     }
   }
 
   function captureMeal() {
-    analytics.track('scan_started', { source: 'scanner_meal' });
-    setScreen({ name: 'scanner', initialMode: 'meal' });
+    analytics.track('scan_started', { source: 'hub' });
+    setScreen({ name: 'scanHub' });
+  }
+
+  function openScanner(initialMode: ScannerMode) {
+    analytics.track('scan_started', { source: initialMode });
+    setScreen({ name: 'scanner', initialMode });
   }
 
   async function pickMealPhoto() {
@@ -251,7 +266,7 @@ function MacroLensApp() {
     await entitlementRepository.saveEntitlement(nextEntitlement);
     setEntitlement(nextEntitlement);
     if (nextEntitlement.isPremium) {
-      setScreen({ name: 'app', tab: 'home' });
+      setScreen({ name: 'premiumUnlocked' });
     }
 
     return nextEntitlement;
@@ -284,7 +299,7 @@ function MacroLensApp() {
       await entitlementRepository.saveEntitlement(nextEntitlement);
       setEntitlement(nextEntitlement);
       if (nextEntitlement.isPremium) {
-        setScreen({ name: 'app', tab: 'home' });
+        setScreen({ name: 'premiumUnlocked' });
         return;
       }
 
@@ -370,8 +385,7 @@ function MacroLensApp() {
       setScreen({ name: 'packagedProduct', item: result.item, initialServingGrams: result.servingGrams, imageUri });
     } catch {
       analytics.track('scan_failed', { source: 'label_ocr', reason: 'label_ocr_error' });
-      Alert.alert('Etiquette illisible', 'Cadre le tableau nutritionnel de face, avec les valeurs par 100 g visibles, ou ajoute le produit manuellement.');
-      setScreen({ name: 'scanner', initialMode: 'label' });
+      setScreen({ name: 'scanError', variant: 'label' });
     }
   }
 
@@ -405,11 +419,18 @@ function MacroLensApp() {
           targets={targets}
           profile={profile}
           onBack={() => setScreen({ name: 'app', tab: 'home' })}
+          onAddWeighIn={() => setScreen({ name: 'weighIn' })}
           onOpenWeeklyReport={openWeeklyReport}
           onOpenMeal={(meal) => setScreen({ name: 'result', meal, isSaved: true })}
         />
       ) : tab === 'profile' ? (
-        <SuccessProfileScreen meals={meals} onEditProfile={() => setScreen({ name: 'editProfile' })} onOpenSettings={() => setScreen({ name: 'settings' })} />
+        <SuccessProfileScreen
+          meals={meals}
+          profile={profile}
+          onEditProfile={() => setScreen({ name: 'editProfile' })}
+          onOpenSavedMeals={() => setScreen({ name: 'savedMeals' })}
+          onOpenSettings={() => setScreen({ name: 'settings' })}
+        />
       ) : (
         <PremiumHomeScreen
           meals={meals}
@@ -431,8 +452,10 @@ function MacroLensApp() {
 
   if (screen.name === 'loading') {
     return (
-      <View style={{ alignItems: 'center', backgroundColor: colors.background, flex: 1, justifyContent: 'center' }}>
-        <Text style={{ color: colors.ink, fontSize: 28, fontWeight: '900' }}>MACROLENS</Text>
+      <View style={{ alignItems: 'center', backgroundColor: colors.background, flex: 1, justifyContent: 'center', padding: spacing.xl }}>
+        <Text style={{ color: colors.ink, fontSize: typography.heading, fontWeight: '900' }}>MACROLENS</Text>
+        <Text style={{ color: colors.muted, fontSize: typography.small, fontWeight: '800', lineHeight: 19, marginTop: spacing.md, textAlign: 'center' }}>See your food. Know your macros. Reach your goals.</Text>
+        <View style={{ borderColor: colors.green, borderRadius: radius.pill, borderWidth: 2, height: 18, marginTop: spacing.xxxl, width: 18 }} />
       </View>
     );
   }
@@ -457,6 +480,10 @@ function MacroLensApp() {
         showDevelopmentUnlock={appEnv.entitlementMode === 'local_dev'}
       />
     );
+  }
+
+  if (screen.name === 'premiumUnlocked') {
+    return <PremiumUnlockedScreen onStartScan={() => setScreen({ name: 'scanHub' })} />;
   }
 
   if (screen.name === 'app') {
@@ -527,6 +554,54 @@ function MacroLensApp() {
         onSave={saveProfile}
       />
     );
+  }
+
+  if (screen.name === 'scanHub') {
+    return (
+      <ScanHubScreen
+        onBack={() => setScreen({ name: 'app', tab: 'home' })}
+        onOpenScanner={openScanner}
+        onOpenLibrary={pickMealPhoto}
+        onOpenFoodSearch={() => setScreen({ name: 'foodSearch' })}
+        onOpenManualMeal={() => setScreen({ name: 'manualMeal' })}
+      />
+    );
+  }
+
+  if (screen.name === 'scanError') {
+    return (
+      <ScanErrorScreen
+        variant={screen.variant}
+        onRetake={() => setScreen({ name: 'scanner', initialMode: screen.variant === 'label' ? 'label' : 'meal' })}
+        onManual={() => setScreen({ name: 'manualMeal' })}
+        onHome={() => setScreen({ name: 'app', tab: 'home' })}
+      />
+    );
+  }
+
+  if (screen.name === 'foodSearch') {
+    return (
+      <FoodSearchScreen
+        onBack={() => setScreen({ name: 'scanHub' })}
+        onManualEntry={() => setScreen({ name: 'manualMeal' })}
+        onSelectFood={saveManualMeal}
+      />
+    );
+  }
+
+  if (screen.name === 'savedMeals') {
+    return (
+      <SavedMealsScreen
+        meals={meals}
+        onBack={() => setScreen({ name: 'app', tab: 'profile' })}
+        onOpenMeal={(meal) => setScreen({ name: 'result', meal, isSaved: true })}
+        onRelogMeal={relogMeal}
+      />
+    );
+  }
+
+  if (screen.name === 'weighIn') {
+    return <WeighInScreen profile={profile} userId={localUserId} onBack={() => setScreen({ name: 'app', tab: 'today' })} onSave={saveProfile} />;
   }
 
   if (screen.name === 'manualMeal') {

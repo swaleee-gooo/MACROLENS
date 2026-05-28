@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Animated, Easing, Image, Text, View } from 'react-native';
-import { ScanLine, Sparkles } from 'lucide-react-native';
+import { CheckCircle2, ScanLine, Sparkles } from 'lucide-react-native';
 import { buildAnalysisAnimationStages } from '../domain/analysisAnimation';
 import { colors, radius, spacing, typography } from '../ui/theme';
 
@@ -18,6 +18,7 @@ export function AnalyzingScreen({ imageUri }: Props) {
   const scanTranslateY = scanProgress.interpolate({ inputRange: [0, 1], outputRange: [0, 292] });
   const pulseScale = pulseProgress.interpolate({ inputRange: [0, 1], outputRange: [1, 1.08] });
   const pulseOpacity = pulseProgress.interpolate({ inputRange: [0, 1], outputRange: [0.68, 1] });
+  const visibleProgress = Math.max(currentStage.progress, 24);
 
   useEffect(() => {
     const scanLoop = Animated.loop(
@@ -52,7 +53,15 @@ export function AnalyzingScreen({ imageUri }: Props) {
 
   return (
     <View style={{ backgroundColor: colors.background, flex: 1, justifyContent: 'center', padding: spacing.xl }}>
-      <View style={{ aspectRatio: 1, borderRadius: radius.lg, overflow: 'hidden', width: '100%' }}>
+      <View style={{ alignItems: 'center', gap: spacing.lg }}>
+        <Text style={{ color: colors.black, fontSize: typography.small, fontWeight: '900', textTransform: 'uppercase' }}>MACROLENS</Text>
+        <View style={{ alignItems: 'center', borderColor: colors.greenSoft, borderRadius: radius.pill, borderWidth: 12, height: 146, justifyContent: 'center', width: 146 }}>
+          <Text style={{ color: colors.black, fontSize: typography.heading, fontWeight: '900' }}>{visibleProgress}%</Text>
+          <Text style={{ color: colors.muted, fontSize: typography.tiny, fontWeight: '900' }}>Analyse</Text>
+        </View>
+      </View>
+
+      <View style={{ aspectRatio: 1.05, borderRadius: radius.lg, marginTop: spacing.xl, overflow: 'hidden', width: '100%' }}>
         {isSynthetic ? (
           <View style={{ alignItems: 'center', backgroundColor: colors.black, flex: 1, justifyContent: 'center' }}>
             <Animated.View style={{ opacity: pulseOpacity, transform: [{ scale: pulseScale }] }}>
@@ -79,9 +88,12 @@ export function AnalyzingScreen({ imageUri }: Props) {
         <View style={{ backgroundColor: colors.surfaceMuted, borderRadius: radius.pill, height: 12, overflow: 'hidden' }}>
           <View style={{ backgroundColor: colors.green, borderRadius: radius.pill, height: 12, width: `${currentStage.progress}%` }} />
         </View>
-        <View style={{ flexDirection: 'row', gap: spacing.sm, justifyContent: 'center' }}>
+        <View style={{ gap: spacing.sm }}>
           {stages.map((stage, index) => (
-            <View key={stage.label} style={{ backgroundColor: index <= stageIndex ? colors.black : colors.line, borderRadius: radius.pill, height: 8, width: 32 }} />
+            <View key={stage.label} style={{ alignItems: 'center', flexDirection: 'row', gap: spacing.sm }}>
+              <CheckCircle2 color={index <= stageIndex ? colors.green : colors.line} size={17} strokeWidth={2.4} />
+              <Text style={{ color: index <= stageIndex ? colors.black : colors.muted, flex: 1, fontSize: typography.small, fontWeight: '900' }}>{stage.label}</Text>
+            </View>
           ))}
         </View>
       </View>

@@ -7,6 +7,8 @@ export type OnboardingProfileDraft = {
   sex: 'female' | 'male';
   heightCm: number;
   weightKg: number;
+  targetWeightKg?: number | null;
+  weeklyPaceKg?: number | null;
   activityLevel: UserProfile['activityLevel'];
 };
 
@@ -31,7 +33,9 @@ function ageRangeFromAge(age: number): UserProfile['ageRange'] {
 }
 
 export function isOnboardingDraftValid(draft: OnboardingProfileDraft): boolean {
-  return draft.age >= 18 && draft.age <= 85 && draft.heightCm >= 120 && draft.heightCm <= 230 && draft.weightKg >= 35 && draft.weightKg <= 250;
+  const targetWeightIsValid = draft.targetWeightKg === undefined || draft.targetWeightKg === null || (draft.targetWeightKg >= 35 && draft.targetWeightKg <= 250);
+
+  return draft.age >= 18 && draft.age <= 85 && draft.heightCm >= 120 && draft.heightCm <= 230 && draft.weightKg >= 35 && draft.weightKg <= 250 && targetWeightIsValid;
 }
 
 export function buildUserProfileFromOnboarding(draft: OnboardingProfileDraft, userId: string, updatedAt = new Date().toISOString()): UserProfile {
@@ -43,7 +47,7 @@ export function buildUserProfileFromOnboarding(draft: OnboardingProfileDraft, us
     heightCm: draft.heightCm,
     weightKg: draft.weightKg,
     activityLevel: draft.activityLevel,
-    targetWeightKg: null,
+    targetWeightKg: draft.targetWeightKg ?? null,
     targets: {
       calorieTarget: 0,
       proteinTargetG: 0,

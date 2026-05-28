@@ -73,17 +73,16 @@ export function ManualMealScreen({ onBack, onSave }: Props) {
   }
 
   return (
-    <ScrollView style={{ backgroundColor: colors.background, flex: 1 }} contentContainerStyle={{ gap: spacing.xl, padding: spacing.xl }}>
+    <ScrollView style={{ backgroundColor: colors.background, flex: 1 }} contentContainerStyle={{ gap: spacing.xl, padding: spacing.xl, paddingBottom: spacing.xxxl }}>
       <Pressable onPress={onBack} style={{ alignItems: 'center', flexDirection: 'row', gap: spacing.xs }}>
-        <ArrowLeft color={colors.blue} size={18} strokeWidth={2.5} />
-        <Text style={{ color: colors.blue, fontSize: typography.body, fontWeight: '800' }}>Retour</Text>
+        <ArrowLeft color={colors.black} size={24} strokeWidth={2.5} />
+        <Text style={{ color: colors.black, fontSize: typography.body, fontWeight: '900' }}>Back</Text>
       </Pressable>
 
-      <View style={{ gap: spacing.xs }}>
-        <Text style={{ color: colors.ink, fontSize: typography.title, fontWeight: '900' }}>Repas manuel</Text>
-        <Text style={{ color: colors.muted, fontSize: typography.body, lineHeight: 23 }}>
-          Ajoute un repas connu sans passer par la photo.
-        </Text>
+      <View style={{ alignItems: 'center', gap: spacing.xs }}>
+        <Text style={{ color: colors.black, fontSize: typography.small, fontWeight: '900' }}>MACROLENS</Text>
+        <Text style={{ color: colors.ink, fontSize: typography.heading, fontWeight: '900', marginTop: spacing.md }}>Add meal manually</Text>
+        <Text style={{ color: colors.muted, fontSize: typography.small, fontWeight: '800', lineHeight: 19, textAlign: 'center' }}>Enter the nutrition info for this meal.</Text>
       </View>
 
       <View style={{ gap: spacing.xs }}>
@@ -108,16 +107,17 @@ export function ManualMealScreen({ onBack, onSave }: Props) {
         disabled={!canSave}
         style={{
           alignItems: 'center',
-          backgroundColor: canSave ? colors.green : colors.line,
-          borderRadius: radius.md,
+          backgroundColor: canSave ? colors.black : colors.line,
+          borderRadius: radius.pill,
           flexDirection: 'row',
           gap: spacing.sm,
           justifyContent: 'center',
-          padding: spacing.lg,
+          minHeight: 58,
+          paddingHorizontal: spacing.lg,
         }}
       >
         <Save color="white" size={20} strokeWidth={2.5} />
-        <Text style={{ color: 'white', fontSize: typography.body, fontWeight: '900' }}>Creer le repas</Text>
+        <Text style={{ color: 'white', fontSize: typography.body, fontWeight: '900' }}>Save meal</Text>
       </Pressable>
     </ScrollView>
   );

@@ -12,7 +12,7 @@ type Props = {
   showDevelopmentUnlock: boolean;
 };
 
-const benefits = ['Analyse photo IA', 'Corrections de portions', 'Objectifs calories et proteines', 'Timeline et progres detailles'];
+const benefits = ['Scans repas illimites', 'Macros et calories avancees', 'Corrections de portions', 'Historique, progress et sync appareils'];
 
 export function PaywallScreen({ onPurchase, onUnlockForDevelopment, onRestore, showDevelopmentUnlock }: Props) {
   const [selectedPlan, setSelectedPlan] = useState<PaywallPlan>('annual');
@@ -20,17 +20,18 @@ export function PaywallScreen({ onPurchase, onUnlockForDevelopment, onRestore, s
   return (
     <View style={{ backgroundColor: colors.background, flex: 1, height: '100%', overflow: 'hidden' }}>
       <ScrollView style={{ flex: 1 }} contentContainerStyle={{ gap: spacing.xl, padding: spacing.xl, paddingBottom: 128 }}>
-        <View style={{ alignItems: 'center', gap: spacing.md, paddingTop: spacing.xxl }}>
-          <View style={{ alignItems: 'center', backgroundColor: colors.black, borderRadius: radius.pill, height: 84, justifyContent: 'center', width: 84 }}>
-            <Sparkles color="white" size={36} strokeWidth={2.5} />
+        <View style={{ alignItems: 'center', gap: spacing.md, paddingTop: spacing.xl }}>
+          <Text style={{ color: colors.black, fontSize: typography.small, fontWeight: '900', textTransform: 'uppercase' }}>MACROLENS</Text>
+          <View style={{ alignItems: 'center', backgroundColor: colors.greenSoft, borderColor: colors.green, borderRadius: radius.pill, borderWidth: 2, height: 96, justifyContent: 'center', width: 96 }}>
+            <Sparkles color={colors.green} size={42} strokeWidth={2.5} />
           </View>
-          <Text style={{ color: colors.black, fontSize: typography.title, fontWeight: '900', textAlign: 'center' }}>Atteins tes macros avec l'IA</Text>
+          <Text style={{ color: colors.black, fontSize: typography.title, fontWeight: '900', textAlign: 'center' }}>Unlock MacroLens Pro</Text>
           <Text style={{ color: colors.muted, fontSize: typography.body, fontWeight: '700', lineHeight: 24, textAlign: 'center' }}>
-            Scanne tes repas, ajuste les portions et suis tes objectifs chaque jour.
+            La meilleure experience pour scanner, corriger et suivre tes macros tous les jours.
           </Text>
         </View>
         <View style={{ gap: spacing.md }}>
-          <PaywallPlanCard plan="annual" selected={selectedPlan === 'annual'} title="Annuel" price="39,99 EUR / an" detail="Meilleure valeur pour progresser toute l'annee." badge="Economise 58%" onSelect={setSelectedPlan} />
+          <PaywallPlanCard plan="annual" selected={selectedPlan === 'annual'} title="Annuel" price="39,99 EUR / an" detail="3,33 EUR / mois. Meilleure valeur." badge="7 jours gratuits" onSelect={setSelectedPlan} />
           <PaywallPlanCard plan="monthly" selected={selectedPlan === 'monthly'} title="Mensuel" price="7,99 EUR / mois" detail="Flexible, annulable a tout moment." onSelect={setSelectedPlan} />
         </View>
         <View style={{ gap: spacing.sm }}>
@@ -54,7 +55,7 @@ export function PaywallScreen({ onPurchase, onUnlockForDevelopment, onRestore, s
           </Pressable>
         ) : null}
       </ScrollView>
-      <StickyFooterButton label="Continuer" onPress={() => onPurchase(selectedPlan)} />
+      <StickyFooterButton label="Demarrer l'essai gratuit" onPress={() => onPurchase(selectedPlan)} />
     </View>
   );
 }

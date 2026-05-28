@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { Pressable, ScrollView, Text, useWindowDimensions, View } from 'react-native';
-import { Flame, Plus, RotateCcw, Star } from 'lucide-react-native';
+import { CalendarDays, Flame, Plus, RotateCcw } from 'lucide-react-native';
 import { BrandHeader } from '../components/BrandHeader';
 import { MealCard } from '../components/MealCard';
 import { PremiumCard } from '../components/PremiumCard';
@@ -21,24 +21,6 @@ type Props = {
   onOpenMeal: (meal: Meal) => void;
   onRelogMeal: (meal: Meal) => void;
 };
-
-function SmallStatCard({ label, value, icon }: { label: string; value: string; icon: 'flame' | 'star' }) {
-  const Icon = icon === 'flame' ? Flame : Star;
-
-  return (
-    <PremiumCard style={{ flex: 1, minHeight: 84, padding: spacing.md }}>
-      <View style={{ alignItems: 'center', flexDirection: 'row', gap: spacing.md }}>
-        <Icon color={icon === 'flame' ? colors.amber : colors.black} size={22} strokeWidth={2.4} />
-        <View style={{ flex: 1 }}>
-          <Text style={{ color: colors.muted, fontSize: typography.tiny, fontWeight: '900', textTransform: 'uppercase' }}>{label}</Text>
-          <Text numberOfLines={2} style={{ color: colors.black, fontSize: typography.body, fontWeight: '900', lineHeight: 20, marginTop: spacing.xs }}>
-            {value}
-          </Text>
-        </View>
-      </View>
-    </PremiumCard>
-  );
-}
 
 function StreakCalendarStrip({
   calendar,
@@ -63,11 +45,7 @@ function StreakCalendarStrip({
 
   return (
     <View style={{ gap: spacing.md, paddingHorizontal: spacing.xl }}>
-      <View style={{ alignItems: 'center', flexDirection: 'row', justifyContent: 'space-between' }}>
-        <Text style={{ color: colors.black, fontSize: typography.subheading, fontWeight: '900' }}>Serie {calendar.streakDays} jours</Text>
-        <Text style={{ color: colors.muted, fontSize: typography.small, fontWeight: '800' }}>Cette semaine</Text>
-      </View>
-      <ScrollView ref={scrollRef} horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: spacing.sm, paddingRight: spacing.xl }}>
+      <ScrollView ref={scrollRef} horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: spacing.md, paddingRight: spacing.xl }}>
         {calendar.days.map((day) => {
           const selected = day.isoDate === selectedIsoDate;
           const active = selected || day.hasMeal || day.isToday;
@@ -76,7 +54,7 @@ function StreakCalendarStrip({
           const textColor = selected ? 'white' : day.isFuture ? colors.muted : colors.black;
 
           return (
-            <Pressable key={day.isoDate} onPress={() => onSelectDay(day.isoDate)} style={{ alignItems: 'center', gap: spacing.xs, width: 44 }}>
+            <Pressable key={day.isoDate} onPress={() => onSelectDay(day.isoDate)} style={{ alignItems: 'center', gap: spacing.xs, width: 42 }}>
               <View
                 style={{
                   alignItems: 'center',
@@ -113,6 +91,16 @@ function MacroProgress({ label, consumed, target, color }: { label: string; cons
       </View>
       <RingProgress size={68} strokeWidth={8} progress={progress} color={color} label="" detail="" />
     </PremiumCard>
+  );
+}
+
+function CompactMetric({ label, value, color }: { label: string; value: string; color: string }) {
+  return (
+    <View style={{ alignItems: 'center', flex: 1, gap: spacing.xs }}>
+      <View style={{ backgroundColor: color, borderRadius: radius.pill, height: 7, width: 7 }} />
+      <Text style={{ color: colors.muted, fontSize: typography.tiny, fontWeight: '900' }}>{label}</Text>
+      <Text style={{ color: colors.black, fontSize: typography.tiny, fontWeight: '900' }}>{value}</Text>
+    </View>
   );
 }
 
@@ -195,23 +183,31 @@ export function PremiumHomeScreen({ meals, targets, profile, onOpenSettings, onO
     <ScrollView style={{ backgroundColor: colors.background, flex: 1 }} contentContainerStyle={{ gap: spacing.lg, paddingBottom: spacing.xxl }}>
       <BrandHeader onSettings={onOpenSettings} />
       <StreakCalendarStrip calendar={vm.streakCalendar} selectedIsoDate={selectedIsoDate} onSelectDay={setSelectedIsoDate} />
-      <View style={{ gap: spacing.xs, paddingHorizontal: spacing.xl }}>
-        <Text style={{ color: colors.black, fontSize: typography.heading, fontWeight: '900' }}>Apercu Quotidien</Text>
-        <Text style={{ color: colors.muted, fontSize: typography.body, fontWeight: '800' }}>{dayReview.subtitle}</Text>
-      </View>
 
-      <View style={{ flexDirection: 'row', gap: spacing.md, paddingHorizontal: spacing.xl }}>
-        <SmallStatCard label="Serie actuelle" value={`${vm.streakDays} jours`} icon="flame" />
-        <SmallStatCard label="Prochain badge" value={`${vm.nextBadge.daysRemaining} jours -> ${vm.nextBadge.label}`} icon="star" />
+      <View style={{ alignItems: 'center', flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: spacing.xl }}>
+        <View style={{ gap: spacing.xs }}>
+          <Text style={{ color: colors.black, fontSize: typography.title, fontWeight: '900' }}>{dayReview.isToday ? "Aujourd'hui" : dayReview.subtitle}</Text>
+          <Text style={{ color: colors.muted, fontSize: typography.small, fontWeight: '800' }}>{dayReview.mealCount} repas logges</Text>
+        </View>
+        <View style={{ alignItems: 'center', backgroundColor: colors.surface, borderColor: colors.line, borderRadius: radius.pill, borderWidth: 1, flexDirection: 'row', gap: spacing.xs, paddingHorizontal: spacing.md, paddingVertical: spacing.sm }}>
+          <Flame color={colors.green} size={16} strokeWidth={2.6} />
+          <Text style={{ color: colors.black, fontSize: typography.small, fontWeight: '900' }}>{vm.streakDays}</Text>
+        </View>
       </View>
 
       <View style={{ paddingHorizontal: spacing.xl }}>
         <PremiumCard style={{ alignItems: 'center', gap: spacing.md, paddingVertical: spacing.lg }}>
-          <Text style={{ alignSelf: 'flex-start', color: colors.muted, fontSize: typography.tiny, fontWeight: '900', textTransform: 'uppercase' }}>Calories totales</Text>
-          <RingProgress size={calorieRingSize} strokeWidth={16} progress={dayReview.calories.progress} label={`${dayReview.calories.consumed}`} detail={`/ ${dayReview.calories.target || '--'} kcal`} />
-          <View style={{ backgroundColor: colors.surfaceMuted, borderColor: colors.line, borderRadius: radius.sm, borderWidth: 1, paddingHorizontal: spacing.md, paddingVertical: spacing.sm }}>
-            <Text style={{ color: colors.black, fontSize: typography.small, fontWeight: '900' }}>- {dayReview.calories.remaining} restantes</Text>
+          <View style={{ alignItems: 'center', alignSelf: 'stretch', flexDirection: 'row', justifyContent: 'space-between' }}>
+            <Text style={{ color: colors.muted, fontSize: typography.tiny, fontWeight: '900', textTransform: 'uppercase' }}>Calories totales</Text>
+            <CalendarDays color={colors.muted} size={18} strokeWidth={2.5} />
           </View>
+          <RingProgress size={calorieRingSize} strokeWidth={16} progress={dayReview.calories.progress} label={`${dayReview.calories.consumed}`} detail={`/ ${dayReview.calories.target || '--'} kcal`} />
+          <View style={{ alignSelf: 'stretch', flexDirection: 'row', gap: spacing.sm }}>
+            <CompactMetric label="Protein" value={`${dayReview.protein.consumed}/${dayReview.protein.target}g`} color={colors.protein} />
+            <CompactMetric label="Carbs" value={`${dayReview.carbs.consumed}/${dayReview.carbs.target}g`} color={colors.carbs} />
+            <CompactMetric label="Fat" value={`${dayReview.fat.consumed}/${dayReview.fat.target}g`} color={colors.fat} />
+          </View>
+          <Text style={{ color: colors.green, fontSize: typography.small, fontWeight: '900' }}>{dayReview.calories.remaining} kcal restantes</Text>
         </PremiumCard>
       </View>
 
@@ -251,13 +247,16 @@ export function PremiumHomeScreen({ meals, targets, profile, onOpenSettings, onO
 
       <View style={{ gap: spacing.md, paddingHorizontal: spacing.xl }}>
         <View style={{ alignItems: 'center', flexDirection: 'row', justifyContent: 'space-between' }}>
-          <Text style={{ color: colors.black, fontSize: typography.heading, fontWeight: '900' }}>Repas du jour</Text>
+          <Text style={{ color: colors.black, fontSize: typography.heading, fontWeight: '900' }}>Recently logged</Text>
           <Text style={{ color: colors.muted, fontSize: typography.small, fontWeight: '900' }}>{dayReview.mealCount} repas</Text>
         </View>
         {dayReview.meals.length === 0 ? (
-          <PremiumCard style={{ gap: spacing.xs }}>
-            <Text style={{ color: colors.black, fontSize: typography.body, fontWeight: '900' }}>Aucun repas enregistre</Text>
-            <Text style={{ color: colors.muted, fontSize: typography.small, fontWeight: '800', lineHeight: 19 }}>Selectionne un autre jour ou scanne ton prochain repas avec le bouton central.</Text>
+          <PremiumCard style={{ alignItems: 'center', gap: spacing.sm, paddingVertical: spacing.xl }}>
+            <View style={{ alignItems: 'center', backgroundColor: colors.greenSoft, borderRadius: radius.pill, height: 52, justifyContent: 'center', width: 52 }}>
+              <Plus color={colors.green} size={26} strokeWidth={2.8} />
+            </View>
+            <Text style={{ color: colors.black, fontSize: typography.body, fontWeight: '900' }}>Scanne ton premier repas</Text>
+            <Text style={{ color: colors.muted, fontSize: typography.small, fontWeight: '800', lineHeight: 19, textAlign: 'center' }}>Utilise le bouton central pour ajouter un repas, un produit ou une etiquette.</Text>
           </PremiumCard>
         ) : (
           dayReview.meals.map((meal) => <MealCard key={meal.id} meal={meal} onPress={onOpenMeal} />)

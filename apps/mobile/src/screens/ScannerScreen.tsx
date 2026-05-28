@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Alert, Animated, Platform, Pressable, StyleSheet, Text, TextInput, useWindowDimensions, View } from 'react-native';
 import { CameraView, useCameraPermissions, type BarcodeScanningResult } from 'expo-camera';
-import { ArrowLeft, Barcode, Camera, ImagePlus, Keyboard, RefreshCw, ScanText, Zap } from 'lucide-react-native';
+import { ArrowLeft, Barcode, Camera, ImagePlus, Keyboard, RefreshCw, ScanText, Sparkles, Sun, Zap } from 'lucide-react-native';
 import { getScannerModeConfig, scannerModes, type ScannerIconKey, type ScannerMode } from '../scanner/scannerModes';
 import { colors, radius, spacing, typography } from '../ui/theme';
 
@@ -68,6 +68,15 @@ function SheetAction({
   );
 }
 
+function SheetTip({ label, icon: Icon }: { label: string; icon: typeof Camera }) {
+  return (
+    <View style={{ alignItems: 'center', flexDirection: 'row', gap: spacing.sm }}>
+      <Icon color={colors.black} size={16} strokeWidth={2.4} />
+      <Text style={{ color: colors.muted, flex: 1, fontSize: typography.small, fontWeight: '800' }}>{label}</Text>
+    </View>
+  );
+}
+
 function frameSizeFor(mode: ScannerMode, width: number) {
   const frameWidth = Math.min(width - spacing.xl * 2, 370);
 
@@ -106,6 +115,7 @@ export function ScannerScreen({
     productLookupError ? productLookupIssue ?? 'not_found' : null,
   );
   const [manualEntryOpen, setManualEntryOpen] = useState(productLookupError);
+  const [guidanceOpen, setGuidanceOpen] = useState(initialMode === 'meal');
   const [manualBarcode, setManualBarcode] = useState('');
   const { width } = useWindowDimensions();
   const config = getScannerModeConfig(mode);
@@ -155,6 +165,7 @@ export function ScannerScreen({
     setScanned(false);
     setLookupIssue(null);
     setManualEntryOpen(false);
+    setGuidanceOpen(nextMode === 'meal');
   }
 
   function handleBarcodeScanned(result: BarcodeScanningResult) {
@@ -323,6 +334,25 @@ export function ScannerScreen({
                   <SheetAction icon={Keyboard} label="Entrer le code" onPress={openManualBarcodeEntry} />
                   <SheetAction icon={Camera} label="Ajouter manuellement" onPress={onManualMeal} tone="outline" />
                 </View>
+              </View>
+            ) : null}
+
+            {guidanceOpen && !lookupIssue ? (
+              <View style={{ backgroundColor: colors.scannerGlass, borderColor: 'rgba(255,255,255,0.42)', borderRadius: radius.lg, borderWidth: 1, gap: spacing.md, padding: spacing.md }}>
+                <View style={{ alignItems: 'center', flexDirection: 'row', gap: spacing.sm }}>
+                  <View style={{ alignItems: 'center', backgroundColor: colors.greenSoft, borderRadius: radius.pill, height: 34, justifyContent: 'center', width: 34 }}>
+                    <Sparkles color={colors.green} size={18} strokeWidth={2.6} />
+                  </View>
+                  <Text style={{ color: colors.black, flex: 1, fontSize: typography.body, fontWeight: '900' }}>Tips pour un meilleur scan</Text>
+                </View>
+                <View style={{ gap: spacing.sm }}>
+                  <SheetTip icon={Sun} label="Utilise une lumiere naturelle" />
+                  <SheetTip icon={Camera} label="Garde tout le plat dans le cadre" />
+                  <SheetTip icon={ScanText} label="Evite flou, ombres et angles extremes" />
+                </View>
+                <Pressable onPress={() => setGuidanceOpen(false)} style={{ alignItems: 'center', backgroundColor: colors.black, borderRadius: radius.pill, minHeight: 44, justifyContent: 'center' }}>
+                  <Text style={{ color: 'white', fontSize: typography.small, fontWeight: '900' }}>Compris</Text>
+                </Pressable>
               </View>
             ) : null}
 
