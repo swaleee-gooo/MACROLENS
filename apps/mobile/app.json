@@ -1,15 +1,16 @@
 {
   "expo": {
-    "name": "mobile",
-    "slug": "mobile",
+    "name": "MacroLens",
+    "slug": "macrolens",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.macrolens.app",
+      "bundleIdentifier": "com.idrisscarta.macrolens.dev",
       "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false,
         "NSCameraUsageDescription": "MacroLens utilise la camera pour analyser les repas, scanner les codes-barres et lire les etiquettes nutritionnelles."
       }
     },
@@ -24,6 +25,12 @@
     },
     "web": {
       "favicon": "./assets/favicon.png"
-    }
+    },
+    "extra": {
+      "eas": {
+        "projectId": "8ae438cb-02a8-45a1-a028-89cd7545c81c"
+      }
+    },
+    "owner": "idrisscarta"
   }
 }
