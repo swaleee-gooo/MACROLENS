@@ -50,7 +50,7 @@ export function PaywallScreen({ onPurchase, onUnlockForDevelopment, onRestore, s
         {showDevelopmentUnlock ? (
           <Pressable onPress={onUnlockForDevelopment} style={{ alignItems: 'center', flexDirection: 'row', gap: spacing.xs, justifyContent: 'center' }}>
             <LockKeyhole color={colors.muted} size={14} strokeWidth={2.4} />
-            <Text style={{ color: colors.muted, fontSize: typography.tiny, fontWeight: '800' }}>Continuer en mode test Expo Go</Text>
+            <Text style={{ color: colors.muted, fontSize: typography.tiny, fontWeight: '800' }}>Continuer en mode test</Text>
           </Pressable>
         ) : null}
       </ScrollView>
