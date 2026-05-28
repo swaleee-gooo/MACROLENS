@@ -24,7 +24,8 @@
   "submit": {
     "production": {
       "ios": {
-        "appleId": "idriss.carta@gmail.com"
+        "appleId": "idriss.carta@gmail.com",
+        "ascAppId": "6774111134"
       }
     }
   }
