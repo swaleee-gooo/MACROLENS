@@ -12,6 +12,7 @@ type RevenueCatCustomerInfo = {
 };
 
 type RevenueCatPackage = unknown;
+type RevenueCatProductIds = Partial<Record<PurchasePlan, string>>;
 
 type RevenueCatModule = {
   configure(config: { apiKey: string }): void;
@@ -26,9 +27,9 @@ type RevenueCatModule = {
 };
 
 const entitlementId = 'macrolens_pro';
-const packageByPlan: Record<PurchasePlan, number> = {
-  monthly: 0,
-  annual: 1,
+const defaultProductIds: Record<PurchasePlan, string> = {
+  monthly: 'macrolens_pro_monthly',
+  annual: 'macrolens_pro_annual',
 };
 
 let configuredApiKey: string | null = null;
@@ -49,6 +50,36 @@ function stateFromCustomerInfo(customerInfo: RevenueCatCustomerInfo): Commercial
   };
 }
 
+function packagePlanCandidate(packageToInspect: RevenueCatPackage): { identifier?: string; packageType?: string; productIdentifier?: string } {
+  if (!packageToInspect || typeof packageToInspect !== 'object') {
+    return {};
+  }
+
+  const candidate = packageToInspect as {
+    identifier?: unknown;
+    packageType?: unknown;
+    product?: { identifier?: unknown };
+  };
+
+  return {
+    identifier: typeof candidate.identifier === 'string' ? candidate.identifier : undefined,
+    packageType: typeof candidate.packageType === 'string' ? candidate.packageType.toLowerCase() : undefined,
+    productIdentifier: typeof candidate.product?.identifier === 'string' ? candidate.product.identifier : undefined,
+  };
+}
+
+export function selectPackageForPlan(packages: RevenueCatPackage[], plan: PurchasePlan, productIds: RevenueCatProductIds = {}): RevenueCatPackage | null {
+  const targetProductId = productIds[plan] ?? defaultProductIds[plan];
+  const targetPackageType = plan === 'annual' ? 'annual' : 'monthly';
+
+  return (
+    packages.find((packageToInspect) => packagePlanCandidate(packageToInspect).productIdentifier === targetProductId) ??
+    packages.find((packageToInspect) => packagePlanCandidate(packageToInspect).packageType === targetPackageType) ??
+    packages.find((packageToInspect) => packagePlanCandidate(packageToInspect).identifier?.toLowerCase().includes(targetPackageType)) ??
+    null
+  );
+}
+
 async function configuredPurchases(appleApiKey: string): Promise<RevenueCatModule> {
   const Purchases = await loadPurchases();
   if (configuredApiKey !== appleApiKey) {
@@ -58,7 +89,7 @@ async function configuredPurchases(appleApiKey: string): Promise<RevenueCatModul
   return Purchases;
 }
 
-export function createRevenueCatEntitlementProvider(appleApiKey: string): EntitlementProvider {
+export function createRevenueCatEntitlementProvider(appleApiKey: string, productIds: RevenueCatProductIds = {}): EntitlementProvider {
   return {
     kind: 'revenue_cat',
     async getEntitlement() {
@@ -72,7 +103,7 @@ export function createRevenueCatEntitlementProvider(appleApiKey: string): Entitl
       if (!current) {
         throw new Error('revenuecat_offering_missing');
       }
-      const selectedPackage = current.availablePackages[packageByPlan[plan]];
+      const selectedPackage = selectPackageForPlan(current.availablePackages, plan, productIds);
       if (!selectedPackage) {
         throw new Error(`revenuecat_package_missing_${plan}`);
       }

@@ -5,6 +5,8 @@ import type { EntitlementMode, EntitlementProvider } from './entitlementTypes';
 type Config = {
   entitlementMode: EntitlementMode;
   revenueCatAppleApiKey: string;
+  revenueCatMonthlyProductId?: string;
+  revenueCatAnnualProductId?: string;
   isExpoGo: boolean;
 };
 
@@ -21,5 +23,8 @@ export function createEntitlementProvider(config: Config): EntitlementProvider {
     throw new Error('revenuecat_apple_api_key_missing');
   }
 
-  return createRevenueCatEntitlementProvider(config.revenueCatAppleApiKey);
+  return createRevenueCatEntitlementProvider(config.revenueCatAppleApiKey, {
+    monthly: config.revenueCatMonthlyProductId,
+    annual: config.revenueCatAnnualProductId,
+  });
 }

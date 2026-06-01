@@ -7,6 +7,8 @@ describe('resolveAppEnv', () => {
       analysisMode: 'mock',
       entitlementMode: 'local_dev',
       revenueCatAppleApiKey: '',
+      revenueCatMonthlyProductId: 'macrolens_pro_monthly',
+      revenueCatAnnualProductId: 'macrolens_pro_annual',
       supabaseUrl: null,
       supabaseAnonKey: null,
     });
@@ -23,6 +25,8 @@ describe('resolveAppEnv', () => {
       analysisMode: 'remote',
       entitlementMode: 'local_dev',
       revenueCatAppleApiKey: '',
+      revenueCatMonthlyProductId: 'macrolens_pro_monthly',
+      revenueCatAnnualProductId: 'macrolens_pro_annual',
       supabaseUrl: 'https://example.supabase.co',
       supabaseAnonKey: 'sb_publishable_123',
     });
@@ -37,10 +41,14 @@ describe('resolveAppEnv', () => {
       resolveAppEnv({
         EXPO_PUBLIC_ENTITLEMENT_MODE: 'store',
         EXPO_PUBLIC_REVENUECAT_APPLE_API_KEY: 'appl_test_key',
+        EXPO_PUBLIC_REVENUECAT_MONTHLY_PRODUCT_ID: 'custom_monthly',
+        EXPO_PUBLIC_REVENUECAT_ANNUAL_PRODUCT_ID: 'custom_annual',
       }),
     ).toMatchObject({
       entitlementMode: 'store',
       revenueCatAppleApiKey: 'appl_test_key',
+      revenueCatMonthlyProductId: 'custom_monthly',
+      revenueCatAnnualProductId: 'custom_annual',
     });
   });
 });

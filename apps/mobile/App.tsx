@@ -197,6 +197,8 @@ function MacroLensApp() {
       createEntitlementProvider({
         entitlementMode: appEnv.entitlementMode,
         revenueCatAppleApiKey: appEnv.revenueCatAppleApiKey,
+        revenueCatMonthlyProductId: appEnv.revenueCatMonthlyProductId,
+        revenueCatAnnualProductId: appEnv.revenueCatAnnualProductId,
         isExpoGo: Constants.appOwnership === 'expo',
       }),
     [],
