@@ -72,7 +72,7 @@ export function WeighInScreen({ profile, userId, onBack, onSave }: Props) {
         <View style={{ alignItems: 'center', gap: spacing.xs }}>
           <Text style={{ color: colors.black, fontSize: typography.small, fontWeight: '900' }}>MACROLENS</Text>
           <Text style={{ color: colors.black, fontSize: typography.heading, fontWeight: '900', marginTop: spacing.md }}>Add weigh-in</Text>
-          <Text style={{ color: colors.muted, fontSize: typography.small, fontWeight: '800', textAlign: 'center' }}>Keep your goal progress accurate.</Text>
+          <Text style={{ color: colors.muted, fontSize: typography.small, fontWeight: '800', textAlign: 'center' }}>Keep your goal progress up to date.</Text>
         </View>
 
         <View style={{ backgroundColor: colors.surface, borderColor: colors.line, borderRadius: radius.lg, borderWidth: 1, gap: spacing.lg, padding: spacing.xl }}>

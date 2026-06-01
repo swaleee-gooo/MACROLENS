@@ -81,7 +81,7 @@ export function TargetsScreen({ profile, onBack, onCreateProfile, onSave }: Prop
 
       <View style={{ gap: spacing.xs }}>
         <Text style={{ color: colors.ink, fontSize: typography.title, fontWeight: '900' }}>Objectifs</Text>
-        <Text style={{ color: colors.muted, fontSize: typography.body, lineHeight: 23 }}>Ajuste seulement si tu as deja une cible precise.</Text>
+        <Text style={{ color: colors.muted, fontSize: typography.body, lineHeight: 23 }}>Ajuste seulement si tu as deja une cible personnelle.</Text>
       </View>
 
       <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: spacing.md }}>

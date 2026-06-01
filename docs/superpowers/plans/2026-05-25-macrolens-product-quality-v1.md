@@ -55,6 +55,17 @@ This plan covers multiple subsystems. Implement it as a sequence of small branch
 
 Do not begin paid acquisition or App Store submission work until Tasks 1, 2, 3, and 8 have fresh verification.
 
+## Implementation Status - 2026-06-01
+
+- [x] Task 1: Product quality baseline and no-accuracy-claim guard are implemented.
+- [x] Task 2: Scan repeatability V2 is implemented; live repeatability passed 10/10 cases on `analyze-meal` version 15.
+- [x] Task 3: Packaged product lookup reliability paths are implemented locally, including found/needs-label/not-found states and local product cache.
+- [x] Task 4: Progress V2 metrics, chart view model, and `InteractiveLineChart` are implemented.
+- [x] Task 5: Fast logging exists through `Repas rapides` and one-tap `Relogger`.
+- [x] Task 6: Scanner UX and product-flow clarity are implemented; product-not-found no longer routes to a generic meal result.
+- [ ] Task 7: Premium UI polish still needs a fresh screen-by-screen mobile pass after the backend P0 cleanup.
+- [ ] Task 8: TestFlight beta loop still needs real tester execution and written notes.
+
 ## File Structure
 
 Create or modify these files during execution:
@@ -90,7 +101,7 @@ Create or modify these files during execution:
 - Create: `docs/qa/macrolens-product-quality-v1.md`
 - Create: `apps/mobile/src/ui/noCoachCopyGuard.test.ts`
 
-- [ ] **Step 1: Write the copy guard test**
+- [x] **Step 1: Write the copy guard test**
 
 Create `apps/mobile/src/ui/noCoachCopyGuard.test.ts`:
 
@@ -121,7 +132,7 @@ describe('visible product positioning', () => {
 });
 ```
 
-- [ ] **Step 2: Run the guard test**
+- [x] **Step 2: Run the guard test**
 
 ```powershell
 cd C:\Users\idris\OneDrive\Documents\AppMobile\apps\mobile
@@ -130,7 +141,7 @@ npm test -- noCoachCopyGuard
 
 Expected: PASS if no visible coach copy exists.
 
-- [ ] **Step 3: Create the QA baseline doc**
+- [x] **Step 3: Create the QA baseline doc**
 
 Create `docs/qa/macrolens-product-quality-v1.md`:
 
@@ -164,7 +175,7 @@ MacroLens is a smart macro and progress tracker. It is not positioned as an AI c
 - No red screen, unhandled promise rejection, or console error during QA.
 ```
 
-- [ ] **Step 4: Verify**
+- [x] **Step 4: Verify**
 
 ```powershell
 cd C:\Users\idris\OneDrive\Documents\AppMobile\apps\mobile
@@ -174,7 +185,7 @@ npx tsc --noEmit
 
 Expected: tests and TypeScript pass.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```powershell
 cd C:\Users\idris\OneDrive\Documents\AppMobile
@@ -192,7 +203,7 @@ git commit -m "test: guard tracking-first positioning"
 - Modify: `supabase/functions/analyze-meal/nutritionCalibration.ts`
 - Modify: `supabase/functions/analyze-meal/nutritionCalibration.test.ts`
 
-- [ ] **Step 1: Add real benchmark cases**
+- [x] **Step 1: Add real benchmark cases**
 
 Edit `apps/mobile/scripts/repeatability-cases.json` only after the benchmark photos have been uploaded to stable HTTPS URLs. Add at least these case ids and known macro targets:
 
@@ -215,7 +226,7 @@ Edit `apps/mobile/scripts/repeatability-cases.json` only after the benchmark pho
 
 If those exact URLs are not live yet, first upload the photos to the benchmark storage location and keep the filenames above so the benchmark file remains stable.
 
-- [ ] **Step 2: Write a calibration regression test**
+- [x] **Step 2: Write a calibration regression test**
 
 Add to `supabase/functions/analyze-meal/nutritionCalibration.test.ts`:
 
@@ -243,7 +254,7 @@ Deno.test('calibrates poke bowl protein without large same-photo drift', () => {
 });
 ```
 
-- [ ] **Step 3: Run the calibration test**
+- [x] **Step 3: Run the calibration test**
 
 ```powershell
 cd C:\Users\idris\OneDrive\Documents\AppMobile
@@ -252,7 +263,7 @@ deno test supabase/functions/analyze-meal/nutritionCalibration.test.ts
 
 Expected before implementation if missing: FAIL with `protein_too_low`.
 
-- [ ] **Step 4: Implement minimal calibration**
+- [x] **Step 4: Implement minimal calibration**
 
 In `supabase/functions/analyze-meal/nutritionCalibration.ts`, add a deterministic mixed-bowl floor only for known high-protein bowl patterns:
 
@@ -279,7 +290,7 @@ function applyHighProteinBowlFloor<T extends { mealName: string; proteinG: numbe
 
 Call this inside the existing calibration pipeline, after ingredient normalization and before final rounding.
 
-- [ ] **Step 5: Run repeatability verification**
+- [x] **Step 5: Run repeatability verification**
 
 ```powershell
 cd C:\Users\idris\OneDrive\Documents\AppMobile\apps\mobile
@@ -288,7 +299,7 @@ npm run repeatability:live:cases
 
 Expected: the command exits `0` once real image URLs exist and the repeatability gates pass.
 
-- [ ] **Step 6: Update benchmark results**
+- [x] **Step 6: Update benchmark results**
 
 Append to `docs/benchmarks/macrolens-repeatability-results-v1.md`:
 
@@ -305,7 +316,7 @@ Result:
 - Notes:
 ```
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```powershell
 cd C:\Users\idris\OneDrive\Documents\AppMobile
@@ -326,7 +337,7 @@ git commit -m "feat: tighten scan repeatability calibration"
 - Modify: `apps/mobile/App.tsx`
 - Modify: `apps/mobile/src/screens/ScannerScreen.tsx`
 
-- [ ] **Step 1: Write product lookup outcome tests**
+- [x] **Step 1: Write product lookup outcome tests**
 
 Create `apps/mobile/src/packagedFood/productLookupOutcome.test.ts`:
 
@@ -370,7 +381,7 @@ describe('normalizeProductLookupOutcome', () => {
 });
 ```
 
-- [ ] **Step 2: Run red test**
+- [x] **Step 2: Run red test**
 
 ```powershell
 cd C:\Users\idris\OneDrive\Documents\AppMobile\apps\mobile
@@ -379,7 +390,7 @@ npm test -- productLookupOutcome
 
 Expected: FAIL because the file does not exist.
 
-- [ ] **Step 3: Implement product lookup outcome**
+- [x] **Step 3: Implement product lookup outcome**
 
 Create `apps/mobile/src/packagedFood/productLookupOutcome.ts`:
 
@@ -408,7 +419,7 @@ export function notFoundProductLookupOutcome(barcode: string): ProductLookupOutc
 }
 ```
 
-- [ ] **Step 4: Add local product repository tests**
+- [x] **Step 4: Add local product repository tests**
 
 Create `apps/mobile/src/storage/productRepository.test.ts`:
 
@@ -454,7 +465,7 @@ describe('productRepository', () => {
 });
 ```
 
-- [ ] **Step 5: Implement local product repository**
+- [x] **Step 5: Implement local product repository**
 
 Create `apps/mobile/src/storage/productRepository.ts`:
 
@@ -492,7 +503,7 @@ export function createProductRepository(storage: StorageLike) {
 }
 ```
 
-- [ ] **Step 6: Wire product cache before remote lookup**
+- [x] **Step 6: Wire product cache before remote lookup**
 
 In `apps/mobile/App.tsx`, create the repository with `AsyncStorage`, check cache before `packagedFoodLookupService.lookupProduct(barcode)`, and save OCR-created products after label scan.
 
@@ -502,7 +513,7 @@ Expected behavior:
 - barcode not found -> scanner bottom sheet suggests retry, manual code, label scan
 - product save -> Timeline as product entry with serving, not generic meal analysis
 
-- [ ] **Step 7: Verify**
+- [x] **Step 7: Verify**
 
 ```powershell
 cd C:\Users\idris\OneDrive\Documents\AppMobile\apps\mobile
@@ -512,7 +523,7 @@ npx tsc --noEmit
 
 Expected: tests and TypeScript pass.
 
-- [ ] **Step 8: Commit**
+- [x] **Step 8: Commit**
 
 ```powershell
 cd C:\Users\idris\OneDrive\Documents\AppMobile
@@ -532,7 +543,7 @@ git commit -m "feat: improve packaged product lookup reliability"
 - Create: `apps/mobile/src/components/InteractiveLineChart.tsx`
 - Modify: `apps/mobile/src/screens/TodayScreen.tsx`
 
-- [ ] **Step 1: Write progress metrics tests**
+- [x] **Step 1: Write progress metrics tests**
 
 Create `apps/mobile/src/domain/progressMetrics.test.ts`:
 
@@ -584,7 +595,7 @@ describe('buildProgressMetrics', () => {
 });
 ```
 
-- [ ] **Step 2: Run red test**
+- [x] **Step 2: Run red test**
 
 ```powershell
 cd C:\Users\idris\OneDrive\Documents\AppMobile\apps\mobile
@@ -593,7 +604,7 @@ npm test -- progressMetrics
 
 Expected: FAIL because `buildProgressMetrics` does not exist.
 
-- [ ] **Step 3: Implement progress metrics**
+- [x] **Step 3: Implement progress metrics**
 
 Create `apps/mobile/src/domain/progressMetrics.ts`:
 
@@ -627,7 +638,7 @@ export function buildProgressMetrics(meals: Meal[], profile: UserProfile, todayI
 }
 ```
 
-- [ ] **Step 4: Write chart view model tests**
+- [x] **Step 4: Write chart view model tests**
 
 Create `apps/mobile/src/ui/progressChartViewModel.test.ts`:
 
@@ -650,7 +661,7 @@ describe('buildProgressChartViewModel', () => {
 });
 ```
 
-- [ ] **Step 5: Implement chart view model**
+- [x] **Step 5: Implement chart view model**
 
 Create `apps/mobile/src/ui/progressChartViewModel.ts`:
 
@@ -682,7 +693,7 @@ export function buildProgressChartViewModel(points: ProgressChartPointInput[], s
 }
 ```
 
-- [ ] **Step 6: Build `InteractiveLineChart`**
+- [x] **Step 6: Build `InteractiveLineChart`**
 
 Create `apps/mobile/src/components/InteractiveLineChart.tsx` using `react-native-svg`.
 
@@ -692,7 +703,7 @@ Minimum behavior:
 - expose `onSelectIndex(index)`
 - never render blank when `points.length < 2`; show an empty state text instead
 
-- [ ] **Step 7: Wire Progress screen**
+- [x] **Step 7: Wire Progress screen**
 
 Modify `apps/mobile/src/screens/TodayScreen.tsx`:
 - swap static Goal Progress card internals with the new interactive chart when data exists
@@ -700,7 +711,7 @@ Modify `apps/mobile/src/screens/TodayScreen.tsx`:
 - keep daily metrics card
 - add average calories/protein 7d metric pills
 
-- [ ] **Step 8: Verify**
+- [x] **Step 8: Verify**
 
 ```powershell
 cd C:\Users\idris\OneDrive\Documents\AppMobile\apps\mobile
@@ -711,7 +722,7 @@ npx expo install --check
 
 Expected: tests, TypeScript, and Expo dependency check pass.
 
-- [ ] **Step 9: Browser smoke**
+- [x] **Step 9: Browser smoke**
 
 Open Expo web and verify:
 
@@ -726,7 +737,7 @@ Manual checks:
 - tap chart points/ranges
 - confirm no console errors
 
-- [ ] **Step 10: Commit**
+- [x] **Step 10: Commit**
 
 ```powershell
 cd C:\Users\idris\OneDrive\Documents\AppMobile
@@ -744,7 +755,7 @@ git commit -m "feat: add progress metrics and interactive chart"
 - Modify: `apps/mobile/src/screens/PremiumHomeScreen.tsx`
 - Modify: `apps/mobile/src/domain/recurringMeals.ts`
 
-- [ ] **Step 1: Write shortcut tests**
+- [x] **Step 1: Write shortcut tests**
 
 Create `apps/mobile/src/domain/mealShortcuts.test.ts`:
 
@@ -788,7 +799,7 @@ describe('buildMealShortcuts', () => {
 });
 ```
 
-- [ ] **Step 2: Run red test**
+- [x] **Step 2: Run red test**
 
 ```powershell
 cd C:\Users\idris\OneDrive\Documents\AppMobile\apps\mobile
@@ -797,7 +808,7 @@ npm test -- mealShortcuts
 
 Expected: FAIL because file does not exist.
 
-- [ ] **Step 3: Implement shortcuts**
+- [x] **Step 3: Implement shortcuts**
 
 Create `apps/mobile/src/domain/mealShortcuts.ts`:
 
@@ -832,14 +843,14 @@ export function buildMealShortcuts(meals: Meal[], limit = 5): MealShortcut[] {
 }
 ```
 
-- [ ] **Step 4: Wire UI**
+- [x] **Step 4: Wire UI**
 
 Modify `apps/mobile/src/screens/PremiumHomeScreen.tsx`:
 - show shortcuts as compact chips above `Repas rapides`
 - one tap relogs
 - long press opens the meal result for inspection
 
-- [ ] **Step 5: Verify**
+- [x] **Step 5: Verify**
 
 ```powershell
 cd C:\Users\idris\OneDrive\Documents\AppMobile\apps\mobile
@@ -849,7 +860,7 @@ npx tsc --noEmit
 
 Expected: tests and TypeScript pass.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```powershell
 cd C:\Users\idris\OneDrive\Documents\AppMobile
@@ -867,7 +878,7 @@ git commit -m "feat: add fast meal shortcuts"
 - Modify: `apps/mobile/src/scanner/scannerModes.test.ts`
 - Modify: `apps/mobile/src/screens/PackagedProductScreen.tsx`
 
-- [ ] **Step 1: Add scanner mode behavior tests**
+- [x] **Step 1: Add scanner mode behavior tests**
 
 Add to `apps/mobile/src/scanner/scannerModes.test.ts`:
 
@@ -879,7 +890,7 @@ it('uses automatic detection for barcode mode and capture for meal mode', () => 
 });
 ```
 
-- [ ] **Step 2: Run scanner tests**
+- [x] **Step 2: Run scanner tests**
 
 ```powershell
 cd C:\Users\idris\OneDrive\Documents\AppMobile\apps\mobile
@@ -888,7 +899,7 @@ npm test -- scannerModes
 
 Expected: FAIL if `captureType` is not defined.
 
-- [ ] **Step 3: Implement mode config**
+- [x] **Step 3: Implement mode config**
 
 Modify `apps/mobile/src/scanner/scannerModes.ts`:
 
@@ -901,7 +912,7 @@ export const scannerModeConfig = {
 } as const;
 ```
 
-- [ ] **Step 4: Polish scanner UI**
+- [x] **Step 4: Polish scanner UI**
 
 Modify `apps/mobile/src/screens/ScannerScreen.tsx`:
 - barcode mode hides the white photo button
@@ -914,7 +925,7 @@ Modify `apps/mobile/src/screens/ScannerScreen.tsx`:
   - `Entrer le code`
   - `Ajouter manuellement`
 
-- [ ] **Step 5: Polish packaged product screen**
+- [x] **Step 5: Polish packaged product screen**
 
 Modify `apps/mobile/src/screens/PackagedProductScreen.tsx`:
 - title uses product name/brand
@@ -922,7 +933,7 @@ Modify `apps/mobile/src/screens/PackagedProductScreen.tsx`:
 - primary CTA says `Ajouter ce produit`
 - no copy suggests it is a full meal unless serving is saved as a log entry
 
-- [ ] **Step 6: Verify**
+- [x] **Step 6: Verify**
 
 ```powershell
 cd C:\Users\idris\OneDrive\Documents\AppMobile\apps\mobile
@@ -932,7 +943,7 @@ npx tsc --noEmit
 
 Expected: tests and TypeScript pass.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```powershell
 cd C:\Users\idris\OneDrive\Documents\AppMobile

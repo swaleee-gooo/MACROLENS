@@ -31,7 +31,7 @@ describe('analyzeMealWithOpenAI', () => {
     vi.unstubAllGlobals();
   });
 
-  it('requests low-temperature structured analysis to reduce repeat-scan variance', async () => {
+  it('requests deterministic structured analysis to reduce repeat-scan variance', async () => {
     const fetchMock = vi.fn(async () =>
       new Response(JSON.stringify({ output_text: JSON.stringify(rawFoodAnalysis) }), {
         status: 200,
@@ -44,7 +44,8 @@ describe('analyzeMealWithOpenAI', () => {
 
     const body = JSON.parse(String(fetchMock.mock.calls[0][1]?.body));
 
-    expect(body.temperature).toBeLessThanOrEqual(0.2);
+    expect(body.temperature).toBe(0);
+    expect(body.input[0].content[0].text).toContain('For repeat scans of the exact same image');
     expect(body.input[0].content[1]).toEqual({
       type: 'input_image',
       image_url: 'https://cdn.example/meal.jpg',

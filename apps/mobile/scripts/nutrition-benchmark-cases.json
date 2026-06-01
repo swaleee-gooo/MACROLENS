@@ -1,0 +1,1942 @@
+[
+  {
+    "id": "ML-001",
+    "category": "Breakfast",
+    "meal": "Croissant beurre + cafe noir",
+    "photoRequirement": "One bakery croissant on small plate",
+    "expected": {
+      "calories": [
+        220,
+        330
+      ],
+      "proteinG": [
+        4,
+        8
+      ],
+      "carbsG": [
+        25,
+        38
+      ],
+      "fatG": [
+        11,
+        20
+      ],
+      "fiberG": [
+        1,
+        3
+      ]
+    },
+    "expectedConfidence": "medium",
+    "failureModes": [
+      "bakery size",
+      "butter content"
+    ],
+    "usefulCorrections": [
+      "portion up/down"
+    ],
+    "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/2/2a/Croissant-Petr_Kratochvil.jpg",
+    "imageSource": "en.wikipedia:Croissant"
+  },
+  {
+    "id": "ML-002",
+    "category": "Breakfast",
+    "meal": "Pain au chocolat",
+    "photoRequirement": "One standard bakery pastry",
+    "expected": {
+      "calories": [
+        300,
+        450
+      ],
+      "proteinG": [
+        6,
+        10
+      ],
+      "carbsG": [
+        35,
+        55
+      ],
+      "fatG": [
+        16,
+        28
+      ],
+      "fiberG": [
+        2,
+        5
+      ]
+    },
+    "expectedConfidence": "medium",
+    "failureModes": [
+      "pastry size",
+      "chocolate quantity"
+    ],
+    "usefulCorrections": [
+      "portion up/down"
+    ],
+    "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5f/Pain_au_chocolat_Luc_Viatour.jpg/1280px-Pain_au_chocolat_Luc_Viatour.jpg",
+    "imageSource": "en.wikipedia:Pain_au_chocolat"
+  },
+  {
+    "id": "ML-003",
+    "category": "Breakfast",
+    "meal": "Tartines beurre confiture",
+    "photoRequirement": "Two baguette slices with butter and jam",
+    "expected": {
+      "calories": [
+        330,
+        520
+      ],
+      "proteinG": [
+        7,
+        13
+      ],
+      "carbsG": [
+        55,
+        85
+      ],
+      "fatG": [
+        10,
+        22
+      ],
+      "fiberG": [
+        2,
+        5
+      ]
+    },
+    "expectedConfidence": "low",
+    "failureModes": [
+      "hidden butter",
+      "jam thickness"
+    ],
+    "usefulCorrections": [
+      "add butter",
+      "portion up/down"
+    ],
+    "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/5/5f/Pain_au_chocolat_Luc_Viatour.jpg",
+    "imageSource": "en.wikipedia:Toast"
+  },
+  {
+    "id": "ML-004",
+    "category": "Breakfast",
+    "meal": "Yaourt grec, granola, fruits rouges",
+    "photoRequirement": "Bowl with yogurt, granola, berries",
+    "expected": {
+      "calories": [
+        320,
+        520
+      ],
+      "proteinG": [
+        18,
+        32
+      ],
+      "carbsG": [
+        40,
+        70
+      ],
+      "fatG": [
+        8,
+        20
+      ],
+      "fiberG": [
+        5,
+        11
+      ]
+    },
+    "expectedConfidence": "medium",
+    "failureModes": [
+      "granola density",
+      "yogurt fat level"
+    ],
+    "usefulCorrections": [
+      "portion up/down"
+    ],
+    "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d1/Yogurt_fruit_bowl.jpg/960px-Yogurt_fruit_bowl.jpg",
+    "imageSource": "commons.wikimedia:Yogurt_fruit_bowl"
+  },
+  {
+    "id": "ML-005",
+    "category": "Breakfast",
+    "meal": "Omelette 3 oeufs fromage",
+    "photoRequirement": "Omelette with visible cheese",
+    "expected": {
+      "calories": [
+        380,
+        620
+      ],
+      "proteinG": [
+        25,
+        42
+      ],
+      "carbsG": [
+        2,
+        10
+      ],
+      "fatG": [
+        28,
+        48
+      ],
+      "fiberG": [
+        0,
+        2
+      ]
+    },
+    "expectedConfidence": "medium",
+    "failureModes": [
+      "added oil",
+      "cheese amount"
+    ],
+    "usefulCorrections": [
+      "add oil",
+      "add cheese",
+      "portion up/down"
+    ],
+    "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4d/Gorgonzola_%2B_Bacon_Omelette_%40_Omelegg_%40_Amsterdam_%2816600947041%29.jpg/1280px-Gorgonzola_%2B_Bacon_Omelette_%40_Omelegg_%40_Amsterdam_%2816600947041%29.jpg",
+    "imageSource": "en.wikipedia:Omelette"
+  },
+  {
+    "id": "ML-006",
+    "category": "Bakery",
+    "meal": "Demi-baguette jambon beurre",
+    "photoRequirement": "Sandwich with ham and butter",
+    "expected": {
+      "calories": [
+        520,
+        760
+      ],
+      "proteinG": [
+        22,
+        38
+      ],
+      "carbsG": [
+        70,
+        105
+      ],
+      "fatG": [
+        18,
+        35
+      ],
+      "fiberG": [
+        3,
+        7
+      ]
+    },
+    "expectedConfidence": "low",
+    "failureModes": [
+      "hidden butter",
+      "bread size"
+    ],
+    "usefulCorrections": [
+      "add butter",
+      "portion up/down"
+    ],
+    "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/81/Sandwich_jambon-beurre.jpg/1280px-Sandwich_jambon-beurre.jpg",
+    "imageSource": "en.wikipedia:Jambon-beurre"
+  },
+  {
+    "id": "ML-007",
+    "category": "Bakery",
+    "meal": "Quiche lorraine slice",
+    "photoRequirement": "One bakery slice",
+    "expected": {
+      "calories": [
+        420,
+        650
+      ],
+      "proteinG": [
+        14,
+        26
+      ],
+      "carbsG": [
+        25,
+        45
+      ],
+      "fatG": [
+        28,
+        48
+      ],
+      "fiberG": [
+        1,
+        4
+      ]
+    },
+    "expectedConfidence": "low",
+    "failureModes": [
+      "slice weight",
+      "cream bacon content"
+    ],
+    "usefulCorrections": [
+      "portion up/down"
+    ],
+    "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/29/Quiche.jpg/1280px-Quiche.jpg",
+    "imageSource": "en.wikipedia:Quiche"
+  },
+  {
+    "id": "ML-008",
+    "category": "Bakery",
+    "meal": "Baguette tradition 100g + camembert 40g",
+    "photoRequirement": "Bread and cheese on plate",
+    "expected": {
+      "calories": [
+        360,
+        500
+      ],
+      "proteinG": [
+        14,
+        24
+      ],
+      "carbsG": [
+        55,
+        75
+      ],
+      "fatG": [
+        10,
+        20
+      ],
+      "fiberG": [
+        3,
+        6
+      ]
+    },
+    "expectedConfidence": "medium",
+    "failureModes": [
+      "cheese weight",
+      "bread weight"
+    ],
+    "usefulCorrections": [
+      "portion up/down"
+    ],
+    "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/dd/Camembert_de_Normandie_%28AOP%29_11.jpg/1280px-Camembert_de_Normandie_%28AOP%29_11.jpg",
+    "imageSource": "en.wikipedia:Camembert"
+  },
+  {
+    "id": "ML-009",
+    "category": "Bakery",
+    "meal": "Chausson aux pommes",
+    "photoRequirement": "One apple turnover",
+    "expected": {
+      "calories": [
+        300,
+        480
+      ],
+      "proteinG": [
+        4,
+        8
+      ],
+      "carbsG": [
+        40,
+        65
+      ],
+      "fatG": [
+        14,
+        28
+      ],
+      "fiberG": [
+        2,
+        5
+      ]
+    },
+    "expectedConfidence": "medium",
+    "failureModes": [
+      "filling and pastry size"
+    ],
+    "usefulCorrections": [
+      "portion up/down"
+    ],
+    "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/16/M%C3%B6nichwald_-_Krapfenkirtag_-_Schmerkrapfen.jpg/1280px-M%C3%B6nichwald_-_Krapfenkirtag_-_Schmerkrapfen.jpg",
+    "imageSource": "en.wikipedia:Turnover_(food)"
+  },
+  {
+    "id": "ML-010",
+    "category": "Bakery",
+    "meal": "Brioche tranchee + Nutella",
+    "photoRequirement": "Two brioche slices with spread",
+    "expected": {
+      "calories": [
+        420,
+        680
+      ],
+      "proteinG": [
+        8,
+        16
+      ],
+      "carbsG": [
+        55,
+        90
+      ],
+      "fatG": [
+        18,
+        38
+      ],
+      "fiberG": [
+        2,
+        6
+      ]
+    },
+    "expectedConfidence": "low",
+    "failureModes": [
+      "spread thickness"
+    ],
+    "usefulCorrections": [
+      "add spread",
+      "portion up/down"
+    ],
+    "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/4/4a/Brioche.jpg",
+    "imageSource": "en.wikipedia:Brioche"
+  },
+  {
+    "id": "ML-011",
+    "category": "Home",
+    "meal": "Poulet grille, riz blanc, haricots verts",
+    "photoRequirement": "Plate with chicken breast, rice, green beans",
+    "expected": {
+      "calories": [
+        480,
+        720
+      ],
+      "proteinG": [
+        38,
+        60
+      ],
+      "carbsG": [
+        45,
+        80
+      ],
+      "fatG": [
+        8,
+        24
+      ],
+      "fiberG": [
+        4,
+        10
+      ]
+    },
+    "expectedConfidence": "medium",
+    "failureModes": [
+      "rice portion",
+      "cooking oil"
+    ],
+    "usefulCorrections": [
+      "add oil",
+      "portion up/down"
+    ],
+    "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/7e/Jiroufan.jpg/1280px-Jiroufan.jpg",
+    "imageSource": "en.wikipedia:Chicken_rice"
+  },
+  {
+    "id": "ML-012",
+    "category": "Home",
+    "meal": "Steak hache 5%, pommes de terre vapeur, salade",
+    "photoRequirement": "Beef patty, potatoes, salad",
+    "expected": {
+      "calories": [
+        520,
+        760
+      ],
+      "proteinG": [
+        32,
+        52
+      ],
+      "carbsG": [
+        45,
+        80
+      ],
+      "fatG": [
+        16,
+        32
+      ],
+      "fiberG": [
+        5,
+        10
+      ]
+    },
+    "expectedConfidence": "medium",
+    "failureModes": [
+      "meat fat",
+      "salad dressing"
+    ],
+    "usefulCorrections": [
+      "add sauce",
+      "portion up/down"
+    ],
+    "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/47/Marinated_beef_steak_with_potato_vegetable_salad.jpg/960px-Marinated_beef_steak_with_potato_vegetable_salad.jpg",
+    "imageSource": "commons.wikimedia:Marinated_beef_steak_with_potato_vegetable_salad"
+  },
+  {
+    "id": "ML-013",
+    "category": "Home",
+    "meal": "Saumon, quinoa, brocoli",
+    "photoRequirement": "Salmon fillet, quinoa, broccoli",
+    "expected": {
+      "calories": [
+        620,
+        850
+      ],
+      "proteinG": [
+        38,
+        58
+      ],
+      "carbsG": [
+        45,
+        75
+      ],
+      "fatG": [
+        28,
+        45
+      ],
+      "fiberG": [
+        7,
+        14
+      ]
+    },
+    "expectedConfidence": "medium",
+    "failureModes": [
+      "salmon size",
+      "oil"
+    ],
+    "usefulCorrections": [
+      "add oil",
+      "portion up/down"
+    ],
+    "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4e/Sashimi_-_Maguro_Restaurant%2C_Bangna%2C_Bangkok_%2844856596864%29.jpg/1280px-Sashimi_-_Maguro_Restaurant%2C_Bangna%2C_Bangkok_%2844856596864%29.jpg",
+    "imageSource": "en.wikipedia:Salmon_as_food"
+  },
+  {
+    "id": "ML-014",
+    "category": "Home",
+    "meal": "Ratatouille + riz + oeuf au plat",
+    "photoRequirement": "Mixed vegetables, rice, fried egg",
+    "expected": {
+      "calories": [
+        450,
+        700
+      ],
+      "proteinG": [
+        15,
+        28
+      ],
+      "carbsG": [
+        60,
+        95
+      ],
+      "fatG": [
+        14,
+        32
+      ],
+      "fiberG": [
+        8,
+        16
+      ]
+    },
+    "expectedConfidence": "low",
+    "failureModes": [
+      "oil in ratatouille",
+      "egg oil"
+    ],
+    "usefulCorrections": [
+      "add oil",
+      "portion up/down"
+    ],
+    "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/3/37/Ratatouille_home_cooked.jpg",
+    "imageSource": "en.wikipedia:Ratatouille"
+  },
+  {
+    "id": "ML-015",
+    "category": "Home",
+    "meal": "Pates bolognaise maison",
+    "photoRequirement": "Pasta with meat tomato sauce",
+    "expected": {
+      "calories": [
+        650,
+        950
+      ],
+      "proteinG": [
+        28,
+        48
+      ],
+      "carbsG": [
+        75,
+        120
+      ],
+      "fatG": [
+        20,
+        42
+      ],
+      "fiberG": [
+        6,
+        12
+      ]
+    },
+    "expectedConfidence": "low",
+    "failureModes": [
+      "pasta weight",
+      "sauce fat",
+      "cheese"
+    ],
+    "usefulCorrections": [
+      "add cheese",
+      "portion up/down"
+    ],
+    "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4d/Tagliatelle_al_rag%C3%B9_%28image_modified%29.jpg/1280px-Tagliatelle_al_rag%C3%B9_%28image_modified%29.jpg",
+    "imageSource": "en.wikipedia:Bolognese_sauce"
+  },
+  {
+    "id": "ML-016",
+    "category": "Home",
+    "meal": "Couscous poulet legumes",
+    "photoRequirement": "Semolina, chicken, vegetables, broth",
+    "expected": {
+      "calories": [
+        700,
+        1050
+      ],
+      "proteinG": [
+        35,
+        60
+      ],
+      "carbsG": [
+        90,
+        145
+      ],
+      "fatG": [
+        18,
+        42
+      ],
+      "fiberG": [
+        9,
+        18
+      ]
+    },
+    "expectedConfidence": "low",
+    "failureModes": [
+      "semolina quantity",
+      "sauce oil"
+    ],
+    "usefulCorrections": [
+      "portion up/down",
+      "add oil"
+    ],
+    "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/0/0c/Moroccan_cuscus%2C_from_Casablanca%2C_September_2018.jpg",
+    "imageSource": "en.wikipedia:Couscous"
+  },
+  {
+    "id": "ML-017",
+    "category": "Home",
+    "meal": "Chili con carne + riz",
+    "photoRequirement": "Bowl with chili and rice",
+    "expected": {
+      "calories": [
+        650,
+        950
+      ],
+      "proteinG": [
+        32,
+        55
+      ],
+      "carbsG": [
+        80,
+        125
+      ],
+      "fatG": [
+        18,
+        38
+      ],
+      "fiberG": [
+        12,
+        22
+      ]
+    },
+    "expectedConfidence": "low",
+    "failureModes": [
+      "rice hidden under chili",
+      "oil"
+    ],
+    "usefulCorrections": [
+      "portion up/down"
+    ],
+    "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/50/Bowl_of_chili.jpg/1280px-Bowl_of_chili.jpg",
+    "imageSource": "en.wikipedia:Chili_con_carne"
+  },
+  {
+    "id": "ML-018",
+    "category": "Home",
+    "meal": "Lentilles saucisse",
+    "photoRequirement": "Plate of lentils with sausage",
+    "expected": {
+      "calories": [
+        650,
+        950
+      ],
+      "proteinG": [
+        32,
+        52
+      ],
+      "carbsG": [
+        55,
+        95
+      ],
+      "fatG": [
+        28,
+        50
+      ],
+      "fiberG": [
+        14,
+        24
+      ]
+    },
+    "expectedConfidence": "low",
+    "failureModes": [
+      "sausage weight",
+      "oil"
+    ],
+    "usefulCorrections": [
+      "portion up/down"
+    ],
+    "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/5/50/Bowl_of_chili.jpg",
+    "imageSource": "fr.wikipedia:Lentilles_aux_saucisses"
+  },
+  {
+    "id": "ML-019",
+    "category": "Home",
+    "meal": "Gratin dauphinois + jambon",
+    "photoRequirement": "Cream potato gratin with ham",
+    "expected": {
+      "calories": [
+        620,
+        900
+      ],
+      "proteinG": [
+        25,
+        42
+      ],
+      "carbsG": [
+        50,
+        85
+      ],
+      "fatG": [
+        30,
+        55
+      ],
+      "fiberG": [
+        4,
+        8
+      ]
+    },
+    "expectedConfidence": "low",
+    "failureModes": [
+      "cream",
+      "cheese",
+      "portion depth"
+    ],
+    "usefulCorrections": [
+      "portion up/down"
+    ],
+    "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/2a/Gratin_dauphinois.jpg/1280px-Gratin_dauphinois.jpg",
+    "imageSource": "en.wikipedia:Gratin_dauphinois"
+  },
+  {
+    "id": "ML-020",
+    "category": "Home",
+    "meal": "Soupe legumes + pain + fromage",
+    "photoRequirement": "Bowl soup, bread, cheese",
+    "expected": {
+      "calories": [
+        380,
+        650
+      ],
+      "proteinG": [
+        15,
+        30
+      ],
+      "carbsG": [
+        45,
+        80
+      ],
+      "fatG": [
+        12,
+        34
+      ],
+      "fiberG": [
+        7,
+        14
+      ]
+    },
+    "expectedConfidence": "low",
+    "failureModes": [
+      "soup density",
+      "cheese amount"
+    ],
+    "usefulCorrections": [
+      "portion up/down"
+    ],
+    "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/78/Vegetable_udon_noodle_soup.jpg/1280px-Vegetable_udon_noodle_soup.jpg",
+    "imageSource": "en.wikipedia:Vegetable_soup"
+  },
+  {
+    "id": "ML-021",
+    "category": "Restaurant",
+    "meal": "Burger boeuf frites",
+    "photoRequirement": "Restaurant burger with fries",
+    "expected": {
+      "calories": [
+        950,
+        1450
+      ],
+      "proteinG": [
+        35,
+        65
+      ],
+      "carbsG": [
+        95,
+        155
+      ],
+      "fatG": [
+        45,
+        85
+      ],
+      "fiberG": [
+        6,
+        13
+      ]
+    },
+    "expectedConfidence": "low",
+    "failureModes": [
+      "sauce",
+      "fries oil",
+      "patty size"
+    ],
+    "usefulCorrections": [
+      "add sauce",
+      "portion up/down"
+    ],
+    "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/0b/RedDot_Burger.jpg/1280px-RedDot_Burger.jpg",
+    "imageSource": "en.wikipedia:Hamburger"
+  },
+  {
+    "id": "ML-022",
+    "category": "Restaurant",
+    "meal": "Pizza reine 3 parts",
+    "photoRequirement": "Three slices ham mushroom cheese pizza",
+    "expected": {
+      "calories": [
+        720,
+        1050
+      ],
+      "proteinG": [
+        30,
+        50
+      ],
+      "carbsG": [
+        80,
+        125
+      ],
+      "fatG": [
+        28,
+        55
+      ],
+      "fiberG": [
+        5,
+        10
+      ]
+    },
+    "expectedConfidence": "medium",
+    "failureModes": [
+      "slice size",
+      "cheese amount"
+    ],
+    "usefulCorrections": [
+      "portion up/down"
+    ],
+    "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/91/Pizza-3007395.jpg/1280px-Pizza-3007395.jpg",
+    "imageSource": "en.wikipedia:Pizza"
+  },
+  {
+    "id": "ML-023",
+    "category": "Restaurant",
+    "meal": "Salade Cesar poulet",
+    "photoRequirement": "Caesar salad with chicken and croutons",
+    "expected": {
+      "calories": [
+        520,
+        850
+      ],
+      "proteinG": [
+        30,
+        55
+      ],
+      "carbsG": [
+        20,
+        55
+      ],
+      "fatG": [
+        28,
+        60
+      ],
+      "fiberG": [
+        5,
+        11
+      ]
+    },
+    "expectedConfidence": "low",
+    "failureModes": [
+      "dressing",
+      "parmesan",
+      "croutons"
+    ],
+    "usefulCorrections": [
+      "add sauce",
+      "portion up/down"
+    ],
+    "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/71/Caesar_salad_with_chicken%2C_homemade_-_Massachusetts.jpg/1280px-Caesar_salad_with_chicken%2C_homemade_-_Massachusetts.jpg",
+    "imageSource": "commons.wikimedia:Caesar_salad_with_chicken_homemade_Massachusetts"
+  },
+  {
+    "id": "ML-024",
+    "category": "Restaurant",
+    "meal": "Bo bun boeuf",
+    "photoRequirement": "Vietnamese rice noodle bowl",
+    "expected": {
+      "calories": [
+        650,
+        950
+      ],
+      "proteinG": [
+        25,
+        45
+      ],
+      "carbsG": [
+        85,
+        130
+      ],
+      "fatG": [
+        18,
+        38
+      ],
+      "fiberG": [
+        6,
+        12
+      ]
+    },
+    "expectedConfidence": "low",
+    "failureModes": [
+      "sauce sugar",
+      "noodle quantity"
+    ],
+    "usefulCorrections": [
+      "add sauce",
+      "portion up/down"
+    ],
+    "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/81/Bo_Bun_Tha%C3%AF.jpg/1280px-Bo_Bun_Tha%C3%AF.jpg",
+    "imageSource": "fr.wikipedia:Bo_bun"
+  },
+  {
+    "id": "ML-025",
+    "category": "Restaurant",
+    "meal": "Poke saumon riz avocat",
+    "photoRequirement": "Poke bowl with salmon, rice, avocado",
+    "expected": {
+      "calories": [
+        650,
+        1000
+      ],
+      "proteinG": [
+        28,
+        50
+      ],
+      "carbsG": [
+        75,
+        125
+      ],
+      "fatG": [
+        25,
+        55
+      ],
+      "fiberG": [
+        8,
+        16
+      ]
+    },
+    "expectedConfidence": "low",
+    "failureModes": [
+      "rice base hidden",
+      "sauce"
+    ],
+    "usefulCorrections": [
+      "add sauce",
+      "portion up/down"
+    ],
+    "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/5/5d/Shoyu_and_onion_poke.jpg",
+    "imageSource": "en.wikipedia:Poke_(Hawaiian_dish)"
+  },
+  {
+    "id": "ML-026",
+    "category": "Restaurant",
+    "meal": "Kebab galette sauce blanche",
+    "photoRequirement": "Doner wrap with white sauce",
+    "expected": {
+      "calories": [
+        850,
+        1250
+      ],
+      "proteinG": [
+        35,
+        60
+      ],
+      "carbsG": [
+        75,
+        120
+      ],
+      "fatG": [
+        42,
+        75
+      ],
+      "fiberG": [
+        5,
+        10
+      ]
+    },
+    "expectedConfidence": "low",
+    "failureModes": [
+      "sauce",
+      "meat amount",
+      "wrap size"
+    ],
+    "usefulCorrections": [
+      "add sauce",
+      "portion up/down"
+    ],
+    "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/64/Rolled_kebab.jpg/960px-Rolled_kebab.jpg",
+    "imageSource": "en.wikipedia:Durum"
+  },
+  {
+    "id": "ML-027",
+    "category": "Restaurant",
+    "meal": "Sushi saumon 12 pieces",
+    "photoRequirement": "Mixed salmon sushi set",
+    "expected": {
+      "calories": [
+        520,
+        780
+      ],
+      "proteinG": [
+        24,
+        42
+      ],
+      "carbsG": [
+        75,
+        115
+      ],
+      "fatG": [
+        10,
+        26
+      ],
+      "fiberG": [
+        3,
+        7
+      ]
+    },
+    "expectedConfidence": "medium",
+    "failureModes": [
+      "rice amount",
+      "sauce"
+    ],
+    "usefulCorrections": [
+      "portion up/down"
+    ],
+    "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/60/Sushi_platter.jpg/1280px-Sushi_platter.jpg",
+    "imageSource": "en.wikipedia:Sushi"
+  },
+  {
+    "id": "ML-028",
+    "category": "Restaurant",
+    "meal": "Steak frites sauce poivre",
+    "photoRequirement": "Steak, fries, pepper sauce",
+    "expected": {
+      "calories": [
+        850,
+        1250
+      ],
+      "proteinG": [
+        45,
+        75
+      ],
+      "carbsG": [
+        60,
+        105
+      ],
+      "fatG": [
+        45,
+        75
+      ],
+      "fiberG": [
+        5,
+        10
+      ]
+    },
+    "expectedConfidence": "low",
+    "failureModes": [
+      "sauce",
+      "fries oil",
+      "steak size"
+    ],
+    "usefulCorrections": [
+      "add sauce",
+      "portion up/down"
+    ],
+    "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/9a/Reel_and_Brand_-_September_2021_-_Sarah_Stierch_05.jpg/1280px-Reel_and_Brand_-_September_2021_-_Sarah_Stierch_05.jpg",
+    "imageSource": "en.wikipedia:Steak_frites"
+  },
+  {
+    "id": "ML-029",
+    "category": "Restaurant",
+    "meal": "Pad thai poulet",
+    "photoRequirement": "Noodle stir fry with chicken",
+    "expected": {
+      "calories": [
+        750,
+        1150
+      ],
+      "proteinG": [
+        30,
+        55
+      ],
+      "carbsG": [
+        90,
+        145
+      ],
+      "fatG": [
+        25,
+        55
+      ],
+      "fiberG": [
+        5,
+        12
+      ]
+    },
+    "expectedConfidence": "low",
+    "failureModes": [
+      "oil",
+      "peanuts",
+      "noodle quantity"
+    ],
+    "usefulCorrections": [
+      "add oil",
+      "portion up/down"
+    ],
+    "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/39/Phat_Thai_kung_Chang_Khien_street_stall.jpg/1280px-Phat_Thai_kung_Chang_Khien_street_stall.jpg",
+    "imageSource": "en.wikipedia:Pad_thai"
+  },
+  {
+    "id": "ML-030",
+    "category": "Restaurant",
+    "meal": "Risotto champignons parmesan",
+    "photoRequirement": "Creamy mushroom risotto",
+    "expected": {
+      "calories": [
+        650,
+        1000
+      ],
+      "proteinG": [
+        18,
+        35
+      ],
+      "carbsG": [
+        75,
+        120
+      ],
+      "fatG": [
+        25,
+        55
+      ],
+      "fiberG": [
+        4,
+        9
+      ]
+    },
+    "expectedConfidence": "low",
+    "failureModes": [
+      "butter",
+      "parmesan",
+      "portion depth"
+    ],
+    "usefulCorrections": [
+      "add cheese",
+      "portion up/down"
+    ],
+    "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a5/Risotto_with_speck_and_goat_cheese_%286101067436%29.jpg/1280px-Risotto_with_speck_and_goat_cheese_%286101067436%29.jpg",
+    "imageSource": "en.wikipedia:Risotto"
+  },
+  {
+    "id": "ML-031",
+    "category": "Salad",
+    "meal": "Salade chevre chaud",
+    "photoRequirement": "Salad, goat cheese toast, nuts",
+    "expected": {
+      "calories": [
+        600,
+        950
+      ],
+      "proteinG": [
+        22,
+        40
+      ],
+      "carbsG": [
+        35,
+        75
+      ],
+      "fatG": [
+        38,
+        70
+      ],
+      "fiberG": [
+        6,
+        13
+      ]
+    },
+    "expectedConfidence": "low",
+    "failureModes": [
+      "dressing",
+      "cheese weight",
+      "nuts"
+    ],
+    "usefulCorrections": [
+      "add sauce",
+      "portion up/down"
+    ],
+    "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4d/Plateau_3_horizontal.tif/lossy-page1-1280px-Plateau_3_horizontal.tif.jpg",
+    "imageSource": "en.wikipedia:Goat_cheese"
+  },
+  {
+    "id": "ML-032",
+    "category": "Salad",
+    "meal": "Bowl falafel houmous quinoa",
+    "photoRequirement": "Vegetarian bowl",
+    "expected": {
+      "calories": [
+        700,
+        1050
+      ],
+      "proteinG": [
+        22,
+        40
+      ],
+      "carbsG": [
+        85,
+        135
+      ],
+      "fatG": [
+        30,
+        60
+      ],
+      "fiberG": [
+        14,
+        26
+      ]
+    },
+    "expectedConfidence": "low",
+    "failureModes": [
+      "hummus oil",
+      "falafel count"
+    ],
+    "usefulCorrections": [
+      "add oil",
+      "portion up/down"
+    ],
+    "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4d/Falafel_and_Homemade_Hummus_-_Lavash_2024-09-11.jpg/960px-Falafel_and_Homemade_Hummus_-_Lavash_2024-09-11.jpg",
+    "imageSource": "commons.wikimedia:Falafel_and_Homemade_Hummus_Lavash"
+  },
+  {
+    "id": "ML-033",
+    "category": "Salad",
+    "meal": "Taboule poulet avocat",
+    "photoRequirement": "Couscous salad with chicken and avocado",
+    "expected": {
+      "calories": [
+        560,
+        850
+      ],
+      "proteinG": [
+        28,
+        48
+      ],
+      "carbsG": [
+        55,
+        95
+      ],
+      "fatG": [
+        22,
+        48
+      ],
+      "fiberG": [
+        8,
+        16
+      ]
+    },
+    "expectedConfidence": "medium",
+    "failureModes": [
+      "avocado size",
+      "dressing"
+    ],
+    "usefulCorrections": [
+      "add sauce",
+      "portion up/down"
+    ],
+    "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/ac/Tabouleh_1.JPG/1280px-Tabouleh_1.JPG",
+    "imageSource": "en.wikipedia:Tabbouleh"
+  },
+  {
+    "id": "ML-034",
+    "category": "Salad",
+    "meal": "Nicoise salade",
+    "photoRequirement": "Tuna, egg, potatoes, vegetables",
+    "expected": {
+      "calories": [
+        520,
+        820
+      ],
+      "proteinG": [
+        32,
+        52
+      ],
+      "carbsG": [
+        35,
+        70
+      ],
+      "fatG": [
+        24,
+        50
+      ],
+      "fiberG": [
+        7,
+        14
+      ]
+    },
+    "expectedConfidence": "medium",
+    "failureModes": [
+      "olive oil dressing",
+      "potato amount"
+    ],
+    "usefulCorrections": [
+      "add sauce",
+      "portion up/down"
+    ],
+    "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/88/Nizza-Salat_an_der_F_Mittelmeerk%C3%BCste.JPG/1280px-Nizza-Salat_an_der_F_Mittelmeerk%C3%BCste.JPG",
+    "imageSource": "en.wikipedia:Salade_nicoise"
+  },
+  {
+    "id": "ML-035",
+    "category": "Salad",
+    "meal": "Burrata tomates pesto",
+    "photoRequirement": "Burrata, tomatoes, pesto, bread",
+    "expected": {
+      "calories": [
+        650,
+        980
+      ],
+      "proteinG": [
+        22,
+        38
+      ],
+      "carbsG": [
+        35,
+        75
+      ],
+      "fatG": [
+        45,
+        75
+      ],
+      "fiberG": [
+        4,
+        10
+      ]
+    },
+    "expectedConfidence": "low",
+    "failureModes": [
+      "burrata size",
+      "pesto oil",
+      "bread"
+    ],
+    "usefulCorrections": [
+      "add oil",
+      "portion up/down"
+    ],
+    "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f1/Burrata2.jpg/1280px-Burrata2.jpg",
+    "imageSource": "en.wikipedia:Burrata"
+  },
+  {
+    "id": "ML-036",
+    "category": "Dessert",
+    "meal": "Tarte citron meringuee slice",
+    "photoRequirement": "One dessert slice",
+    "expected": {
+      "calories": [
+        360,
+        560
+      ],
+      "proteinG": [
+        4,
+        8
+      ],
+      "carbsG": [
+        50,
+        80
+      ],
+      "fatG": [
+        15,
+        30
+      ],
+      "fiberG": [
+        1,
+        4
+      ]
+    },
+    "expectedConfidence": "medium",
+    "failureModes": [
+      "slice size",
+      "sugar fat density"
+    ],
+    "usefulCorrections": [
+      "portion up/down"
+    ],
+    "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/34/Theres_always_room_for_pie_%287859650026%29.jpg/1280px-Theres_always_room_for_pie_%287859650026%29.jpg",
+    "imageSource": "en.wikipedia:Lemon_meringue_pie"
+  },
+  {
+    "id": "ML-037",
+    "category": "Dessert",
+    "meal": "Mousse au chocolat ramequin",
+    "photoRequirement": "One ramekin",
+    "expected": {
+      "calories": [
+        280,
+        480
+      ],
+      "proteinG": [
+        5,
+        10
+      ],
+      "carbsG": [
+        25,
+        50
+      ],
+      "fatG": [
+        18,
+        34
+      ],
+      "fiberG": [
+        2,
+        6
+      ]
+    },
+    "expectedConfidence": "medium",
+    "failureModes": [
+      "ramekin size",
+      "cream content"
+    ],
+    "usefulCorrections": [
+      "portion up/down"
+    ],
+    "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/cb/Chocolate_coffee_mousse.jpg/960px-Chocolate_coffee_mousse.jpg",
+    "imageSource": "en.wikipedia:Chocolate_mousse"
+  },
+  {
+    "id": "ML-038",
+    "category": "Dessert",
+    "meal": "Crepe Nutella banane",
+    "photoRequirement": "One folded crepe with spread and banana",
+    "expected": {
+      "calories": [
+        480,
+        760
+      ],
+      "proteinG": [
+        8,
+        16
+      ],
+      "carbsG": [
+        70,
+        110
+      ],
+      "fatG": [
+        18,
+        38
+      ],
+      "fiberG": [
+        4,
+        9
+      ]
+    },
+    "expectedConfidence": "low",
+    "failureModes": [
+      "spread amount",
+      "crepe size"
+    ],
+    "usefulCorrections": [
+      "add spread",
+      "portion up/down"
+    ],
+    "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/09/Crepes_dsc07085.jpg/1280px-Crepes_dsc07085.jpg",
+    "imageSource": "en.wikipedia:Crepe"
+  },
+  {
+    "id": "ML-039",
+    "category": "Dessert",
+    "meal": "Glace 2 boules chantilly",
+    "photoRequirement": "Two scoops with whipped cream",
+    "expected": {
+      "calories": [
+        300,
+        560
+      ],
+      "proteinG": [
+        5,
+        10
+      ],
+      "carbsG": [
+        35,
+        70
+      ],
+      "fatG": [
+        14,
+        32
+      ],
+      "fiberG": [
+        0,
+        4
+      ]
+    },
+    "expectedConfidence": "low",
+    "failureModes": [
+      "scoop size",
+      "whipped cream"
+    ],
+    "usefulCorrections": [
+      "portion up/down"
+    ],
+    "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/2e/Ice_cream_with_whipped_cream%2C_chocolate_syrup%2C_and_a_wafer_%28cropped%29.jpg/960px-Ice_cream_with_whipped_cream%2C_chocolate_syrup%2C_and_a_wafer_%28cropped%29.jpg",
+    "imageSource": "en.wikipedia:Ice_cream"
+  },
+  {
+    "id": "ML-040",
+    "category": "Dessert",
+    "meal": "Fondant chocolat",
+    "photoRequirement": "One chocolate lava cake",
+    "expected": {
+      "calories": [
+        420,
+        700
+      ],
+      "proteinG": [
+        6,
+        12
+      ],
+      "carbsG": [
+        45,
+        75
+      ],
+      "fatG": [
+        24,
+        48
+      ],
+      "fiberG": [
+        2,
+        6
+      ]
+    },
+    "expectedConfidence": "medium",
+    "failureModes": [
+      "cake size",
+      "butter content"
+    ],
+    "usefulCorrections": [
+      "portion up/down"
+    ],
+    "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/6/6b/Chocolate_Fondant.jpg",
+    "imageSource": "en.wikipedia:Molten_chocolate_cake"
+  },
+  {
+    "id": "ML-041",
+    "category": "Packaged",
+    "meal": "Sandwich triangle poulet crudites",
+    "photoRequirement": "Packaged triangle sandwich visible",
+    "expected": {
+      "calories": [
+        350,
+        520
+      ],
+      "proteinG": [
+        16,
+        28
+      ],
+      "carbsG": [
+        35,
+        60
+      ],
+      "fatG": [
+        12,
+        28
+      ],
+      "fiberG": [
+        3,
+        7
+      ]
+    },
+    "expectedConfidence": "medium",
+    "failureModes": [
+      "label unavailable",
+      "sauce"
+    ],
+    "usefulCorrections": [
+      "add sauce",
+      "portion up/down"
+    ],
+    "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/0b/Bacon%2C_lettuce%2C_tomato%2C_and_avocado.jpg/1280px-Bacon%2C_lettuce%2C_tomato%2C_and_avocado.jpg",
+    "imageSource": "en.wikipedia:Sandwich"
+  },
+  {
+    "id": "ML-042",
+    "category": "Packaged",
+    "meal": "Salade composee supermarche",
+    "photoRequirement": "Packaged salad bowl with pasta and chicken",
+    "expected": {
+      "calories": [
+        420,
+        720
+      ],
+      "proteinG": [
+        20,
+        38
+      ],
+      "carbsG": [
+        45,
+        85
+      ],
+      "fatG": [
+        14,
+        36
+      ],
+      "fiberG": [
+        5,
+        12
+      ]
+    },
+    "expectedConfidence": "medium",
+    "failureModes": [
+      "dressing packet",
+      "label hidden"
+    ],
+    "usefulCorrections": [
+      "add sauce",
+      "portion up/down"
+    ],
+    "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e1/Pasta_salad_closeup.JPG/1280px-Pasta_salad_closeup.JPG",
+    "imageSource": "en.wikipedia:Pasta_salad"
+  },
+  {
+    "id": "ML-043",
+    "category": "Packaged",
+    "meal": "Lasagnes portion micro-ondes",
+    "photoRequirement": "Ready meal lasagna tray",
+    "expected": {
+      "calories": [
+        450,
+        750
+      ],
+      "proteinG": [
+        20,
+        38
+      ],
+      "carbsG": [
+        45,
+        85
+      ],
+      "fatG": [
+        18,
+        40
+      ],
+      "fiberG": [
+        4,
+        9
+      ]
+    },
+    "expectedConfidence": "medium",
+    "failureModes": [
+      "tray weight",
+      "recipe variation"
+    ],
+    "usefulCorrections": [
+      "portion up/down"
+    ],
+    "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/26/Lasagna_bolognese.jpg/1280px-Lasagna_bolognese.jpg",
+    "imageSource": "en.wikipedia:Lasagna"
+  },
+  {
+    "id": "ML-044",
+    "category": "Packaged",
+    "meal": "Skyr nature + banane",
+    "photoRequirement": "Skyr cup and banana",
+    "expected": {
+      "calories": [
+        190,
+        320
+      ],
+      "proteinG": [
+        15,
+        28
+      ],
+      "carbsG": [
+        25,
+        50
+      ],
+      "fatG": [
+        0,
+        6
+      ],
+      "fiberG": [
+        2,
+        5
+      ]
+    },
+    "expectedConfidence": "high",
+    "failureModes": [
+      "banana size",
+      "skyr portion"
+    ],
+    "usefulCorrections": [
+      "portion up/down"
+    ],
+    "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d1/Yogurt_fruit_bowl.jpg/960px-Yogurt_fruit_bowl.jpg",
+    "imageSource": "commons.wikimedia:Yogurt_fruit_bowl"
+  },
+  {
+    "id": "ML-045",
+    "category": "Packaged",
+    "meal": "Barre proteinee chocolat",
+    "photoRequirement": "One protein bar",
+    "expected": {
+      "calories": [
+        180,
+        280
+      ],
+      "proteinG": [
+        15,
+        25
+      ],
+      "carbsG": [
+        15,
+        30
+      ],
+      "fatG": [
+        5,
+        12
+      ],
+      "fiberG": [
+        4,
+        10
+      ]
+    },
+    "expectedConfidence": "medium",
+    "failureModes": [
+      "product label not visible"
+    ],
+    "usefulCorrections": [
+      "use label/barcode later"
+    ],
+    "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c3/Three_protein_bars%2C_two_cut_in_half.jpg/1280px-Three_protein_bars%2C_two_cut_in_half.jpg",
+    "imageSource": "en.wikipedia:Energy_bar"
+  },
+  {
+    "id": "ML-046",
+    "category": "Hard Case",
+    "meal": "Assiette buffet mixte",
+    "photoRequirement": "Plate with several small unknown items",
+    "expected": {
+      "calories": [
+        700,
+        1200
+      ],
+      "proteinG": [
+        25,
+        55
+      ],
+      "carbsG": [
+        70,
+        140
+      ],
+      "fatG": [
+        30,
+        75
+      ],
+      "fiberG": [
+        6,
+        18
+      ]
+    },
+    "expectedConfidence": "low",
+    "failureModes": [
+      "item identification",
+      "sauces",
+      "overlap"
+    ],
+    "usefulCorrections": [
+      "split dish",
+      "portion up/down"
+    ],
+    "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/90/Swedish_buffet-Sm%C3%B6rg%C3%A5sbord-01.jpg/1280px-Swedish_buffet-Sm%C3%B6rg%C3%A5sbord-01.jpg",
+    "imageSource": "en.wikipedia:Buffet"
+  },
+  {
+    "id": "ML-047",
+    "category": "Hard Case",
+    "meal": "Plat en sauce curry coco poulet riz",
+    "photoRequirement": "Curry over rice in bowl",
+    "expected": {
+      "calories": [
+        750,
+        1150
+      ],
+      "proteinG": [
+        30,
+        55
+      ],
+      "carbsG": [
+        80,
+        130
+      ],
+      "fatG": [
+        30,
+        65
+      ],
+      "fiberG": [
+        5,
+        12
+      ]
+    },
+    "expectedConfidence": "low",
+    "failureModes": [
+      "coconut milk",
+      "rice hidden"
+    ],
+    "usefulCorrections": [
+      "add sauce",
+      "portion up/down"
+    ],
+    "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/cc/%E3%81%A8%E3%82%93%E3%81%8B%E3%82%89%E4%BA%AD_%E6%AD%A6%E8%94%B5%E9%87%8E%E3%83%96%E3%83%A9%E3%83%83%E3%82%AF%E3%81%8B%E3%81%A4%E3%82%AB%E3%83%AC%E3%83%BC_-_1.jpg/1280px-%E3%81%A8%E3%82%93%E3%81%8B%E3%82%89%E4%BA%AD_%E6%AD%A6%E8%94%B5%E9%87%8E%E3%83%96%E3%83%A9%E3%83%83%E3%82%AF%E3%81%8B%E3%81%A4%E3%82%AB%E3%83%AC%E3%83%BC_-_1.jpg",
+    "imageSource": "en.wikipedia:Katsu_curry"
+  },
+  {
+    "id": "ML-048",
+    "category": "Hard Case",
+    "meal": "Raclette assiette",
+    "photoRequirement": "Potatoes, melted cheese, charcuterie",
+    "expected": {
+      "calories": [
+        900,
+        1400
+      ],
+      "proteinG": [
+        35,
+        65
+      ],
+      "carbsG": [
+        50,
+        90
+      ],
+      "fatG": [
+        60,
+        100
+      ],
+      "fiberG": [
+        5,
+        10
+      ]
+    },
+    "expectedConfidence": "low",
+    "failureModes": [
+      "cheese amount",
+      "charcuterie fat"
+    ],
+    "usefulCorrections": [
+      "portion up/down"
+    ],
+    "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/2f/Raclette_20040817_140816.jpg/1280px-Raclette_20040817_140816.jpg",
+    "imageSource": "en.wikipedia:Raclette"
+  },
+  {
+    "id": "ML-049",
+    "category": "Hard Case",
+    "meal": "Fromage, pain, vin aperitif dinatoire",
+    "photoRequirement": "Snack plate with cheese, bread, charcuterie",
+    "expected": {
+      "calories": [
+        650,
+        1150
+      ],
+      "proteinG": [
+        25,
+        55
+      ],
+      "carbsG": [
+        45,
+        100
+      ],
+      "fatG": [
+        35,
+        85
+      ],
+      "fiberG": [
+        3,
+        10
+      ]
+    },
+    "expectedConfidence": "low",
+    "failureModes": [
+      "partial meal",
+      "item count",
+      "alcohol excluded"
+    ],
+    "usefulCorrections": [
+      "split dish",
+      "portion up/down"
+    ],
+    "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/0f/Liat_Portal_for_Foodie_Disorder_-_Aperitif_plate_with_cheese_vegetables_and_bread.jpg/960px-Liat_Portal_for_Foodie_Disorder_-_Aperitif_plate_with_cheese_vegetables_and_bread.jpg",
+    "imageSource": "commons.wikimedia:Aperitif_plate_with_cheese_vegetables_and_bread"
+  },
+  {
+    "id": "ML-050",
+    "category": "Hard Case",
+    "meal": "Bowl invisible base riz sous toppings",
+    "photoRequirement": "Bowl with toppings hiding rice base",
+    "expected": {
+      "calories": [
+        650,
+        1050
+      ],
+      "proteinG": [
+        25,
+        50
+      ],
+      "carbsG": [
+        80,
+        140
+      ],
+      "fatG": [
+        20,
+        55
+      ],
+      "fiberG": [
+        8,
+        18
+      ]
+    },
+    "expectedConfidence": "low",
+    "failureModes": [
+      "hidden rice quantity",
+      "sauce"
+    ],
+    "usefulCorrections": [
+      "ask base amount",
+      "portion up/down"
+    ],
+    "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/0/04/Gyudon_by_jetalone_in_Higashi-Ginza%2C_Tokyo.jpg",
+    "imageSource": "en.wikipedia:Donburi"
+  }
+]

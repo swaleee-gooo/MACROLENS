@@ -57,7 +57,7 @@ Real-device QA status:
 - Smoke test result: `Spaghetti alla Carbonara (2 servings)`, source `estimated`, 770 kcal, medium confidence, 4 items.
 - Mobile dependencies are aligned to Expo SDK 54 so the current Expo Go app can open the project.
 - Supabase React Native support now imports `react-native-url-polyfill/auto`, remote image upload uses `ArrayBuffer`, and demo fallback exposes the remote error message for mobile debugging.
-- Nutrition accuracy iteration implemented and deployed on Supabase Edge Function `analyze-meal` version 3: OpenAI now returns structured observations, the Edge Function derives `userId` from the Supabase JWT, non-food photos return typed `non_food_photo`, and backend nutrition profiles calibrate mixed-meal totals before returning results to mobile.
+- Nutrition accuracy iteration implemented and deployed on Supabase Edge Function `analyze-meal`, currently version 15: OpenAI now returns structured observations, the Edge Function derives `userId` from the Supabase JWT, non-food photos return typed `non_food_photo`, and backend nutrition profiles calibrate mixed-meal totals before returning results to mobile.
 - Repeat-scan credibility guard is deployed on Supabase Edge Function `analyze-meal`: OpenAI analysis now uses low-temperature structured output, and backend calibration stabilizes ambiguous protein portions for near-identical bowl/plate scans.
 - Trust And App Store Release V1 is now started: repeatability scoring exists for macro snapshots, and `docs/benchmarks/macrolens-repeatability-benchmark-v1.md` defines the same-photo benchmark protocol and release gates.
 - Live repeatability automation now exists: `npm run repeatability:live` invokes Supabase `analyze-meal` five times against the same image URL, scores macro drift, and exits non-zero when the credibility gate fails.
@@ -68,16 +68,20 @@ Real-device QA status:
 - Commercial Launch V1 design is drafted: it defines the minimum commercial scope for scan trust, real App Store monetization, conversion onboarding, barcode/OCR, progress tracking, compliance, TestFlight, and acquisition.
 - Commercial Launch V1 implementation plan is drafted: it decomposes launch into analytics, benchmark expansion, entitlements, onboarding/paywall, scan trust UI, barcode/OCR, progress tracking, compliance, TestFlight, and final release gates.
 - Commercial analytics foundation is implemented and committed: privacy-safe event names now cover app open, scan start/completion/failure, non-food detection, and meal save without sending image URIs or raw notes.
-- Commercial repeatability benchmark now supports case-file runs through `npm run repeatability:live:cases`; public launch still requires adding 8 real test images and recording 10 passing same-photo cases.
+- Commercial repeatability benchmark now supports a 10-case release run through `npm run repeatability:live:cases`; the latest live run executed all 10 cases with 5 repeated scans each and all 10 passed on deployed `analyze-meal` version 15.
+- Commercial nutrition benchmark now supports a 50-case release run through `npm run nutrition:live:cases`; the latest live run executed all 50 cases on deployed `analyze-meal` version 15 with 43 passing, 7 failing, average score 84.3, hard-case average 93.0, and `accuracyClaimAllowed=true`.
+- Nutrition calibration now has deterministic templates for common high-variance foods and hidden-calorie patterns: sauces/oil/cheese, salads, mixed plates, bakery/sandwich cases, poke bowls, curry rice, bolognese, lasagna-style trays, restaurant plates, and confidence downgrades for ambiguous meals.
 - Production entitlement architecture is implemented locally: RevenueCat dependency, EAS development build config, iOS bundle id, store/local entitlement provider boundary, and entitlement persistence metadata are in place. Real purchase validation still requires App Store Connect products and a TestFlight/development build.
 - Conversion onboarding and paywall UX are now wired locally: onboarding captures goal, friction, measures, activity, and a personalized proof screen; the paywall CTA calls the entitlement provider while the Expo Go unlock remains hidden outside local dev mode.
 - Scan Result V2 trust UI is implemented locally: result screens now show confidence wording, calorie range, protein summary, verification prompts, and correction analytics for quick corrections.
-- Commercial Task 6 and Task 7 are implemented locally: barcode scanning uses Expo Camera and Open Food Facts, nutrition label OCR is wired through a Supabase Edge Function contract, Progress owns metrics/Goal Progress/weekly report, and the analysis screen now uses a staged animated scan experience. The OCR Edge Function still needs deployment before device QA.
+- Commercial Task 6 and Task 7 are implemented: barcode scanning uses Expo Camera and Open Food Facts, nutrition label OCR is wired through the deployed Supabase `scan-nutrition-label` Edge Function, Progress owns metrics/Goal Progress/weekly report, and the analysis screen now uses a staged animated scan experience.
 - Mobile now shares one Supabase client between remote meal analysis and label OCR to avoid duplicate browser auth clients during web/dev smoke tests.
 - Pre-Goal-Progress safety backup is pushed to GitHub repository `swaleee-gooo/MACROLENS`: current app state exists on `main`, branch `codex/macrolens-mvp`, and tag `backup/pre-goal-progress-20260525-155618`.
 - Home Goal Progress is implemented locally: the home screen now has a weekly streak strip above `Apercu Quotidien`, a functional SVG goal progress chart driven by saved meals/profile, and Open Food Facts product lookup now normalizes UPC/EAN barcodes with world/fr host fallback.
 - Product scan UX is corrected locally: barcode/OCR products now open a product portion screen first, not the generic meal result screen, because packaged products like mayonnaise are ingredients/products rather than full meals. Barcode image placeholders no longer use invalid `barcode://` URIs in Expo image components.
 - `lookup-packaged-food` is deployed on Supabase project `wyrfncoiubvdnrvdpads` with JWT verification enabled; the mobile lookup service signs in anonymously before invoking it and falls back to direct Open Food Facts if auth/function lookup fails.
+- `scan-nutrition-label` is deployed on Supabase project `wyrfncoiubvdnrvdpads` version 1 with JWT verification enabled; live smoke test against a public FDA label image returned OCR macros per 100 g.
+- `delete-account` is deployed on Supabase project `wyrfncoiubvdnrvdpads` version 2 with JWT verification enabled; live smoke test deleted a disposable anonymous test account.
 
 Verified commands:
 
@@ -96,6 +100,10 @@ Verified commands:
 - Expo web smoke test for Commercial Task 6/7 on `http://localhost:8086/`: app served HTTP 200, onboarding rendered at mobile viewport, and console showed no runtime errors.
 - Expo web smoke test for Goal Progress on `http://localhost:8086/`: seeded local premium state rendered Home with `Serie 3 jours`, `Goal Progress`, range chips, SVG chart, and no runtime console errors.
 - Expo web smoke test after product-flow fix on `http://localhost:8086/`: seeded Home still renders `Serie 3 jours`, `Apercu Quotidien`, `Goal Progress`, and `Produit` without runtime console errors.
+- `npm run repeatability:live:cases`: passed 10/10 live cases with 5 same-image runs per case on deployed `analyze-meal` version 15.
+- `npm run nutrition:live:cases`: executed 50/50 live cases and passed the release gate with average score 84.3, hard-case average 93.0, and `accuracyClaimAllowed=true`.
+- Live Supabase `scan-nutrition-label` smoke test: anonymous auth + Edge Function/OpenAI OCR returned `Produit etiquete`, 418 kcal/100 g, 5.5 g protein/100 g, 67.3 g carbs/100 g, 14.5 g fat/100 g, high confidence.
+- Live Supabase `delete-account` smoke test: anonymous auth + Edge Function deleted a disposable anonymous user and returned `{ deleted: true }`.
 
 Manual smoke test completed:
 
@@ -108,10 +116,11 @@ Manual smoke test completed:
 
 ## Known Concerns
 
-- `npm audit` reports 10 moderate vulnerabilities inherited through Expo dependencies. The proposed fix downgrades Expo to an incompatible major version, so do not apply `npm audit fix --force`.
+- `npm audit` reports 15 moderate vulnerabilities inherited through Expo dependencies. Do not apply `npm audit fix --force` without checking SDK compatibility.
 - Expo Web logs a React Native DevTools fallback warning because the machine lacked disk space while unpacking DevTools. The app still served with HTTP 200.
-- AI analysis is live in local remote mode and now calibrated, but do not claim production nutrition accuracy until the benchmark gate is run across the 50-case nutrition benchmark.
-- Repeatability is now automated for one live image URL, but the release gate still needs to be expanded across a broader same-photo set before claiming "same photo, same macros" as a product guarantee.
+- AI analysis is live in local remote mode and calibrated. The latest 50-case benchmark passes the aggregate gate, but public wording is limited to benchmark-tested consumer estimates and must avoid medical-grade precision, exact accuracy, diagnosis, treatment, or guaranteed weight-loss claims.
+- Repeatability is automated across 10 live image URLs and the latest release run passed all 10 cases. Keep the claim scoped to same-photo repeatability.
+- Remaining nutrition weak spots after the passing gate: tartines beurre confiture, yaourt/granola, poulet riz haricots verts, saumon quinoa brocoli, gratin dauphinois jambon, salade chevre chaud, and crepe Nutella banane.
 - Supabase is code-wired for remote analysis; migrations and Edge Function deployment have been applied to the live project.
 - Remote analysis mode must use Supabase anonymous auth for the first live test and must not expose `OPENAI_API_KEY` or `SUPABASE_SERVICE_ROLE_KEY` to Expo.
 - A key pasted into chat earlier should remain treated as exposed and revoked; the live project uses the new rotated secret added in Supabase.
@@ -200,7 +209,7 @@ Current execution note:
 - Mobile env selection and anonymous Supabase upload/invoke wiring are implemented.
 - Keep `EXPO_PUBLIC_ANALYSIS_MODE=mock` as the default.
 - Keep `remote` enabled locally while testing the live Supabase pipeline.
-- Next execution step: test from Expo Go with a real meal photo and record the first benchmark row before relying on nutrition accuracy claims.
+- Current benchmark note: live Supabase analysis is now gated by the 50-case nutrition benchmark and 10-case same-photo repeatability benchmark. Product copy may describe results only as benchmark-tested estimates, never as exact or medical-grade accuracy.
 
 ### Iteration 3: OpenAI Vision Structured Analysis
 

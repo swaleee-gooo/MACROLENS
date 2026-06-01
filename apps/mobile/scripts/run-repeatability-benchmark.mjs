@@ -1,6 +1,7 @@
 import { createClient } from '@supabase/supabase-js';
 import { existsSync, readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
+import { validateBenchmarkCasesForRelease } from './benchmark-case-validation.mjs';
 
 const DEFAULT_IMAGE_URL = 'https://upload.wikimedia.org/wikipedia/commons/1/13/Salmon_Poke.jpg';
 const REPEATABILITY_THRESHOLDS = {
@@ -30,12 +31,14 @@ function parseArgs(argv) {
   const caseFileArg = argv.find((arg) => arg.startsWith('--case-file='));
   const runCountArg = argv.find((arg) => arg.startsWith('--runs='));
   const delayArg = argv.find((arg) => arg.startsWith('--delay-ms='));
+  const minCasesArg = argv.find((arg) => arg.startsWith('--min-cases='));
 
   return {
     imageUrl,
     caseFile: caseFileArg ? caseFileArg.replace('--case-file=', '') : null,
     runCount: runCountArg ? Number(runCountArg.replace('--runs=', '')) : 5,
     delayMs: delayArg ? Number(delayArg.replace('--delay-ms=', '')) : 750,
+    minCases: minCasesArg ? Number(minCasesArg.replace('--min-cases=', '')) : null,
   };
 }
 
@@ -197,9 +200,12 @@ async function runRepeatabilityBenchmark(functions, { imageUrl, runCount, delayM
 }
 
 async function main() {
-  const { imageUrl, caseFile, runCount, delayMs } = parseArgs(process.argv);
+  const { imageUrl, caseFile, runCount, delayMs, minCases } = parseArgs(process.argv);
   assertPositiveInteger(runCount, 'runs');
   assertPositiveInteger(delayMs, 'delay_ms');
+  if (minCases !== null) {
+    assertPositiveInteger(minCases, 'min_cases');
+  }
 
   const env = loadEnvFile(resolve('.env.local'));
   const supabaseUrl = env.EXPO_PUBLIC_SUPABASE_URL;
@@ -230,6 +236,16 @@ async function main() {
       marketingEligible: false,
     },
   ];
+  const validation = validateBenchmarkCasesForRelease({
+    cases: benchmarks,
+    minCases: minCases ?? 1,
+    requireImageUrls: true,
+    gateName: 'repeatability',
+  });
+  if (!validation.passed) {
+    throw new Error(validation.failures.join(','));
+  }
+
   const summaries = [];
 
   for (const benchmarkCase of benchmarks) {

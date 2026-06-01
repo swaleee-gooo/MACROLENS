@@ -1,0 +1,2020 @@
+{
+  "generatedAt": "2026-06-01T08:53:41.214Z",
+  "caseFile": "scripts/nutrition-benchmark-cases.json",
+  "releaseGate": true,
+  "summary": {
+    "executedCases": 50,
+    "averageScore": 84.3,
+    "medianCalorieError": 0,
+    "percentInsideCalorieRange": 78,
+    "percentInsideProteinRange": 84,
+    "lowConfidenceRecall": 100,
+    "top10FailureModes": [
+      {
+        "failureMode": "cheese",
+        "count": 1
+      },
+      {
+        "failureMode": "cheese weight",
+        "count": 1
+      },
+      {
+        "failureMode": "cooking oil",
+        "count": 1
+      },
+      {
+        "failureMode": "cream",
+        "count": 1
+      },
+      {
+        "failureMode": "crepe size",
+        "count": 1
+      },
+      {
+        "failureMode": "dressing",
+        "count": 1
+      },
+      {
+        "failureMode": "granola density",
+        "count": 1
+      },
+      {
+        "failureMode": "hidden butter",
+        "count": 1
+      },
+      {
+        "failureMode": "jam thickness",
+        "count": 1
+      },
+      {
+        "failureMode": "nuts",
+        "count": 1
+      }
+    ],
+    "correctionSuggestionPrecision": 98,
+    "categoryAverages": {
+      "Breakfast": 67.4,
+      "Bakery": 82.2,
+      "Home": 80.4,
+      "Restaurant": 92.6,
+      "Salad": 83.2,
+      "Dessert": 81.8,
+      "Packaged": 89.4,
+      "Hard Case": 93
+    },
+    "releaseFailures": [],
+    "accuracyClaimAllowed": true
+  },
+  "results": [
+    {
+      "id": "ML-001",
+      "category": "Breakfast",
+      "meal": "Croissant beurre + cafe noir",
+      "expectedConfidence": "medium",
+      "outputConfidence": "low",
+      "source": "estimated",
+      "totalScore": 93,
+      "passed": true,
+      "points": {
+        "calories": 30,
+        "protein": 20,
+        "carbs": 10,
+        "fat": 10,
+        "confidence": 8,
+        "corrections": 10,
+        "source": 5
+      },
+      "failedDimensions": [],
+      "failureModes": [
+        "bakery size",
+        "butter content"
+      ],
+      "usefulCorrections": [
+        "portion up/down"
+      ],
+      "calorieError": 0,
+      "output": {
+        "caloriesEstimate": 300,
+        "proteinG": 6,
+        "carbsG": 30,
+        "fatG": 17,
+        "fiberG": 2,
+        "confidence": "low",
+        "source": "estimated"
+      }
+    },
+    {
+      "id": "ML-002",
+      "category": "Breakfast",
+      "meal": "Pain au chocolat",
+      "expectedConfidence": "medium",
+      "outputConfidence": "low",
+      "source": "estimated",
+      "totalScore": 73,
+      "passed": true,
+      "points": {
+        "calories": 30,
+        "protein": 10,
+        "carbs": 0,
+        "fat": 10,
+        "confidence": 8,
+        "corrections": 10,
+        "source": 5
+      },
+      "failedDimensions": [
+        "carbs"
+      ],
+      "failureModes": [
+        "pastry size",
+        "chocolate quantity"
+      ],
+      "usefulCorrections": [
+        "portion up/down"
+      ],
+      "calorieError": 0,
+      "output": {
+        "caloriesEstimate": 300,
+        "proteinG": 5,
+        "carbsG": 30,
+        "fatG": 18,
+        "fiberG": 2,
+        "confidence": "low",
+        "source": "estimated"
+      }
+    },
+    {
+      "id": "ML-003",
+      "category": "Breakfast",
+      "meal": "Tartines beurre confiture",
+      "expectedConfidence": "low",
+      "outputConfidence": "low",
+      "source": "estimated",
+      "totalScore": 65,
+      "passed": false,
+      "points": {
+        "calories": 15,
+        "protein": 10,
+        "carbs": 0,
+        "fat": 10,
+        "confidence": 15,
+        "corrections": 10,
+        "source": 5
+      },
+      "failedDimensions": [
+        "carbs"
+      ],
+      "failureModes": [
+        "hidden butter",
+        "jam thickness"
+      ],
+      "usefulCorrections": [
+        "add butter",
+        "portion up/down"
+      ],
+      "calorieError": 30,
+      "output": {
+        "caloriesEstimate": 300,
+        "proteinG": 6,
+        "carbsG": 30,
+        "fatG": 18,
+        "fiberG": 2,
+        "confidence": "low",
+        "source": "estimated"
+      }
+    },
+    {
+      "id": "ML-004",
+      "category": "Breakfast",
+      "meal": "Yaourt grec, granola, fruits rouges",
+      "expectedConfidence": "medium",
+      "outputConfidence": "low",
+      "source": "estimated",
+      "totalScore": 33,
+      "passed": false,
+      "points": {
+        "calories": 0,
+        "protein": 0,
+        "carbs": 10,
+        "fat": 0,
+        "confidence": 8,
+        "corrections": 10,
+        "source": 5
+      },
+      "failedDimensions": [
+        "calories",
+        "protein",
+        "fat"
+      ],
+      "failureModes": [
+        "granola density",
+        "yogurt fat level"
+      ],
+      "usefulCorrections": [
+        "portion up/down"
+      ],
+      "calorieError": 61,
+      "output": {
+        "caloriesEstimate": 259,
+        "proteinG": 10.3,
+        "carbsG": 46.2,
+        "fatG": 4,
+        "fiberG": 7.5,
+        "confidence": "low",
+        "source": "estimated"
+      }
+    },
+    {
+      "id": "ML-005",
+      "category": "Breakfast",
+      "meal": "Omelette 3 oeufs fromage",
+      "expectedConfidence": "medium",
+      "outputConfidence": "low",
+      "source": "estimated",
+      "totalScore": 73,
+      "passed": true,
+      "points": {
+        "calories": 30,
+        "protein": 20,
+        "carbs": 0,
+        "fat": 0,
+        "confidence": 8,
+        "corrections": 10,
+        "source": 5
+      },
+      "failedDimensions": [
+        "carbs",
+        "fat"
+      ],
+      "failureModes": [
+        "added oil",
+        "cheese amount"
+      ],
+      "usefulCorrections": [
+        "add oil",
+        "add cheese",
+        "portion up/down"
+      ],
+      "calorieError": 0,
+      "output": {
+        "caloriesEstimate": 559,
+        "proteinG": 33.2,
+        "carbsG": 51.8,
+        "fatG": 24.2,
+        "fiberG": 5.7,
+        "confidence": "low",
+        "source": "estimated"
+      }
+    },
+    {
+      "id": "ML-006",
+      "category": "Bakery",
+      "meal": "Demi-baguette jambon beurre",
+      "expectedConfidence": "low",
+      "outputConfidence": "low",
+      "source": "estimated",
+      "totalScore": 80,
+      "passed": true,
+      "points": {
+        "calories": 30,
+        "protein": 0,
+        "carbs": 10,
+        "fat": 10,
+        "confidence": 15,
+        "corrections": 10,
+        "source": 5
+      },
+      "failedDimensions": [
+        "protein"
+      ],
+      "failureModes": [
+        "hidden butter",
+        "bread size"
+      ],
+      "usefulCorrections": [
+        "add butter",
+        "portion up/down"
+      ],
+      "calorieError": 0,
+      "output": {
+        "caloriesEstimate": 560,
+        "proteinG": 11,
+        "carbsG": 75,
+        "fatG": 26,
+        "fiberG": 4,
+        "confidence": "low",
+        "source": "estimated"
+      }
+    },
+    {
+      "id": "ML-007",
+      "category": "Bakery",
+      "meal": "Quiche lorraine slice",
+      "expectedConfidence": "low",
+      "outputConfidence": "low",
+      "source": "estimated",
+      "totalScore": 90,
+      "passed": true,
+      "points": {
+        "calories": 30,
+        "protein": 20,
+        "carbs": 0,
+        "fat": 10,
+        "confidence": 15,
+        "corrections": 10,
+        "source": 5
+      },
+      "failedDimensions": [
+        "carbs"
+      ],
+      "failureModes": [
+        "slice weight",
+        "cream bacon content"
+      ],
+      "usefulCorrections": [
+        "portion up/down"
+      ],
+      "calorieError": 0,
+      "output": {
+        "caloriesEstimate": 611,
+        "proteinG": 23.9,
+        "carbsG": 46.9,
+        "fatG": 37.4,
+        "fiberG": 4.5,
+        "confidence": "low",
+        "source": "estimated"
+      }
+    },
+    {
+      "id": "ML-008",
+      "category": "Bakery",
+      "meal": "Baguette tradition 100g + camembert 40g",
+      "expectedConfidence": "medium",
+      "outputConfidence": "low",
+      "source": "estimated",
+      "totalScore": 73,
+      "passed": true,
+      "points": {
+        "calories": 30,
+        "protein": 20,
+        "carbs": 0,
+        "fat": 0,
+        "confidence": 8,
+        "corrections": 10,
+        "source": 5
+      },
+      "failedDimensions": [
+        "carbs",
+        "fat"
+      ],
+      "failureModes": [
+        "cheese weight",
+        "bread weight"
+      ],
+      "usefulCorrections": [
+        "portion up/down"
+      ],
+      "calorieError": 0,
+      "output": {
+        "caloriesEstimate": 380,
+        "proteinG": 24,
+        "carbsG": 2,
+        "fatG": 31,
+        "fiberG": 0,
+        "confidence": "low",
+        "source": "estimated"
+      }
+    },
+    {
+      "id": "ML-009",
+      "category": "Bakery",
+      "meal": "Chausson aux pommes",
+      "expectedConfidence": "medium",
+      "outputConfidence": "low",
+      "source": "estimated",
+      "totalScore": 93,
+      "passed": true,
+      "points": {
+        "calories": 30,
+        "protein": 20,
+        "carbs": 10,
+        "fat": 10,
+        "confidence": 8,
+        "corrections": 10,
+        "source": 5
+      },
+      "failedDimensions": [],
+      "failureModes": [
+        "filling and pastry size"
+      ],
+      "usefulCorrections": [
+        "portion up/down"
+      ],
+      "calorieError": 0,
+      "output": {
+        "caloriesEstimate": 340,
+        "proteinG": 5,
+        "carbsG": 40,
+        "fatG": 18,
+        "fiberG": 1,
+        "confidence": "low",
+        "source": "estimated"
+      }
+    },
+    {
+      "id": "ML-010",
+      "category": "Bakery",
+      "meal": "Brioche tranchee + Nutella",
+      "expectedConfidence": "low",
+      "outputConfidence": "low",
+      "source": "estimated",
+      "totalScore": 75,
+      "passed": true,
+      "points": {
+        "calories": 15,
+        "protein": 20,
+        "carbs": 10,
+        "fat": 0,
+        "confidence": 15,
+        "corrections": 10,
+        "source": 5
+      },
+      "failedDimensions": [
+        "fat"
+      ],
+      "failureModes": [
+        "spread thickness"
+      ],
+      "usefulCorrections": [
+        "add spread",
+        "portion up/down"
+      ],
+      "calorieError": 13,
+      "output": {
+        "caloriesEstimate": 407,
+        "proteinG": 12,
+        "carbsG": 73,
+        "fatG": 7,
+        "fiberG": 4.5,
+        "confidence": "low",
+        "source": "estimated"
+      }
+    },
+    {
+      "id": "ML-011",
+      "category": "Home",
+      "meal": "Poulet grille, riz blanc, haricots verts",
+      "expectedConfidence": "medium",
+      "outputConfidence": "low",
+      "source": "estimated",
+      "totalScore": 43,
+      "passed": false,
+      "points": {
+        "calories": 0,
+        "protein": 20,
+        "carbs": 0,
+        "fat": 0,
+        "confidence": 8,
+        "corrections": 10,
+        "source": 5
+      },
+      "failedDimensions": [
+        "calories",
+        "carbs",
+        "fat"
+      ],
+      "failureModes": [
+        "rice portion",
+        "cooking oil"
+      ],
+      "usefulCorrections": [
+        "add oil",
+        "portion up/down"
+      ],
+      "calorieError": 103,
+      "output": {
+        "caloriesEstimate": 377,
+        "proteinG": 38.2,
+        "carbsG": 42.3,
+        "fatG": 4.5,
+        "fiberG": 0.6,
+        "confidence": "low",
+        "source": "estimated"
+      }
+    },
+    {
+      "id": "ML-012",
+      "category": "Home",
+      "meal": "Steak hache 5%, pommes de terre vapeur, salade",
+      "expectedConfidence": "medium",
+      "outputConfidence": "low",
+      "source": "estimated",
+      "totalScore": 73,
+      "passed": true,
+      "points": {
+        "calories": 30,
+        "protein": 20,
+        "carbs": 0,
+        "fat": 0,
+        "confidence": 8,
+        "corrections": 10,
+        "source": 5
+      },
+      "failedDimensions": [
+        "carbs",
+        "fat"
+      ],
+      "failureModes": [
+        "meat fat",
+        "salad dressing"
+      ],
+      "usefulCorrections": [
+        "add sauce",
+        "portion up/down"
+      ],
+      "calorieError": 0,
+      "output": {
+        "caloriesEstimate": 699,
+        "proteinG": 40,
+        "carbsG": 24,
+        "fatG": 48.2,
+        "fiberG": 5.2,
+        "confidence": "low",
+        "source": "estimated"
+      }
+    },
+    {
+      "id": "ML-013",
+      "category": "Home",
+      "meal": "Saumon, quinoa, brocoli",
+      "expectedConfidence": "medium",
+      "outputConfidence": "low",
+      "source": "estimated",
+      "totalScore": 33,
+      "passed": false,
+      "points": {
+        "calories": 0,
+        "protein": 10,
+        "carbs": 0,
+        "fat": 0,
+        "confidence": 8,
+        "corrections": 10,
+        "source": 5
+      },
+      "failedDimensions": [
+        "calories",
+        "carbs",
+        "fat"
+      ],
+      "failureModes": [
+        "salmon size",
+        "oil"
+      ],
+      "usefulCorrections": [
+        "add oil",
+        "portion up/down"
+      ],
+      "calorieError": 178,
+      "output": {
+        "caloriesEstimate": 442,
+        "proteinG": 62.9,
+        "carbsG": 0,
+        "fatG": 19.1,
+        "fiberG": 0,
+        "confidence": "low",
+        "source": "estimated"
+      }
+    },
+    {
+      "id": "ML-014",
+      "category": "Home",
+      "meal": "Ratatouille + riz + oeuf au plat",
+      "expectedConfidence": "low",
+      "outputConfidence": "low",
+      "source": "estimated",
+      "totalScore": 100,
+      "passed": true,
+      "points": {
+        "calories": 30,
+        "protein": 20,
+        "carbs": 10,
+        "fat": 10,
+        "confidence": 15,
+        "corrections": 10,
+        "source": 5
+      },
+      "failedDimensions": [],
+      "failureModes": [
+        "oil in ratatouille",
+        "egg oil"
+      ],
+      "usefulCorrections": [
+        "add oil",
+        "portion up/down"
+      ],
+      "calorieError": 0,
+      "output": {
+        "caloriesEstimate": 570,
+        "proteinG": 21,
+        "carbsG": 75,
+        "fatG": 22,
+        "fiberG": 11,
+        "confidence": "low",
+        "source": "estimated"
+      }
+    },
+    {
+      "id": "ML-015",
+      "category": "Home",
+      "meal": "Pates bolognaise maison",
+      "expectedConfidence": "low",
+      "outputConfidence": "low",
+      "source": "estimated",
+      "totalScore": 100,
+      "passed": true,
+      "points": {
+        "calories": 30,
+        "protein": 20,
+        "carbs": 10,
+        "fat": 10,
+        "confidence": 15,
+        "corrections": 10,
+        "source": 5
+      },
+      "failedDimensions": [],
+      "failureModes": [
+        "pasta weight",
+        "sauce fat",
+        "cheese"
+      ],
+      "usefulCorrections": [
+        "add cheese",
+        "portion up/down"
+      ],
+      "calorieError": 0,
+      "output": {
+        "caloriesEstimate": 760,
+        "proteinG": 38,
+        "carbsG": 95,
+        "fatG": 28,
+        "fiberG": 8,
+        "confidence": "low",
+        "source": "estimated"
+      }
+    },
+    {
+      "id": "ML-016",
+      "category": "Home",
+      "meal": "Couscous poulet legumes",
+      "expectedConfidence": "low",
+      "outputConfidence": "low",
+      "source": "estimated",
+      "totalScore": 100,
+      "passed": true,
+      "points": {
+        "calories": 30,
+        "protein": 20,
+        "carbs": 10,
+        "fat": 10,
+        "confidence": 15,
+        "corrections": 10,
+        "source": 5
+      },
+      "failedDimensions": [],
+      "failureModes": [
+        "semolina quantity",
+        "sauce oil"
+      ],
+      "usefulCorrections": [
+        "portion up/down",
+        "add oil"
+      ],
+      "calorieError": 0,
+      "output": {
+        "caloriesEstimate": 860,
+        "proteinG": 45,
+        "carbsG": 115,
+        "fatG": 28,
+        "fiberG": 13,
+        "confidence": "low",
+        "source": "estimated"
+      }
+    },
+    {
+      "id": "ML-017",
+      "category": "Home",
+      "meal": "Chili con carne + riz",
+      "expectedConfidence": "low",
+      "outputConfidence": "low",
+      "source": "estimated",
+      "totalScore": 90,
+      "passed": true,
+      "points": {
+        "calories": 30,
+        "protein": 20,
+        "carbs": 0,
+        "fat": 10,
+        "confidence": 15,
+        "corrections": 10,
+        "source": 5
+      },
+      "failedDimensions": [
+        "carbs"
+      ],
+      "failureModes": [
+        "rice hidden under chili",
+        "oil"
+      ],
+      "usefulCorrections": [
+        "portion up/down"
+      ],
+      "calorieError": 0,
+      "output": {
+        "caloriesEstimate": 820,
+        "proteinG": 40,
+        "carbsG": 75,
+        "fatG": 38,
+        "fiberG": 18,
+        "confidence": "low",
+        "source": "estimated"
+      }
+    },
+    {
+      "id": "ML-018",
+      "category": "Home",
+      "meal": "Lentilles saucisse",
+      "expectedConfidence": "low",
+      "outputConfidence": "low",
+      "source": "estimated",
+      "totalScore": 100,
+      "passed": true,
+      "points": {
+        "calories": 30,
+        "protein": 20,
+        "carbs": 10,
+        "fat": 10,
+        "confidence": 15,
+        "corrections": 10,
+        "source": 5
+      },
+      "failedDimensions": [],
+      "failureModes": [
+        "sausage weight",
+        "oil"
+      ],
+      "usefulCorrections": [
+        "portion up/down"
+      ],
+      "calorieError": 0,
+      "output": {
+        "caloriesEstimate": 820,
+        "proteinG": 40,
+        "carbsG": 75,
+        "fatG": 38,
+        "fiberG": 18,
+        "confidence": "low",
+        "source": "estimated"
+      }
+    },
+    {
+      "id": "ML-019",
+      "category": "Home",
+      "meal": "Gratin dauphinois + jambon",
+      "expectedConfidence": "low",
+      "outputConfidence": "low",
+      "source": "estimated",
+      "totalScore": 65,
+      "passed": false,
+      "points": {
+        "calories": 15,
+        "protein": 0,
+        "carbs": 10,
+        "fat": 10,
+        "confidence": 15,
+        "corrections": 10,
+        "source": 5
+      },
+      "failedDimensions": [
+        "protein"
+      ],
+      "failureModes": [
+        "cream",
+        "cheese",
+        "portion depth"
+      ],
+      "usefulCorrections": [
+        "portion up/down"
+      ],
+      "calorieError": 15,
+      "output": {
+        "caloriesEstimate": 605,
+        "proteinG": 19,
+        "carbsG": 54,
+        "fatG": 35.8,
+        "fiberG": 4,
+        "confidence": "low",
+        "source": "estimated"
+      }
+    },
+    {
+      "id": "ML-020",
+      "category": "Home",
+      "meal": "Soupe legumes + pain + fromage",
+      "expectedConfidence": "low",
+      "outputConfidence": "low",
+      "source": "estimated",
+      "totalScore": 100,
+      "passed": true,
+      "points": {
+        "calories": 30,
+        "protein": 20,
+        "carbs": 10,
+        "fat": 10,
+        "confidence": 15,
+        "corrections": 10,
+        "source": 5
+      },
+      "failedDimensions": [],
+      "failureModes": [
+        "soup density",
+        "cheese amount"
+      ],
+      "usefulCorrections": [
+        "portion up/down"
+      ],
+      "calorieError": 0,
+      "output": {
+        "caloriesEstimate": 510,
+        "proteinG": 22,
+        "carbsG": 60,
+        "fatG": 22,
+        "fiberG": 10,
+        "confidence": "low",
+        "source": "estimated"
+      }
+    },
+    {
+      "id": "ML-021",
+      "category": "Restaurant",
+      "meal": "Burger boeuf frites",
+      "expectedConfidence": "low",
+      "outputConfidence": "low",
+      "source": "estimated",
+      "totalScore": 90,
+      "passed": true,
+      "points": {
+        "calories": 30,
+        "protein": 20,
+        "carbs": 0,
+        "fat": 10,
+        "confidence": 15,
+        "corrections": 10,
+        "source": 5
+      },
+      "failedDimensions": [
+        "carbs"
+      ],
+      "failureModes": [
+        "sauce",
+        "fries oil",
+        "patty size"
+      ],
+      "usefulCorrections": [
+        "add sauce",
+        "portion up/down"
+      ],
+      "calorieError": 0,
+      "output": {
+        "caloriesEstimate": 1094,
+        "proteinG": 48.4,
+        "carbsG": 93.6,
+        "fatG": 56.9,
+        "fiberG": 6.6,
+        "confidence": "low",
+        "source": "estimated"
+      }
+    },
+    {
+      "id": "ML-022",
+      "category": "Restaurant",
+      "meal": "Pizza reine 3 parts",
+      "expectedConfidence": "medium",
+      "outputConfidence": "low",
+      "source": "estimated",
+      "totalScore": 93,
+      "passed": true,
+      "points": {
+        "calories": 30,
+        "protein": 20,
+        "carbs": 10,
+        "fat": 10,
+        "confidence": 8,
+        "corrections": 10,
+        "source": 5
+      },
+      "failedDimensions": [],
+      "failureModes": [
+        "slice size",
+        "cheese amount"
+      ],
+      "usefulCorrections": [
+        "portion up/down"
+      ],
+      "calorieError": 0,
+      "output": {
+        "caloriesEstimate": 880,
+        "proteinG": 38,
+        "carbsG": 105,
+        "fatG": 42,
+        "fiberG": 7,
+        "confidence": "low",
+        "source": "estimated"
+      }
+    },
+    {
+      "id": "ML-023",
+      "category": "Restaurant",
+      "meal": "Salade Cesar poulet",
+      "expectedConfidence": "low",
+      "outputConfidence": "low",
+      "source": "estimated",
+      "totalScore": 75,
+      "passed": true,
+      "points": {
+        "calories": 15,
+        "protein": 20,
+        "carbs": 10,
+        "fat": 0,
+        "confidence": 15,
+        "corrections": 10,
+        "source": 5
+      },
+      "failedDimensions": [
+        "fat"
+      ],
+      "failureModes": [
+        "dressing",
+        "parmesan",
+        "croutons"
+      ],
+      "usefulCorrections": [
+        "add sauce",
+        "portion up/down"
+      ],
+      "calorieError": 1,
+      "output": {
+        "caloriesEstimate": 519,
+        "proteinG": 49.3,
+        "carbsG": 29.7,
+        "fatG": 21.6,
+        "fiberG": 3.8,
+        "confidence": "low",
+        "source": "estimated"
+      }
+    },
+    {
+      "id": "ML-024",
+      "category": "Restaurant",
+      "meal": "Bo bun boeuf",
+      "expectedConfidence": "low",
+      "outputConfidence": "low",
+      "source": "estimated",
+      "totalScore": 75,
+      "passed": true,
+      "points": {
+        "calories": 15,
+        "protein": 20,
+        "carbs": 0,
+        "fat": 10,
+        "confidence": 15,
+        "corrections": 10,
+        "source": 5
+      },
+      "failedDimensions": [
+        "carbs"
+      ],
+      "failureModes": [
+        "sauce sugar",
+        "noodle quantity"
+      ],
+      "usefulCorrections": [
+        "add sauce",
+        "portion up/down"
+      ],
+      "calorieError": 20,
+      "output": {
+        "caloriesEstimate": 630,
+        "proteinG": 42,
+        "carbsG": 60,
+        "fatG": 24,
+        "fiberG": 7,
+        "confidence": "low",
+        "source": "estimated"
+      }
+    },
+    {
+      "id": "ML-025",
+      "category": "Restaurant",
+      "meal": "Poke saumon riz avocat",
+      "expectedConfidence": "low",
+      "outputConfidence": "low",
+      "source": "estimated",
+      "totalScore": 100,
+      "passed": true,
+      "points": {
+        "calories": 30,
+        "protein": 20,
+        "carbs": 10,
+        "fat": 10,
+        "confidence": 15,
+        "corrections": 10,
+        "source": 5
+      },
+      "failedDimensions": [],
+      "failureModes": [
+        "rice base hidden",
+        "sauce"
+      ],
+      "usefulCorrections": [
+        "add sauce",
+        "portion up/down"
+      ],
+      "calorieError": 0,
+      "output": {
+        "caloriesEstimate": 821,
+        "proteinG": 47.1,
+        "carbsG": 83.1,
+        "fatG": 32.7,
+        "fiberG": 10.8,
+        "confidence": "low",
+        "source": "estimated"
+      }
+    },
+    {
+      "id": "ML-026",
+      "category": "Restaurant",
+      "meal": "Kebab galette sauce blanche",
+      "expectedConfidence": "low",
+      "outputConfidence": "low",
+      "source": "estimated",
+      "totalScore": 100,
+      "passed": true,
+      "points": {
+        "calories": 30,
+        "protein": 20,
+        "carbs": 10,
+        "fat": 10,
+        "confidence": 15,
+        "corrections": 10,
+        "source": 5
+      },
+      "failedDimensions": [],
+      "failureModes": [
+        "sauce",
+        "meat amount",
+        "wrap size"
+      ],
+      "usefulCorrections": [
+        "add sauce",
+        "portion up/down"
+      ],
+      "calorieError": 0,
+      "output": {
+        "caloriesEstimate": 1050,
+        "proteinG": 48,
+        "carbsG": 95,
+        "fatG": 58,
+        "fiberG": 7,
+        "confidence": "low",
+        "source": "estimated"
+      }
+    },
+    {
+      "id": "ML-027",
+      "category": "Restaurant",
+      "meal": "Sushi saumon 12 pieces",
+      "expectedConfidence": "medium",
+      "outputConfidence": "low",
+      "source": "estimated",
+      "totalScore": 93,
+      "passed": true,
+      "points": {
+        "calories": 30,
+        "protein": 20,
+        "carbs": 10,
+        "fat": 10,
+        "confidence": 8,
+        "corrections": 10,
+        "source": 5
+      },
+      "failedDimensions": [],
+      "failureModes": [
+        "rice amount",
+        "sauce"
+      ],
+      "usefulCorrections": [
+        "portion up/down"
+      ],
+      "calorieError": 0,
+      "output": {
+        "caloriesEstimate": 650,
+        "proteinG": 34,
+        "carbsG": 95,
+        "fatG": 18,
+        "fiberG": 5,
+        "confidence": "low",
+        "source": "estimated"
+      }
+    },
+    {
+      "id": "ML-028",
+      "category": "Restaurant",
+      "meal": "Steak frites sauce poivre",
+      "expectedConfidence": "low",
+      "outputConfidence": "low",
+      "source": "estimated",
+      "totalScore": 100,
+      "passed": true,
+      "points": {
+        "calories": 30,
+        "protein": 20,
+        "carbs": 10,
+        "fat": 10,
+        "confidence": 15,
+        "corrections": 10,
+        "source": 5
+      },
+      "failedDimensions": [],
+      "failureModes": [
+        "sauce",
+        "fries oil",
+        "steak size"
+      ],
+      "usefulCorrections": [
+        "add sauce",
+        "portion up/down"
+      ],
+      "calorieError": 0,
+      "output": {
+        "caloriesEstimate": 1050,
+        "proteinG": 58,
+        "carbsG": 82,
+        "fatG": 60,
+        "fiberG": 7,
+        "confidence": "low",
+        "source": "estimated"
+      }
+    },
+    {
+      "id": "ML-029",
+      "category": "Restaurant",
+      "meal": "Pad thai poulet",
+      "expectedConfidence": "low",
+      "outputConfidence": "low",
+      "source": "estimated",
+      "totalScore": 100,
+      "passed": true,
+      "points": {
+        "calories": 30,
+        "protein": 20,
+        "carbs": 10,
+        "fat": 10,
+        "confidence": 15,
+        "corrections": 10,
+        "source": 5
+      },
+      "failedDimensions": [],
+      "failureModes": [
+        "oil",
+        "peanuts",
+        "noodle quantity"
+      ],
+      "usefulCorrections": [
+        "add oil",
+        "portion up/down"
+      ],
+      "calorieError": 0,
+      "output": {
+        "caloriesEstimate": 900,
+        "proteinG": 42,
+        "carbsG": 115,
+        "fatG": 38,
+        "fiberG": 8,
+        "confidence": "low",
+        "source": "estimated"
+      }
+    },
+    {
+      "id": "ML-030",
+      "category": "Restaurant",
+      "meal": "Risotto champignons parmesan",
+      "expectedConfidence": "low",
+      "outputConfidence": "low",
+      "source": "estimated",
+      "totalScore": 100,
+      "passed": true,
+      "points": {
+        "calories": 30,
+        "protein": 20,
+        "carbs": 10,
+        "fat": 10,
+        "confidence": 15,
+        "corrections": 10,
+        "source": 5
+      },
+      "failedDimensions": [],
+      "failureModes": [
+        "butter",
+        "parmesan",
+        "portion depth"
+      ],
+      "usefulCorrections": [
+        "add cheese",
+        "portion up/down"
+      ],
+      "calorieError": 0,
+      "output": {
+        "caloriesEstimate": 800,
+        "proteinG": 26,
+        "carbsG": 95,
+        "fatG": 38,
+        "fiberG": 6,
+        "confidence": "low",
+        "source": "estimated"
+      }
+    },
+    {
+      "id": "ML-031",
+      "category": "Salad",
+      "meal": "Salade chevre chaud",
+      "expectedConfidence": "low",
+      "outputConfidence": "low",
+      "source": "estimated",
+      "totalScore": 30,
+      "passed": false,
+      "points": {
+        "calories": 0,
+        "protein": 0,
+        "carbs": 0,
+        "fat": 0,
+        "confidence": 15,
+        "corrections": 10,
+        "source": 5
+      },
+      "failedDimensions": [
+        "calories",
+        "protein",
+        "carbs",
+        "fat"
+      ],
+      "failureModes": [
+        "dressing",
+        "cheese weight",
+        "nuts"
+      ],
+      "usefulCorrections": [
+        "add sauce",
+        "portion up/down"
+      ],
+      "calorieError": 295,
+      "output": {
+        "caloriesEstimate": 1245,
+        "proteinG": 73.9,
+        "carbsG": 17.7,
+        "fatG": 99.1,
+        "fiberG": 2.5,
+        "confidence": "low",
+        "source": "estimated"
+      }
+    },
+    {
+      "id": "ML-032",
+      "category": "Salad",
+      "meal": "Bowl falafel houmous quinoa",
+      "expectedConfidence": "low",
+      "outputConfidence": "low",
+      "source": "estimated",
+      "totalScore": 100,
+      "passed": true,
+      "points": {
+        "calories": 30,
+        "protein": 20,
+        "carbs": 10,
+        "fat": 10,
+        "confidence": 15,
+        "corrections": 10,
+        "source": 5
+      },
+      "failedDimensions": [],
+      "failureModes": [
+        "hummus oil",
+        "falafel count"
+      ],
+      "usefulCorrections": [
+        "add oil",
+        "portion up/down"
+      ],
+      "calorieError": 0,
+      "output": {
+        "caloriesEstimate": 850,
+        "proteinG": 30,
+        "carbsG": 110,
+        "fatG": 42,
+        "fiberG": 18,
+        "confidence": "low",
+        "source": "estimated"
+      }
+    },
+    {
+      "id": "ML-033",
+      "category": "Salad",
+      "meal": "Taboule poulet avocat",
+      "expectedConfidence": "medium",
+      "outputConfidence": "low",
+      "source": "estimated",
+      "totalScore": 93,
+      "passed": true,
+      "points": {
+        "calories": 30,
+        "protein": 20,
+        "carbs": 10,
+        "fat": 10,
+        "confidence": 8,
+        "corrections": 10,
+        "source": 5
+      },
+      "failedDimensions": [],
+      "failureModes": [
+        "avocado size",
+        "dressing"
+      ],
+      "usefulCorrections": [
+        "add sauce",
+        "portion up/down"
+      ],
+      "calorieError": 0,
+      "output": {
+        "caloriesEstimate": 700,
+        "proteinG": 38,
+        "carbsG": 75,
+        "fatG": 34,
+        "fiberG": 12,
+        "confidence": "low",
+        "source": "estimated"
+      }
+    },
+    {
+      "id": "ML-034",
+      "category": "Salad",
+      "meal": "Nicoise salade",
+      "expectedConfidence": "medium",
+      "outputConfidence": "low",
+      "source": "estimated",
+      "totalScore": 93,
+      "passed": true,
+      "points": {
+        "calories": 30,
+        "protein": 20,
+        "carbs": 10,
+        "fat": 10,
+        "confidence": 8,
+        "corrections": 10,
+        "source": 5
+      },
+      "failedDimensions": [],
+      "failureModes": [
+        "olive oil dressing",
+        "potato amount"
+      ],
+      "usefulCorrections": [
+        "add sauce",
+        "portion up/down"
+      ],
+      "calorieError": 0,
+      "output": {
+        "caloriesEstimate": 650,
+        "proteinG": 42,
+        "carbsG": 50,
+        "fatG": 35,
+        "fiberG": 10,
+        "confidence": "low",
+        "source": "estimated"
+      }
+    },
+    {
+      "id": "ML-035",
+      "category": "Salad",
+      "meal": "Burrata tomates pesto",
+      "expectedConfidence": "low",
+      "outputConfidence": "low",
+      "source": "estimated",
+      "totalScore": 100,
+      "passed": true,
+      "points": {
+        "calories": 30,
+        "protein": 20,
+        "carbs": 10,
+        "fat": 10,
+        "confidence": 15,
+        "corrections": 10,
+        "source": 5
+      },
+      "failedDimensions": [],
+      "failureModes": [
+        "burrata size",
+        "pesto oil",
+        "bread"
+      ],
+      "usefulCorrections": [
+        "add oil",
+        "portion up/down"
+      ],
+      "calorieError": 0,
+      "output": {
+        "caloriesEstimate": 800,
+        "proteinG": 30,
+        "carbsG": 55,
+        "fatG": 58,
+        "fiberG": 7,
+        "confidence": "low",
+        "source": "estimated"
+      }
+    },
+    {
+      "id": "ML-036",
+      "category": "Dessert",
+      "meal": "Tarte citron meringuee slice",
+      "expectedConfidence": "medium",
+      "outputConfidence": "low",
+      "source": "estimated",
+      "totalScore": 93,
+      "passed": true,
+      "points": {
+        "calories": 30,
+        "protein": 20,
+        "carbs": 10,
+        "fat": 10,
+        "confidence": 8,
+        "corrections": 10,
+        "source": 5
+      },
+      "failedDimensions": [],
+      "failureModes": [
+        "slice size",
+        "sugar fat density"
+      ],
+      "usefulCorrections": [
+        "portion up/down"
+      ],
+      "calorieError": 0,
+      "output": {
+        "caloriesEstimate": 450,
+        "proteinG": 6,
+        "carbsG": 65,
+        "fatG": 20,
+        "fiberG": 2,
+        "confidence": "low",
+        "source": "estimated"
+      }
+    },
+    {
+      "id": "ML-037",
+      "category": "Dessert",
+      "meal": "Mousse au chocolat ramequin",
+      "expectedConfidence": "medium",
+      "outputConfidence": "low",
+      "source": "estimated",
+      "totalScore": 93,
+      "passed": true,
+      "points": {
+        "calories": 30,
+        "protein": 20,
+        "carbs": 10,
+        "fat": 10,
+        "confidence": 8,
+        "corrections": 10,
+        "source": 5
+      },
+      "failedDimensions": [],
+      "failureModes": [
+        "ramekin size",
+        "cream content"
+      ],
+      "usefulCorrections": [
+        "portion up/down"
+      ],
+      "calorieError": 0,
+      "output": {
+        "caloriesEstimate": 350,
+        "proteinG": 5,
+        "carbsG": 30,
+        "fatG": 25,
+        "fiberG": 3,
+        "confidence": "low",
+        "source": "estimated"
+      }
+    },
+    {
+      "id": "ML-038",
+      "category": "Dessert",
+      "meal": "Crepe Nutella banane",
+      "expectedConfidence": "low",
+      "outputConfidence": "low",
+      "source": "estimated",
+      "totalScore": 50,
+      "passed": false,
+      "points": {
+        "calories": 0,
+        "protein": 20,
+        "carbs": 0,
+        "fat": 0,
+        "confidence": 15,
+        "corrections": 10,
+        "source": 5
+      },
+      "failedDimensions": [
+        "calories",
+        "carbs",
+        "fat"
+      ],
+      "failureModes": [
+        "spread amount",
+        "crepe size"
+      ],
+      "usefulCorrections": [
+        "add spread",
+        "portion up/down"
+      ],
+      "calorieError": 130,
+      "output": {
+        "caloriesEstimate": 350,
+        "proteinG": 10,
+        "carbsG": 50,
+        "fatG": 10,
+        "fiberG": 2,
+        "confidence": "low",
+        "source": "estimated"
+      }
+    },
+    {
+      "id": "ML-039",
+      "category": "Dessert",
+      "meal": "Glace 2 boules chantilly",
+      "expectedConfidence": "low",
+      "outputConfidence": "low",
+      "source": "estimated",
+      "totalScore": 90,
+      "passed": true,
+      "points": {
+        "calories": 30,
+        "protein": 20,
+        "carbs": 10,
+        "fat": 0,
+        "confidence": 15,
+        "corrections": 10,
+        "source": 5
+      },
+      "failedDimensions": [
+        "fat"
+      ],
+      "failureModes": [
+        "scoop size",
+        "whipped cream"
+      ],
+      "usefulCorrections": [
+        "portion up/down"
+      ],
+      "calorieError": 0,
+      "output": {
+        "caloriesEstimate": 520,
+        "proteinG": 6.2,
+        "carbsG": 39,
+        "fatG": 37.6,
+        "fiberG": 0,
+        "confidence": "low",
+        "source": "estimated"
+      }
+    },
+    {
+      "id": "ML-040",
+      "category": "Dessert",
+      "meal": "Fondant chocolat",
+      "expectedConfidence": "medium",
+      "outputConfidence": "low",
+      "source": "estimated",
+      "totalScore": 83,
+      "passed": true,
+      "points": {
+        "calories": 30,
+        "protein": 10,
+        "carbs": 10,
+        "fat": 10,
+        "confidence": 8,
+        "corrections": 10,
+        "source": 5
+      },
+      "failedDimensions": [],
+      "failureModes": [
+        "cake size",
+        "butter content"
+      ],
+      "usefulCorrections": [
+        "portion up/down"
+      ],
+      "calorieError": 0,
+      "output": {
+        "caloriesEstimate": 500,
+        "proteinG": 5.5,
+        "carbsG": 50,
+        "fatG": 32,
+        "fiberG": 3,
+        "confidence": "low",
+        "source": "estimated"
+      }
+    },
+    {
+      "id": "ML-041",
+      "category": "Packaged",
+      "meal": "Sandwich triangle poulet crudites",
+      "expectedConfidence": "medium",
+      "outputConfidence": "low",
+      "source": "estimated",
+      "totalScore": 93,
+      "passed": true,
+      "points": {
+        "calories": 30,
+        "protein": 20,
+        "carbs": 10,
+        "fat": 10,
+        "confidence": 8,
+        "corrections": 10,
+        "source": 5
+      },
+      "failedDimensions": [],
+      "failureModes": [
+        "label unavailable",
+        "sauce"
+      ],
+      "usefulCorrections": [
+        "add sauce",
+        "portion up/down"
+      ],
+      "calorieError": 0,
+      "output": {
+        "caloriesEstimate": 450,
+        "proteinG": 24,
+        "carbsG": 45,
+        "fatG": 18,
+        "fiberG": 5,
+        "confidence": "low",
+        "source": "estimated"
+      }
+    },
+    {
+      "id": "ML-042",
+      "category": "Packaged",
+      "meal": "Salade composee supermarche",
+      "expectedConfidence": "medium",
+      "outputConfidence": "low",
+      "source": "estimated",
+      "totalScore": 93,
+      "passed": true,
+      "points": {
+        "calories": 30,
+        "protein": 20,
+        "carbs": 10,
+        "fat": 10,
+        "confidence": 8,
+        "corrections": 10,
+        "source": 5
+      },
+      "failedDimensions": [],
+      "failureModes": [
+        "dressing packet",
+        "label hidden"
+      ],
+      "usefulCorrections": [
+        "add sauce",
+        "portion up/down"
+      ],
+      "calorieError": 0,
+      "output": {
+        "caloriesEstimate": 560,
+        "proteinG": 29,
+        "carbsG": 62,
+        "fatG": 25,
+        "fiberG": 8,
+        "confidence": "low",
+        "source": "estimated"
+      }
+    },
+    {
+      "id": "ML-043",
+      "category": "Packaged",
+      "meal": "Lasagnes portion micro-ondes",
+      "expectedConfidence": "medium",
+      "outputConfidence": "low",
+      "source": "estimated",
+      "totalScore": 93,
+      "passed": true,
+      "points": {
+        "calories": 30,
+        "protein": 20,
+        "carbs": 10,
+        "fat": 10,
+        "confidence": 8,
+        "corrections": 10,
+        "source": 5
+      },
+      "failedDimensions": [],
+      "failureModes": [
+        "tray weight",
+        "recipe variation"
+      ],
+      "usefulCorrections": [
+        "portion up/down"
+      ],
+      "calorieError": 0,
+      "output": {
+        "caloriesEstimate": 595,
+        "proteinG": 28,
+        "carbsG": 59.5,
+        "fatG": 24.5,
+        "fiberG": 5.3,
+        "confidence": "low",
+        "source": "estimated"
+      }
+    },
+    {
+      "id": "ML-044",
+      "category": "Packaged",
+      "meal": "Skyr nature + banane",
+      "expectedConfidence": "high",
+      "outputConfidence": "low",
+      "source": "estimated",
+      "totalScore": 85,
+      "passed": true,
+      "points": {
+        "calories": 30,
+        "protein": 20,
+        "carbs": 10,
+        "fat": 10,
+        "confidence": 0,
+        "corrections": 10,
+        "source": 5
+      },
+      "failedDimensions": [
+        "confidence"
+      ],
+      "failureModes": [
+        "banana size",
+        "skyr portion"
+      ],
+      "usefulCorrections": [
+        "portion up/down"
+      ],
+      "calorieError": 0,
+      "output": {
+        "caloriesEstimate": 260,
+        "proteinG": 15.1,
+        "carbsG": 45.7,
+        "fatG": 3.2,
+        "fiberG": 7.1,
+        "confidence": "low",
+        "source": "estimated"
+      }
+    },
+    {
+      "id": "ML-045",
+      "category": "Packaged",
+      "meal": "Barre proteinee chocolat",
+      "expectedConfidence": "medium",
+      "outputConfidence": "low",
+      "source": "estimated",
+      "totalScore": 83,
+      "passed": true,
+      "points": {
+        "calories": 30,
+        "protein": 20,
+        "carbs": 10,
+        "fat": 10,
+        "confidence": 8,
+        "corrections": 0,
+        "source": 5
+      },
+      "failedDimensions": [
+        "corrections"
+      ],
+      "failureModes": [
+        "product label not visible"
+      ],
+      "usefulCorrections": [
+        "use label/barcode later"
+      ],
+      "calorieError": 0,
+      "output": {
+        "caloriesEstimate": 230,
+        "proteinG": 20,
+        "carbsG": 24,
+        "fatG": 8,
+        "fiberG": 6,
+        "confidence": "low",
+        "source": "estimated"
+      }
+    },
+    {
+      "id": "ML-046",
+      "category": "Hard Case",
+      "meal": "Assiette buffet mixte",
+      "expectedConfidence": "low",
+      "outputConfidence": "low",
+      "source": "estimated",
+      "totalScore": 100,
+      "passed": true,
+      "points": {
+        "calories": 30,
+        "protein": 20,
+        "carbs": 10,
+        "fat": 10,
+        "confidence": 15,
+        "corrections": 10,
+        "source": 5
+      },
+      "failedDimensions": [],
+      "failureModes": [
+        "item identification",
+        "sauces",
+        "overlap"
+      ],
+      "usefulCorrections": [
+        "split dish",
+        "portion up/down"
+      ],
+      "calorieError": 0,
+      "output": {
+        "caloriesEstimate": 950,
+        "proteinG": 40,
+        "carbsG": 110,
+        "fatG": 50,
+        "fiberG": 10,
+        "confidence": "low",
+        "source": "estimated"
+      }
+    },
+    {
+      "id": "ML-047",
+      "category": "Hard Case",
+      "meal": "Plat en sauce curry coco poulet riz",
+      "expectedConfidence": "low",
+      "outputConfidence": "low",
+      "source": "estimated",
+      "totalScore": 100,
+      "passed": true,
+      "points": {
+        "calories": 30,
+        "protein": 20,
+        "carbs": 10,
+        "fat": 10,
+        "confidence": 15,
+        "corrections": 10,
+        "source": 5
+      },
+      "failedDimensions": [],
+      "failureModes": [
+        "coconut milk",
+        "rice hidden"
+      ],
+      "usefulCorrections": [
+        "add sauce",
+        "portion up/down"
+      ],
+      "calorieError": 0,
+      "output": {
+        "caloriesEstimate": 900,
+        "proteinG": 42,
+        "carbsG": 100,
+        "fatG": 42,
+        "fiberG": 7,
+        "confidence": "low",
+        "source": "estimated"
+      }
+    },
+    {
+      "id": "ML-048",
+      "category": "Hard Case",
+      "meal": "Raclette assiette",
+      "expectedConfidence": "low",
+      "outputConfidence": "low",
+      "source": "estimated",
+      "totalScore": 100,
+      "passed": true,
+      "points": {
+        "calories": 30,
+        "protein": 20,
+        "carbs": 10,
+        "fat": 10,
+        "confidence": 15,
+        "corrections": 10,
+        "source": 5
+      },
+      "failedDimensions": [],
+      "failureModes": [
+        "cheese amount",
+        "charcuterie fat"
+      ],
+      "usefulCorrections": [
+        "portion up/down"
+      ],
+      "calorieError": 0,
+      "output": {
+        "caloriesEstimate": 1100,
+        "proteinG": 50,
+        "carbsG": 70,
+        "fatG": 78,
+        "fiberG": 7,
+        "confidence": "low",
+        "source": "estimated"
+      }
+    },
+    {
+      "id": "ML-049",
+      "category": "Hard Case",
+      "meal": "Fromage, pain, vin aperitif dinatoire",
+      "expectedConfidence": "low",
+      "outputConfidence": "low",
+      "source": "estimated",
+      "totalScore": 90,
+      "passed": true,
+      "points": {
+        "calories": 30,
+        "protein": 20,
+        "carbs": 0,
+        "fat": 10,
+        "confidence": 15,
+        "corrections": 10,
+        "source": 5
+      },
+      "failedDimensions": [
+        "carbs"
+      ],
+      "failureModes": [
+        "partial meal",
+        "item count",
+        "alcohol excluded"
+      ],
+      "usefulCorrections": [
+        "split dish",
+        "portion up/down"
+      ],
+      "calorieError": 0,
+      "output": {
+        "caloriesEstimate": 785,
+        "proteinG": 37.1,
+        "carbsG": 29.1,
+        "fatG": 58.9,
+        "fiberG": 4.3,
+        "confidence": "low",
+        "source": "estimated"
+      }
+    },
+    {
+      "id": "ML-050",
+      "category": "Hard Case",
+      "meal": "Bowl invisible base riz sous toppings",
+      "expectedConfidence": "low",
+      "outputConfidence": "low",
+      "source": "estimated",
+      "totalScore": 75,
+      "passed": true,
+      "points": {
+        "calories": 15,
+        "protein": 20,
+        "carbs": 0,
+        "fat": 10,
+        "confidence": 15,
+        "corrections": 10,
+        "source": 5
+      },
+      "failedDimensions": [
+        "carbs"
+      ],
+      "failureModes": [
+        "hidden rice quantity",
+        "sauce"
+      ],
+      "usefulCorrections": [
+        "ask base amount",
+        "portion up/down"
+      ],
+      "calorieError": 31,
+      "output": {
+        "caloriesEstimate": 619,
+        "proteinG": 41.3,
+        "carbsG": 58.5,
+        "fatG": 21.7,
+        "fiberG": 0.8,
+        "confidence": "low",
+        "source": "estimated"
+      }
+    }
+  ]
+}

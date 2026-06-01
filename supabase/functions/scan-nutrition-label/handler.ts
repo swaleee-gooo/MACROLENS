@@ -1,4 +1,4 @@
-import { getUserIdFromAuthorizationHeader } from '../analyze-meal/auth.ts';
+import { getUserIdFromAuthorizationHeader } from './auth.ts';
 import { scanNutritionLabelWithOpenAI, type RawNutritionLabelOcr } from './openaiNutritionLabelOcr.ts';
 
 type ScanNutritionLabelRequest = {

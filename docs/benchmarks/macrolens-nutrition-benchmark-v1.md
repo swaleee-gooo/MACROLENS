@@ -31,8 +31,9 @@ Total: 100 points per case.
 Pass thresholds:
 
 - MVP pass: average score >= 70.
-- Strong pass: average score >= 80.
-- Marketable accuracy claim: average score >= 85 and no P0 failure modes.
+- Release-gate pass: average score >= 80, no hard-case category average below 65, no mock outputs.
+- Strong pass: average score >= 85 and no P0 failure modes.
+- Public wording rule: passing the release gate permits only a scoped "benchmark-tested estimate" claim. It does not permit medical-grade precision, guaranteed per-meal accuracy, or clinical language.
 
 Confidence tiers:
 
@@ -115,3 +116,20 @@ Do not make a public accuracy claim until:
 - average score is at least 80;
 - no hard-case category averages below 65;
 - the product copy says "estimate" and never implies medical precision.
+
+Allowed wording after the gate passes: MacroLens can say its scan estimates are benchmark-tested on the 50-case MacroLens nutrition benchmark.
+
+Forbidden wording even after the gate passes: exact accuracy, medical precision, guaranteed calories, diagnosis, treatment, or guaranteed weight-loss outcomes.
+
+## Executable Runner
+
+The benchmark is mirrored as machine-readable cases in `apps/mobile/scripts/nutrition-benchmark-cases.json`.
+
+Run the release gate with:
+
+```powershell
+cd apps/mobile
+npm run nutrition:live:cases
+```
+
+The command writes `docs/benchmarks/macrolens-nutrition-benchmark-results-v1.json` and exits non-zero until all 50 cases have HTTPS image URLs and the aggregate release gate passes.

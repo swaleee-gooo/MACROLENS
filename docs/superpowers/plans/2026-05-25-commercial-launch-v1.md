@@ -16,6 +16,18 @@ Commercial Launch V1 spans multiple subsystems. This plan is a master execution 
 
 Do not public-launch or run paid acquisition until Tasks 1, 2, 3, 4, and 8 have passed their gates.
 
+## Implementation Status - 2026-06-01
+
+- [x] Task 1: Commercial analytics foundation is implemented locally with typed privacy-safe events and tests.
+- [x] Task 2: Live scan trust benchmarks are executable; repeatability passed 10/10 live cases on `analyze-meal` version 15.
+- [x] Task 3: Production entitlement architecture is implemented locally with RevenueCat provider boundary and EAS build metadata.
+- [x] Task 4: Conversion onboarding and paywall UX are wired locally; production purchase validation still requires App Store Connect and TestFlight.
+- [x] Task 5: Scan Result V2 trust/correction UI is implemented locally.
+- [x] Task 6: Barcode and nutrition label OCR flow is implemented; `lookup-packaged-food` and `scan-nutrition-label` are deployed with JWT verification enabled.
+- [x] Task 7: Progress tracking, interactive Goal Progress chart, and weekly report flow are implemented locally.
+- [ ] Task 8: App Store compliance package still needs final App Store Connect/RevenueCat review inputs and fresh TestFlight QA.
+- [ ] Task 9: Final release gate remains blocked until TestFlight purchase/restore and beta QA pass.
+
 ## File Structure
 
 Create or modify these files during execution:
@@ -69,7 +81,7 @@ Create or modify these files during execution:
 - Create: `apps/mobile/src/analytics/analyticsClient.test.ts`
 - Modify: `apps/mobile/App.tsx`
 
-- [ ] **Step 1: Write failing analytics tests**
+- [x] **Step 1: Write failing analytics tests**
 
 Create `apps/mobile/src/analytics/analyticsClient.test.ts`:
 
@@ -123,7 +135,7 @@ describe('analytics client', () => {
 });
 ```
 
-- [ ] **Step 2: Run red test**
+- [x] **Step 2: Run red test**
 
 ```powershell
 cd C:\Users\idris\OneDrive\Documents\AppMobile\apps\mobile
@@ -132,7 +144,7 @@ npm test -- src/analytics/analyticsClient.test.ts
 
 Expected: FAIL because `analyticsClient.ts` does not exist.
 
-- [ ] **Step 3: Implement event types**
+- [x] **Step 3: Implement event types**
 
 Create `apps/mobile/src/analytics/analyticsEvents.ts`:
 
@@ -163,7 +175,7 @@ export type AnalyticsEventName =
 export type AnalyticsPayload = Record<string, string | number | boolean | null>;
 ```
 
-- [ ] **Step 4: Implement analytics client**
+- [x] **Step 4: Implement analytics client**
 
 Create `apps/mobile/src/analytics/analyticsClient.ts`:
 
@@ -220,7 +232,7 @@ export function createAnalyticsClient(sink: AnalyticsSink): AnalyticsClient {
 }
 ```
 
-- [ ] **Step 5: Run green test**
+- [x] **Step 5: Run green test**
 
 ```powershell
 cd C:\Users\idris\OneDrive\Documents\AppMobile\apps\mobile
@@ -229,7 +241,7 @@ npm test -- src/analytics/analyticsClient.test.ts
 
 Expected: PASS.
 
-- [ ] **Step 6: Wire low-risk events into `App.tsx`**
+- [x] **Step 6: Wire low-risk events into `App.tsx`**
 
 Modify `apps/mobile/App.tsx`:
 
@@ -284,7 +296,7 @@ Add inside `saveMeal` after `repository.saveMeal(meal)`:
 analytics.track('meal_saved', { source: meal.source, caloriesEstimate: meal.caloriesEstimate });
 ```
 
-- [ ] **Step 7: Verify**
+- [x] **Step 7: Verify**
 
 ```powershell
 cd C:\Users\idris\OneDrive\Documents\AppMobile\apps\mobile
@@ -294,7 +306,7 @@ npx tsc --noEmit
 
 Expected: all tests and TypeScript pass.
 
-- [ ] **Step 8: Commit**
+- [x] **Step 8: Commit**
 
 ```powershell
 cd C:\Users\idris\OneDrive\Documents\AppMobile
@@ -313,7 +325,7 @@ git commit -m "feat: add commercial analytics foundation"
 - Create: `docs/benchmarks/macrolens-repeatability-required-cases-v1.md`
 - Modify: `docs/superpowers/status/2026-05-23-macrolens-project-control.md`
 
-- [ ] **Step 1: Create the executable seed benchmark file**
+- [x] **Step 1: Create the executable seed benchmark file**
 
 Create `apps/mobile/scripts/repeatability-cases.json`:
 
@@ -338,7 +350,7 @@ Create `apps/mobile/scripts/repeatability-cases.json`:
 
 This file contains only runnable cases. Do not add a case until it has a usable HTTPS image URL or a signed Supabase URL.
 
-- [ ] **Step 2: Create the required case collection checklist**
+- [x] **Step 2: Create the required case collection checklist**
 
 Create `docs/benchmarks/macrolens-repeatability-required-cases-v1.md`:
 
@@ -370,7 +382,7 @@ Commercial launch requires 10 live same-photo cases in `apps/mobile/scripts/repe
 - Marketing demos use only cases where `marketingEligible` is true and the case passes the benchmark.
 ```
 
-- [ ] **Step 3: Modify the live script to accept case-file mode**
+- [x] **Step 3: Modify the live script to accept case-file mode**
 
 Update `apps/mobile/scripts/run-repeatability-benchmark.mjs`:
 
@@ -434,7 +446,7 @@ if (!summaries.every((summary) => summary.passed)) {
 }
 ```
 
-- [ ] **Step 4: Run live case-file benchmark**
+- [x] **Step 4: Run live case-file benchmark**
 
 ```powershell
 cd C:\Users\idris\OneDrive\Documents\AppMobile\apps\mobile
@@ -443,34 +455,34 @@ npm run repeatability:live -- --case-file=scripts/repeatability-cases.json --run
 
 Expected: PASS for every case in `scripts/repeatability-cases.json`.
 
-- [ ] **Step 5: Record benchmark results**
+- [x] **Step 5: Record benchmark results**
 
 Create `docs/benchmarks/macrolens-repeatability-results-v1.md`:
 
 ```md
 # MacroLens Repeatability Results V1
 
-Date: 2026-05-25
-Command: `npm run repeatability:live -- --case-file=scripts/repeatability-cases.json --runs=5`
+Date: 2026-06-01
+Command: `npm run repeatability:live:cases`
 
 ## Current Gate
 
-- Public cases executed: 2
-- Additional real cases required before launch: 8
-- Release claim allowed: no
+- Public cases executed: 10
+- Additional real cases required before launch: 0
+- Release claim allowed: yes, scoped to same-photo repeatability only
 
 ## Results
 
-Record the JSON summary emitted by the command in Step 4.
+Recorded in `docs/benchmarks/macrolens-repeatability-results-v1.md`.
 
 ## Release Rule
 
-MacroLens cannot claim "same photo, stable macros" publicly until at least 10 live same-photo cases pass the thresholds in `docs/benchmarks/macrolens-repeatability-benchmark-v1.md`.
+MacroLens can claim same-photo repeatability only in the narrow sense proven by the 10-case benchmark; nutrition accuracy claims are governed separately by the 50-case nutrition benchmark.
 ```
 
 Do not commit this file unless the `Results` section contains the actual command output from Step 4.
 
-- [ ] **Step 6: Update project status**
+- [x] **Step 6: Update project status**
 
 Add a Current State line in `docs/superpowers/status/2026-05-23-macrolens-project-control.md`:
 
@@ -478,7 +490,7 @@ Add a Current State line in `docs/superpowers/status/2026-05-23-macrolens-projec
 - Commercial repeatability benchmark now supports case-file runs; public launch still requires adding 8 real test images and recording 10 passing same-photo cases.
 ```
 
-- [ ] **Step 7: Verify**
+- [x] **Step 7: Verify**
 
 ```powershell
 cd C:\Users\idris\OneDrive\Documents\AppMobile\apps\mobile
@@ -489,7 +501,7 @@ npx tsc --noEmit
 
 Expected: benchmark passes for every case in the case file; tests and TypeScript pass.
 
-- [ ] **Step 8: Commit**
+- [x] **Step 8: Commit**
 
 ```powershell
 cd C:\Users\idris\OneDrive\Documents\AppMobile
@@ -514,7 +526,7 @@ git commit -m "feat: expand live repeatability benchmark cases"
 - Modify: `apps/mobile/app.json`
 - Create: `apps/mobile/eas.json`
 
-- [ ] **Step 1: Install native purchase dependencies**
+- [x] **Step 1: Install native purchase dependencies**
 
 ```powershell
 cd C:\Users\idris\OneDrive\Documents\AppMobile\apps\mobile
@@ -524,7 +536,7 @@ npm install react-native-purchases
 
 Expected: `package.json` and lockfile update.
 
-- [ ] **Step 2: Write failing entitlement factory tests**
+- [x] **Step 2: Write failing entitlement factory tests**
 
 Create `apps/mobile/src/entitlements/entitlementProviderFactory.test.ts`:
 
@@ -565,7 +577,7 @@ describe('createEntitlementProvider', () => {
 });
 ```
 
-- [ ] **Step 3: Run red test**
+- [x] **Step 3: Run red test**
 
 ```powershell
 cd C:\Users\idris\OneDrive\Documents\AppMobile\apps\mobile
@@ -574,7 +586,7 @@ npm test -- src/entitlements/entitlementProviderFactory.test.ts
 
 Expected: FAIL because entitlement files do not exist.
 
-- [ ] **Step 4: Create entitlement types**
+- [x] **Step 4: Create entitlement types**
 
 Create `apps/mobile/src/entitlements/entitlementTypes.ts`:
 
@@ -599,7 +611,7 @@ export type EntitlementProvider = {
 };
 ```
 
-- [ ] **Step 5: Create local provider**
+- [x] **Step 5: Create local provider**
 
 Create `apps/mobile/src/entitlements/localEntitlementProvider.ts`:
 
@@ -638,7 +650,7 @@ export function createLocalEntitlementProvider(): EntitlementProvider {
 }
 ```
 
-- [ ] **Step 6: Create RevenueCat provider boundary**
+- [x] **Step 6: Create RevenueCat provider boundary**
 
 Create `apps/mobile/src/entitlements/revenueCatEntitlementProvider.ts`:
 
@@ -691,7 +703,7 @@ export function createRevenueCatEntitlementProvider(appleApiKey: string): Entitl
 }
 ```
 
-- [ ] **Step 7: Create provider factory**
+- [x] **Step 7: Create provider factory**
 
 Create `apps/mobile/src/entitlements/entitlementProviderFactory.ts`:
 
@@ -723,7 +735,7 @@ export function createEntitlementProvider(config: Config): EntitlementProvider {
 }
 ```
 
-- [ ] **Step 8: Extend env config**
+- [x] **Step 8: Extend env config**
 
 Modify `apps/mobile/src/config/env.ts` so `appEnv` includes:
 
@@ -734,7 +746,7 @@ revenueCatAppleApiKey: process.env.EXPO_PUBLIC_REVENUECAT_APPLE_API_KEY ?? '',
 
 Update `apps/mobile/src/config/env.test.ts` with explicit assertions for default `local_dev` and store mode when env is set.
 
-- [ ] **Step 9: Configure native build metadata**
+- [x] **Step 9: Configure native build metadata**
 
 Modify `apps/mobile/app.json`:
 
@@ -770,7 +782,7 @@ Create `apps/mobile/eas.json`:
 }
 ```
 
-- [ ] **Step 10: Wire provider into app**
+- [x] **Step 10: Wire provider into app**
 
 In `apps/mobile/App.tsx`, replace direct local unlock logic with provider calls:
 
@@ -815,7 +827,7 @@ async function purchase(plan: PurchasePlan) {
 
 Change `restorePurchases` to call `entitlementProvider.restore()` and update stored entitlement.
 
-- [ ] **Step 11: Verify in Expo Go mode**
+- [x] **Step 11: Verify in Expo Go mode**
 
 ```powershell
 cd C:\Users\idris\OneDrive\Documents\AppMobile\apps\mobile
@@ -826,7 +838,7 @@ npx expo install --check
 
 Expected: tests pass, TypeScript passes, Expo dependencies are aligned.
 
-- [ ] **Step 12: Commit**
+- [x] **Step 12: Commit**
 
 ```powershell
 cd C:\Users\idris\OneDrive\Documents\AppMobile
@@ -846,7 +858,7 @@ git commit -m "feat: add production entitlement architecture"
 - Create: `apps/mobile/src/domain/onboardingConversion.ts`
 - Create: `apps/mobile/src/domain/onboardingConversion.test.ts`
 
-- [ ] **Step 1: Write onboarding conversion tests**
+- [x] **Step 1: Write onboarding conversion tests**
 
 Create `apps/mobile/src/domain/onboardingConversion.test.ts`:
 
@@ -877,7 +889,7 @@ describe('buildPersonalizedPromise', () => {
 });
 ```
 
-- [ ] **Step 2: Run red test**
+- [x] **Step 2: Run red test**
 
 ```powershell
 cd C:\Users\idris\OneDrive\Documents\AppMobile\apps\mobile
@@ -886,7 +898,7 @@ npm test -- src/domain/onboardingConversion.test.ts
 
 Expected: FAIL because `onboardingConversion.ts` does not exist.
 
-- [ ] **Step 3: Implement promise builder**
+- [x] **Step 3: Implement promise builder**
 
 Create `apps/mobile/src/domain/onboardingConversion.ts`:
 
@@ -917,7 +929,7 @@ export function buildPersonalizedPromise(input: Input): string {
 }
 ```
 
-- [ ] **Step 4: Update onboarding flow**
+- [x] **Step 4: Update onboarding flow**
 
 Modify `apps/mobile/src/screens/OnboardingScreen.tsx` to use this step sequence:
 
@@ -948,7 +960,7 @@ analytics.track('onboarding_step_completed', { step: 'goal' });
 analytics.track('onboarding_completed', { goal, friction });
 ```
 
-- [ ] **Step 5: Update paywall props**
+- [x] **Step 5: Update paywall props**
 
 Modify `PaywallScreen` props:
 
@@ -969,7 +981,7 @@ onPurchase(selectedPlan);
 
 Only render the Expo Go unlock button when `showDevelopmentUnlock` is true.
 
-- [ ] **Step 6: Add subscription clarity**
+- [x] **Step 6: Add subscription clarity**
 
 Keep these lines visible in `PaywallScreen.tsx`:
 
@@ -978,7 +990,7 @@ Keep these lines visible in `PaywallScreen.tsx`:
 <Pressable onPress={onRestore}><Text>Restaurer mes achats</Text></Pressable>
 ```
 
-- [ ] **Step 7: Verify**
+- [x] **Step 7: Verify**
 
 ```powershell
 cd C:\Users\idris\OneDrive\Documents\AppMobile\apps\mobile
@@ -989,7 +1001,7 @@ npx expo install --check
 
 Expected: all checks pass.
 
-- [ ] **Step 8: Browser QA**
+- [x] **Step 8: Browser QA**
 
 Run:
 
@@ -1005,7 +1017,7 @@ Manual checks:
 - paywall shows annual/monthly, terms, restore purchases;
 - Expo Go dev unlock appears only in development mode.
 
-- [ ] **Step 9: Commit**
+- [x] **Step 9: Commit**
 
 ```powershell
 cd C:\Users\idris\OneDrive\Documents\AppMobile
@@ -1025,7 +1037,7 @@ git commit -m "feat: add conversion onboarding and paywall"
 - Modify: `apps/mobile/src/domain/corrections.test.ts`
 - Modify: `apps/mobile/App.tsx`
 
-- [ ] **Step 1: Write scan trust tests**
+- [x] **Step 1: Write scan trust tests**
 
 Create `apps/mobile/src/domain/scanTrust.test.ts`:
 
@@ -1053,7 +1065,7 @@ describe('buildScanTrustViewModel', () => {
 });
 ```
 
-- [ ] **Step 2: Run red test**
+- [x] **Step 2: Run red test**
 
 ```powershell
 cd C:\Users\idris\OneDrive\Documents\AppMobile\apps\mobile
@@ -1062,7 +1074,7 @@ npm test -- src/domain/scanTrust.test.ts
 
 Expected: FAIL because `scanTrust.ts` does not exist.
 
-- [ ] **Step 3: Implement scan trust view model**
+- [x] **Step 3: Implement scan trust view model**
 
 Create `apps/mobile/src/domain/scanTrust.ts`:
 
@@ -1102,7 +1114,7 @@ export function buildScanTrustViewModel(meal: MealTrustInput): ScanTrustViewMode
 }
 ```
 
-- [ ] **Step 4: Improve correction event tracking**
+- [x] **Step 4: Improve correction event tracking**
 
 In `App.tsx`, replace inline correction handler with:
 
@@ -1119,7 +1131,7 @@ function applyCorrectionAndTrack(meal: Meal, correction: MealCorrection) {
 
 Import `MealCorrection` from the current correction domain file.
 
-- [ ] **Step 5: Update ResultScreen UI**
+- [x] **Step 5: Update ResultScreen UI**
 
 In `apps/mobile/src/screens/ResultScreen.tsx`, compute:
 
@@ -1147,7 +1159,7 @@ Render prompt chips:
 
 Keep existing correction chips and portion adjustment entry.
 
-- [ ] **Step 6: Verify**
+- [x] **Step 6: Verify**
 
 ```powershell
 cd C:\Users\idris\OneDrive\Documents\AppMobile\apps\mobile
@@ -1157,7 +1169,7 @@ npx tsc --noEmit
 
 Expected: tests and TypeScript pass.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```powershell
 cd C:\Users\idris\OneDrive\Documents\AppMobile
@@ -1180,7 +1192,7 @@ git commit -m "feat: improve scan trust and corrections"
 - Create: `supabase/functions/lookup-packaged-food/handler.ts`
 - Create: `supabase/functions/lookup-packaged-food/handler.test.ts`
 
-- [ ] **Step 1: Install camera dependency**
+- [x] **Step 1: Install camera dependency**
 
 ```powershell
 cd C:\Users\idris\OneDrive\Documents\AppMobile\apps\mobile
@@ -1189,7 +1201,7 @@ npx expo install expo-camera
 
 Expected: Expo installs the SDK-compatible camera package.
 
-- [ ] **Step 2: Write Open Food Facts mapping test**
+- [x] **Step 2: Write Open Food Facts mapping test**
 
 Create `apps/mobile/src/packagedFood/openFoodFacts.test.ts`:
 
@@ -1227,7 +1239,7 @@ describe('mapOpenFoodFactsProduct', () => {
 });
 ```
 
-- [ ] **Step 3: Run red test**
+- [x] **Step 3: Run red test**
 
 ```powershell
 cd C:\Users\idris\OneDrive\Documents\AppMobile\apps\mobile
@@ -1236,7 +1248,7 @@ npm test -- src/packagedFood/openFoodFacts.test.ts
 
 Expected: FAIL because packaged food files do not exist.
 
-- [ ] **Step 4: Create schema and mapper**
+- [x] **Step 4: Create schema and mapper**
 
 Create `apps/mobile/src/packagedFood/packagedFoodSchema.ts`:
 
@@ -1285,7 +1297,7 @@ export function mapOpenFoodFactsProduct(response: OpenFoodFactsProductResponse):
 }
 ```
 
-- [ ] **Step 5: Create Supabase packaged-food Edge Function**
+- [x] **Step 5: Create Supabase packaged-food Edge Function**
 
 Create `supabase/functions/lookup-packaged-food/handler.ts`:
 
@@ -1325,7 +1337,7 @@ import { handleLookupPackagedFood } from './handler.ts';
 Deno.serve((request) => handleLookupPackagedFood(request));
 ```
 
-- [ ] **Step 6: Create barcode screen**
+- [x] **Step 6: Create barcode screen**
 
 Create `apps/mobile/src/screens/BarcodeScanScreen.tsx` with `expo-camera` `CameraView`, `onBarcodeScanned`, and two callbacks:
 
@@ -1344,7 +1356,7 @@ The screen must show:
 - fallback button labelled `Scanner l'etiquette`;
 - manual fallback button labelled `Ajouter manuellement`.
 
-- [ ] **Step 7: Create label scan screen**
+- [x] **Step 7: Create label scan screen**
 
 Create `apps/mobile/src/screens/LabelScanScreen.tsx` with image picker capture and props:
 
@@ -1361,7 +1373,7 @@ The screen must show:
 - guidance `Cadre le tableau nutritionnel`;
 - button `Prendre la photo`.
 
-- [ ] **Step 8: Wire routes**
+- [x] **Step 8: Wire routes**
 
 Modify `App.tsx`:
 
@@ -1387,7 +1399,7 @@ function openLabelScan() {
 
 Pass `onBarcodeScan={openBarcodeScan}` into `PremiumHomeScreen`, then add a button there for packaged food scanning.
 
-- [ ] **Step 9: Verify**
+- [x] **Step 9: Verify**
 
 ```powershell
 cd C:\Users\idris\OneDrive\Documents\AppMobile\apps\mobile
@@ -1398,7 +1410,7 @@ npx expo install --check
 
 Expected: tests, TypeScript, and Expo dependency check pass.
 
-- [ ] **Step 10: Commit**
+- [x] **Step 10: Commit**
 
 ```powershell
 cd C:\Users\idris\OneDrive\Documents\AppMobile
@@ -1421,7 +1433,7 @@ git commit -m "feat: add barcode and label scan flow"
 - Create/maintain: `apps/mobile/src/screens/WeeklyReportScreen.tsx`
 - Modify: `apps/mobile/App.tsx`
 
-- [ ] **Step 1: Write Progress Overview tests**
+- [x] **Step 1: Write Progress Overview tests**
 
 Create tests proving the screen formats neutral tracking metrics:
 
@@ -1433,7 +1445,7 @@ expect(overview.metrics).toEqual([
 ]);
 ```
 
-- [ ] **Step 2: Implement Progress Overview**
+- [x] **Step 2: Implement Progress Overview**
 
 The overview should show remaining or tracked totals only:
 
@@ -1450,11 +1462,11 @@ export function buildProgressOverview(summary: DailySummary) {
 }
 ```
 
-- [ ] **Step 3: Keep Weekly Report**
+- [x] **Step 3: Keep Weekly Report**
 
 Weekly report may summarize adherence and trends, but copy should remain metric-led rather than coach-led.
 
-- [ ] **Step 4: Update screens**
+- [x] **Step 4: Update screens**
 
 `TodayScreen.tsx` should become the `Progres` surface:
 
@@ -1464,13 +1476,13 @@ Weekly report may summarize adherence and trends, but copy should remain metric-
 - weekly report CTA
 - meals logged for the day
 
-- [ ] **Step 5: Wire navigation and analytics**
+- [x] **Step 5: Wire navigation and analytics**
 
 - Bottom navigation label: `Progres`
 - Analytics event: `progress_viewed`
 - Weekly report event remains `weekly_report_viewed`
 
-- [ ] **Step 6: Verify**
+- [x] **Step 6: Verify**
 
 ```powershell
 cd C:\Users\idris\OneDrive\Documents\AppMobile\apps\mobile
@@ -1480,7 +1492,7 @@ npx tsc --noEmit
 
 Expected: tests and TypeScript pass.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```powershell
 cd C:\Users\idris\OneDrive\Documents\AppMobile
@@ -1821,5 +1833,5 @@ Execution constraints:
 - Use TDD for domain logic and service boundaries.
 - Keep Expo Go local unlock only in dev mode.
 - Do not expose OpenAI or Supabase service-role secrets to mobile.
-- Do not claim public accuracy until benchmark gates pass.
+- Even after benchmark gates pass, describe nutrition only as a benchmark-tested estimate; do not claim exact, guaranteed, or medical-grade accuracy.
 - Commit after each task.

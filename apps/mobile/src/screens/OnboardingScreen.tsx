@@ -546,7 +546,7 @@ export function OnboardingScreen({ userId, authEmail, onEmailSignUp, onOAuthSign
 
         {step === 'welcome' ? (
           <View style={{ gap: spacing.xl, padding: spacing.xl, paddingTop: spacing.xxl }}>
-            <SectionTitle centered title="Track macros from a photo" subtitle="Analyse IA, corrections rapides, suivi clair. Simple. Fast. Accurate." />
+            <SectionTitle centered title="Track macros from a photo" subtitle="Analyse IA, corrections rapides, suivi clair. Simple. Fast. Honest." />
             <FoodMockup />
             <View style={{ alignItems: 'center', flexDirection: 'row', gap: spacing.sm, justifyContent: 'center' }}>
               {[0, 1, 2, 3].map((index) => (
@@ -636,7 +636,7 @@ export function OnboardingScreen({ userId, authEmail, onEmailSignUp, onOAuthSign
 
         {step === 'heightWeight' ? (
           <View style={{ gap: spacing.xl, padding: spacing.xl }}>
-            <SectionTitle centered title="Ta taille et ton poids" subtitle="On ajuste les calories et les macros avec precision." />
+            <SectionTitle centered title="Ta taille et ton poids" subtitle="On ajuste les calories et les macros avec des estimations prudentes." />
             <Field label="Taille" placeholder="175" unit="cm" value={height} onChangeText={setHeight} />
             <Field label="Poids actuel" placeholder="70.0" unit="kg" value={weight} onChangeText={setWeight} />
           </View>

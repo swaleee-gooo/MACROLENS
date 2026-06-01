@@ -10,6 +10,13 @@
 
 ---
 
+## Implementation Status - 2026-06-01
+
+- [x] Task 1: Repeatability scoring utility exists and is covered by tests.
+- [x] Task 2: Repeatability benchmark protocol exists and the live 10-case benchmark passed on `analyze-meal` version 15.
+- [x] Task 3: RevenueCat development-build plan has moved into the Commercial Launch V1 implementation; local entitlement architecture is implemented, while real App Store purchase validation remains external/TestFlight work.
+- [x] Task 4: Current local verification and live benchmark evidence are recorded in project status docs.
+
 ## File Structure
 
 - Create `supabase/functions/analyze-meal/repeatabilityMetrics.ts`: pure scoring for repeated macro snapshots.
@@ -27,7 +34,7 @@
 - Create: `supabase/functions/analyze-meal/repeatabilityMetrics.test.ts`
 - Create: `supabase/functions/analyze-meal/repeatabilityMetrics.ts`
 
-- [ ] **Step 1: Write failing tests**
+- [x] **Step 1: Write failing tests**
 
 Create `supabase/functions/analyze-meal/repeatabilityMetrics.test.ts` with tests for:
 
@@ -36,7 +43,7 @@ Create `supabase/functions/analyze-meal/repeatabilityMetrics.test.ts` with tests
 - failing calorie percent drift above 8 percent;
 - failing insufficient runs.
 
-- [ ] **Step 2: Run red test**
+- [x] **Step 2: Run red test**
 
 ```powershell
 cd C:\Users\idris\OneDrive\Documents\AppMobile\apps\mobile
@@ -45,7 +52,7 @@ npm test -- ../../supabase/functions/analyze-meal/repeatabilityMetrics.test.ts
 
 Expected: FAIL because `repeatabilityMetrics.ts` does not exist.
 
-- [ ] **Step 3: Implement utility**
+- [x] **Step 3: Implement utility**
 
 Create `supabase/functions/analyze-meal/repeatabilityMetrics.ts` exporting:
 
@@ -55,7 +62,7 @@ Create `supabase/functions/analyze-meal/repeatabilityMetrics.ts` exporting:
 - `RepeatabilityReport`;
 - `evaluateRepeatability`.
 
-- [ ] **Step 4: Run green test**
+- [x] **Step 4: Run green test**
 
 ```powershell
 cd C:\Users\idris\OneDrive\Documents\AppMobile\apps\mobile
@@ -71,7 +78,7 @@ Expected: PASS.
 **Files:**
 - Create: `docs/benchmarks/macrolens-repeatability-benchmark-v1.md`
 
-- [ ] **Step 1: Create benchmark document**
+- [x] **Step 1: Create benchmark document**
 
 Document:
 
@@ -81,7 +88,7 @@ Document:
 - priority cases, starting with poke bowl;
 - release gate.
 
-- [ ] **Step 2: Review protocol**
+- [x] **Step 2: Review protocol**
 
 Confirm the benchmark catches the user-reported failure: same photo drifting by 10 g protein.
 
@@ -95,11 +102,11 @@ Confirm the benchmark catches the user-reported failure: same photo drifting by 
 - Modify later: `apps/mobile/App.tsx`
 - Create later: `apps/mobile/src/payments/revenueCatEntitlements.ts`
 
-- [ ] **Step 1: Do not implement in Expo Go**
+- [x] **Step 1: Do not implement in Expo Go**
 
 Keep the current local entitlement gate for Expo Go only.
 
-- [ ] **Step 2: Prepare RevenueCat development-build plan**
+- [x] **Step 2: Prepare RevenueCat development-build plan**
 
 The later implementation must:
 
@@ -117,7 +124,7 @@ The later implementation must:
 **Files:**
 - Modify: `docs/superpowers/status/2026-05-23-macrolens-project-control.md`
 
-- [ ] **Step 1: Run full verification**
+- [x] **Step 1: Run full verification**
 
 ```powershell
 cd C:\Users\idris\OneDrive\Documents\AppMobile\apps\mobile
@@ -132,7 +139,7 @@ Expected:
 - TypeScript passes;
 - Expo dependencies are aligned.
 
-- [ ] **Step 2: Commit**
+- [x] **Step 2: Commit**
 
 ```powershell
 cd C:\Users\idris\OneDrive\Documents\AppMobile
@@ -147,4 +154,3 @@ git commit -m "feat: add trust release benchmark"
 - Spec coverage: repeatability, App Store monetization, compliance, and TestFlight readiness are represented.
 - Placeholder scan: no release gate relies on unspecified accuracy claims.
 - Scope check: real RevenueCat implementation is intentionally deferred to a development-build plan because Expo Go cannot validate real purchases.
-

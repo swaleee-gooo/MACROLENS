@@ -77,7 +77,7 @@ export async function analyzeMealWithOpenAI(imageUrl: string, openAiKey: string)
     },
     body: JSON.stringify({
       model: 'gpt-4.1-mini',
-      temperature: 0.1,
+      temperature: 0,
       input: [
         {
           role: 'user',
@@ -85,7 +85,7 @@ export async function analyzeMealWithOpenAI(imageUrl: string, openAiKey: string)
             {
               type: 'input_text',
               text:
-                'Analyze this image for MacroLens, a consumer macro tracker. First decide if the image contains a real edible meal, snack, packaged food, or drink. If no food is visible, return isFoodPhoto=false, a short nonFoodReason, empty items, mealCategory="unknown", portionSize="unknown", confidence="low", and uncertaintyReasons explaining that no food is visible. If food is visible, return isFoodPhoto=true and identify the meal category, portion size, visible ingredients, estimated grams, and hidden calorie risks. Do not try to sound exact. Be conservative about restaurant bowls, pasta, salads, burgers, sauces, oil, avocado, cheese, fries, nuts, and rice hidden under toppings. For poke bowls, explicitly consider hidden rice base, sauce, avocado, edamame, toppings, and bowl depth. The calories and macros you return are fallback estimates only; backend calibration will recompute final totals.',
+                'Analyze this image for MacroLens, a consumer macro tracker. For repeat scans of the exact same image, prefer the same meal category, portion size, ingredient names, and gram estimates unless the image clearly shows otherwise. First decide if the image contains a real edible meal, snack, packaged food, or drink. If no food is visible, return isFoodPhoto=false, a short nonFoodReason, empty items, mealCategory="unknown", portionSize="unknown", confidence="low", and uncertaintyReasons explaining that no food is visible. If food is visible, return isFoodPhoto=true and identify the meal category, portion size, visible ingredients, estimated grams, and hidden calorie risks. Do not try to sound exact. Be conservative about restaurant bowls, pasta, salads, burgers, sauces, oil, avocado, cheese, fries, nuts, and rice hidden under toppings. For poke bowls, explicitly consider hidden rice base, sauce, avocado, edamame, toppings, and bowl depth. The calories and macros you return are fallback estimates only; backend calibration will recompute final totals.',
             },
             {
               type: 'input_image',

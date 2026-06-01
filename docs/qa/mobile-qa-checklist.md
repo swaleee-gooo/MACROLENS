@@ -72,8 +72,8 @@ Scan the QR code with Expo Go.
 
 | ID | Severity | Device | Steps | Expected | Actual | Fix Needed |
 | --- | --- | --- | --- | --- | --- | --- |
-| QA-001 | P1 | Real phone, details pending | Open MacroLens in Expo Go | Expo Go loads the app for real-device QA | Expo Go client reports SDK 54 while the project uses Expo SDK 56, so real-device QA cannot proceed in that client | Update/reinstall Expo Go to an SDK 56-compatible version, or explicitly choose a project downgrade/dev-client path |
-| QA-002 | P3 | Real phone and browser | Analyze different food photos | Different photos should eventually produce different meals and macros in live AI mode | Every photo currently returns `Poulet, riz et legumes` with the same macros | Fixed for MVP clarity by adding a visible `Mode demo` banner on mock analysis results. Live AI remains a later iteration. |
+| QA-001 | P1 | Real phone, details pending | Open MacroLens in Expo Go | Expo Go loads the app for real-device QA | Resolved: project dependencies are now aligned to Expo SDK 54, matching the installed Expo Go client. | Keep verifying with `npx expo install --check` after dependency changes. |
+| QA-002 | P3 | Real phone and browser | Analyze different food photos | Different photos should produce different meals and macros in live remote mode | Resolved for local remote mode: Supabase/OpenAI analysis is live and calibrated; mock mode still shows `Mode demo` by design. | Retest multiple real photos on device before TestFlight. |
 
 Severity:
 
@@ -90,4 +90,4 @@ Decision:
 
 Notes:
 
-Project dependency check confirms the app is on Expo SDK 56. Web smoke testing works. Real-device testing confirms photo input, result screen, save, Timeline, corrections, and persistence. Browser QA confirms `Mode demo` visibility. The only remaining watch item is distinguishing camera and gallery as separate entry points in a later QA pass.
+Project dependency check confirms the app is on Expo SDK 54. Web smoke testing works. Real-device testing confirms photo input, result screen, save, Timeline, corrections, and persistence. Browser QA confirms `Mode demo` visibility in mock mode. The remaining watch items are distinguishing camera/gallery as separate entry points and retesting multiple real photos in remote mode on device.
