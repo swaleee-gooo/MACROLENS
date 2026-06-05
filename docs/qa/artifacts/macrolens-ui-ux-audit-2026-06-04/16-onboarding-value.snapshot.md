@@ -1,0 +1,45 @@
+- generic [ref=e4] [box=0,0,394,852]:
+  - generic [ref=e6] [box=0,0,378,740]:
+    - generic [ref=e8] [box=24,16,330,44]:
+      - generic [ref=e10] [cursor=pointer] [box=36,18,21,39]: <
+      - generic [ref=e11] [box=145,29,88,18]: MACROLENS
+    - generic [ref=e38] [box=0,92,378,522]:
+      - generic [ref=e39] [box=24,116,330,136]:
+        - generic [ref=e40] [box=24,116,330,80]: From photo to macros
+        - generic [ref=e41] [box=24,204,330,48]: 1. Take a photo 2. Get your macros 3. Improve and reach your goals
+      - generic [ref=e43] [box=41,293,297,195]:
+        - generic [ref=e52] [box=56,372,124,97]:
+          - generic [ref=e53] [box=68,385,98,24]: 510 kcal
+          - generic [ref=e54] [box=68,413,98,14]: 38g protein
+          - generic [ref=e55] [box=68,427,98,14]: 46g carbs
+          - generic [ref=e56] [box=68,442,98,14]: 16g fat
+        - generic [ref=e57] [box=197,293,140,195]:
+          - generic [ref=e58] [box=197,293,140,30]: 540 kcal
+          - generic [ref=e59] [box=197,334,140,43]:
+            - img [ref=e61] [box=203,348,17,17]
+            - generic [ref=e63] [box=237,334,100,43]:
+              - generic [ref=e64] [box=237,334,100,22]: Protein
+              - generic [ref=e65] [box=237,360,100,18]: 40g
+          - generic [ref=e66] [box=197,390,140,43]:
+            - img [ref=e68] [box=203,403,17,17]
+            - generic [ref=e70] [box=237,390,100,43]:
+              - generic [ref=e71] [box=237,390,100,22]: Carbs
+              - generic [ref=e72] [box=237,415,100,18]: 55g
+          - generic [ref=e73] [box=197,445,140,43]:
+            - img [ref=e75] [box=203,458,17,17]
+            - generic [ref=e77] [box=237,445,100,43]:
+              - generic [ref=e78] [box=237,445,100,22]: Fat
+              - generic [ref=e79] [box=237,470,100,18]: 16g
+      - generic [ref=e80] [box=24,529,330,62]:
+        - generic [ref=e82] [box=41,546,84,28]:
+          - img [ref=e84] [box=46,551,17,17]
+          - generic [ref=e87] [box=81,549,44,22]: Track
+        - generic [ref=e89] [box=170,546,92,28]:
+          - img [ref=e91] [box=175,551,17,17]
+          - generic [ref=e94] [box=210,549,52,22]: Adjust
+        - generic [ref=e96] [box=307,546,109,28]:
+          - img [ref=e98] [box=313,551,17,17]
+          - generic [ref=e101] [box=347,549,69,22]: Progress
+  - generic [active] [ref=e34] [cursor=pointer] [box=24,764,346,64]:
+    - generic [ref=e35] [box=126,784,106,24]: See my plan
+    - img [ref=e36] [box=244,784,24,24]

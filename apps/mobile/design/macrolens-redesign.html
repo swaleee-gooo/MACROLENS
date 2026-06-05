@@ -1,0 +1,817 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>MacroLens — Refonte UI/UX · Prototype complet</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* Hallmark · redesign · component: mobile-app-screens (full app) · genre: modern-minimal
+ * theme: custom "Clinical Trust" — paper oklch(98.6% .003 100) · accent oklch(57% .115 162) emerald · Space Grotesk + IBM Plex Mono
+ * pre-emit critique: P5 H4 E4 S5 R4 V4
+ */
+:root{
+  --paper:oklch(98.6% .003 100); --paper-2:oklch(96.6% .004 100); --paper-3:oklch(93.8% .005 100);
+  --ink:oklch(23% .013 255); --ink-2:oklch(36% .013 255); --muted:oklch(56% .012 255); --muted-2:oklch(68% .010 255);
+  --line:oklch(90.5% .006 100); --line-2:oklch(84% .008 100);
+  --accent:oklch(57% .115 162); --accent-ink:oklch(40% .10 162); --accent-wash:oklch(95% .03 162); --accent-line:oklch(86% .05 162);
+  --warn:oklch(70% .12 70); --warn-ink:oklch(46% .10 62); --warn-wash:oklch(95.5% .04 78); --warn-line:oklch(87% .06 78);
+  --danger:oklch(57% .16 25); --danger-ink:oklch(45% .14 25); --danger-wash:oklch(95% .04 25); --danger-line:oklch(87% .07 25);
+  --protein:oklch(62% .14 25); --protein-w:oklch(95% .035 25);
+  --carbs:oklch(72% .12 72); --carbs-w:oklch(95.5% .04 78);
+  --fat:oklch(60% .10 248); --fat-w:oklch(95% .03 248);
+  --fiber:oklch(57% .10 300); --fiber-w:oklch(95% .03 300);
+  --night:oklch(25% .008 255); --night-2:oklch(32% .010 255);
+  --font-display:'Space Grotesk',system-ui,sans-serif; --font-sans:'IBM Plex Sans',system-ui,sans-serif; --font-mono:'IBM Plex Mono',ui-monospace,monospace;
+  --r-lg:18px; --r-md:13px; --r-sm:9px; --r-pill:999px;
+  --s1:4px; --s2:8px; --s3:12px; --s4:16px; --s5:20px; --s6:24px; --s8:32px;
+  --shadow-card:0 1px 1px rgba(20,24,28,.03); --shadow-fab:0 8px 20px rgba(20,30,26,.22);
+  --ease-out:cubic-bezier(.2,.7,.3,1);
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0;overflow-x:clip}
+body{font-family:var(--font-sans);color:var(--ink);background:oklch(92.5% .004 100);
+  background-image:radial-gradient(1100px 520px at 50% -8%, oklch(95% .005 100) 0%, oklch(91% .004 100) 70%);min-height:100vh;-webkit-font-smoothing:antialiased}
+.num{font-family:var(--font-mono);font-feature-settings:"tnum" 1;font-variant-numeric:tabular-nums}
+.eyebrow{font-family:var(--font-mono);text-transform:uppercase;letter-spacing:.14em;font-size:10px;font-weight:500;color:var(--muted)}
+
+/* masthead */
+.mast{max-width:1320px;margin:0 auto;padding:38px 30px 0}
+.brand{display:flex;align-items:center;gap:12px}
+.brand .seal{width:30px;height:30px;color:var(--accent)}
+.brand .wm{font-family:var(--font-display);font-weight:700;font-size:23px;letter-spacing:-.02em}
+.brand .ver{margin-left:auto;color:var(--muted)}
+.hr{height:1px;background:var(--line-2);margin:18px auto;width:calc(100% - 60px);max-width:1260px}
+.mast .lede{color:var(--ink-2);font-size:14.5px;line-height:1.55;max-width:760px;margin:0}
+.mast .lede b{color:var(--ink);font-weight:600}
+.legend{display:flex;flex-wrap:wrap;gap:9px;margin-top:20px}
+.legend a{text-decoration:none;color:var(--ink-2);font-family:var(--font-mono);font-size:11px;font-weight:500;letter-spacing:.04em;
+  background:var(--paper);border:1px solid var(--line-2);border-radius:8px;padding:7px 12px;cursor:pointer;transition:.16s var(--ease-out);display:inline-flex;gap:8px;align-items:center}
+.legend a .k{color:var(--accent-ink);font-weight:600}
+.legend a:hover{border-color:var(--accent);color:var(--ink);transform:translateY(-1px)}
+
+/* board */
+.board{max-width:1320px;margin:0 auto;padding:14px 30px 90px;display:flex;flex-wrap:wrap;gap:48px 40px;justify-content:flex-start;align-items:flex-start}
+.section-head{width:100%;display:flex;align-items:center;gap:16px;margin:34px 0 -6px}
+.section-head .badge{display:inline-flex;width:26px;height:26px;align-items:center;justify-content:center;background:var(--ink);color:var(--paper);border-radius:7px;font-family:var(--font-mono);font-size:12px;font-weight:600}
+.section-head .t{font-family:var(--font-display);font-weight:600;font-size:19px;letter-spacing:-.01em;white-space:nowrap}
+.section-head .ln{flex:1;height:1px;background:var(--line-2)}
+.fw{display:flex;flex-direction:column;align-items:center;gap:13px}
+.flabel{display:flex;align-items:center;gap:9px;font-family:var(--font-mono);font-size:11px;font-weight:500;color:var(--ink-2);letter-spacing:.02em;max-width:330px;text-align:center}
+.flabel .n{display:inline-flex;width:21px;height:21px;align-items:center;justify-content:center;background:var(--paper-3);color:var(--ink-2);border:1px solid var(--line-2);border-radius:6px;font-size:10.5px;font-weight:600}
+
+/* phone */
+.phone{width:330px;height:716px;background:var(--paper);border-radius:42px;position:relative;overflow:hidden;
+  box-shadow:0 0 0 1px var(--line-2), 0 2px 4px rgba(20,24,28,.05), 0 26px 56px rgba(20,28,40,.15);transition:transform .35s var(--ease-out), box-shadow .35s var(--ease-out)}
+.phone.pulse{transform:translateY(-7px);box-shadow:0 0 0 2px var(--accent), 0 30px 70px rgba(40,120,90,.30)}
+.scroll{position:absolute;inset:0;display:flex;flex-direction:column}
+.statusbar{height:46px;flex:0 0 46px;display:flex;align-items:flex-end;justify-content:space-between;padding:0 24px 7px;z-index:5;color:var(--ink)}
+.statusbar .time{font-family:var(--font-mono);font-size:13px;font-weight:500}
+.statusbar.light,.statusbar.light .time{color:#fff}
+.sb-r{display:flex;align-items:center;gap:6px}
+.home-ind{position:absolute;left:50%;bottom:7px;transform:translateX(-50%);width:116px;height:4px;border-radius:3px;background:var(--ink);opacity:.8;z-index:30}
+.home-ind.light{background:#fff;opacity:.9}
+.body{flex:1 1 auto;overflow-y:auto;padding:0 var(--s5) var(--s6);scrollbar-width:none}
+.body::-webkit-scrollbar{display:none}
+.body.flush{padding:0}
+
+/* primitives */
+.scr-title{font-family:var(--font-display);font-size:26px;font-weight:600;letter-spacing:-.025em;margin:0;line-height:1.08}
+.sub{color:var(--muted);font-size:13px;line-height:1.5}
+.row{display:flex;align-items:center}.between{justify-content:space-between}
+.card{background:var(--paper);border:1px solid var(--line);border-radius:var(--r-lg);box-shadow:var(--shadow-card)}
+.rule{height:1px;background:var(--line)}
+.muted{color:var(--muted)}.tiny{font-size:11px}
+.btn{display:flex;align-items:center;justify-content:center;gap:8px;border:none;cursor:pointer;font-family:var(--font-sans);font-weight:600;font-size:15px;border-radius:var(--r-md);width:100%;padding:16px;transition:.15s var(--ease-out)}
+.btn-dark{background:var(--ink);color:var(--paper)}.btn-dark:active{transform:translateY(1px)}
+.btn-accent{background:var(--accent);color:#fff}
+.btn-ghost{background:var(--paper-2);color:var(--ink);border:1px solid var(--line-2)}
+.btn-danger{background:var(--danger-wash);color:var(--danger-ink);border:1px solid var(--danger-line)}
+.btn svg{width:18px;height:18px}
+.clickable{cursor:pointer}
+.proof{display:inline-flex;align-items:center;gap:6px;font-family:var(--font-mono);text-transform:uppercase;letter-spacing:.08em;font-size:10px;font-weight:500;padding:5px 9px;border-radius:7px;background:var(--accent-wash);color:var(--accent-ink);border:1px solid var(--accent-line)}
+.proof svg{width:12px;height:12px}
+.proof.est{background:var(--warn-wash);color:var(--warn-ink);border-color:var(--warn-line)}
+.mbar{height:8px;border-radius:var(--r-pill);overflow:hidden;display:flex;background:var(--paper-3);gap:2px}
+.mbar span{height:100%}
+.mlegend{display:flex;gap:16px;margin-top:11px}.mlegend .it{flex:1}.mlegend .dot{width:7px;height:7px;border-radius:2px}
+.tol{display:flex;align-items:center;gap:9px}
+.tol-cap{font-family:var(--font-mono);font-size:11px;color:var(--muted);font-weight:500}
+.tol-track{flex:1;height:14px;position:relative;display:flex;align-items:center}
+.tol-track::before{content:"";position:absolute;left:0;right:0;height:1px;background:var(--line-2)}
+.tol-track .end{position:absolute;top:50%;transform:translateY(-50%);width:1.5px;height:9px;background:var(--line-2)}
+.tol-fill{position:absolute;height:2px;background:var(--accent);left:26%;right:26%}
+.tol-dot{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%) rotate(45deg);width:7px;height:7px;background:var(--accent);box-shadow:0 0 0 2.5px var(--paper)}
+.seg{display:flex;border:1px solid var(--line-2);border-radius:11px;padding:3px;gap:2px;background:var(--paper-2)}
+.seg button{flex:1;border:none;background:transparent;font-family:var(--font-mono);font-weight:500;font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);padding:9px 4px;border-radius:8px;cursor:pointer}
+.seg button.on{background:var(--paper);color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.06)}
+.tabbar{position:absolute;left:0;right:0;bottom:0;height:84px;background:color-mix(in oklch,var(--paper) 88%,transparent);backdrop-filter:blur(16px);border-top:1px solid var(--line);display:flex;align-items:flex-start;justify-content:space-around;padding:10px 14px 0;z-index:20}
+.tab{display:flex;flex-direction:column;align-items:center;gap:5px;color:var(--muted-2);cursor:pointer;width:50px;font-family:var(--font-mono);font-size:8.5px;text-transform:uppercase;letter-spacing:.05em;font-weight:500}
+.tab.on{color:var(--ink)}.tab svg{width:22px;height:22px}
+.fab{position:absolute;left:50%;top:-23px;transform:translateX(-50%);width:58px;height:58px;border-radius:50%;background:var(--ink);display:flex;align-items:center;justify-content:center;box-shadow:var(--shadow-fab);cursor:pointer;border:4px solid var(--paper)}
+.fab:active{transform:translateX(-50%) translateY(1px)}
+.food{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;flex:0 0 44px;border:1px solid rgba(20,24,28,.05)}
+.food svg{width:23px;height:23px}
+.prog{height:4px;background:var(--paper-3);border-radius:var(--r-pill);overflow:hidden}.prog>i{display:block;height:100%;background:var(--ink);border-radius:var(--r-pill)}
+.opt{display:flex;align-items:center;gap:14px;border:1px solid var(--line-2);border-radius:var(--r-md);padding:15px;font-weight:600;font-size:14.5px;cursor:pointer;background:var(--paper);transition:.15s var(--ease-out)}
+.opt.on{border-color:var(--ink);box-shadow:inset 3px 0 0 var(--accent)}
+.opt .ic{width:34px;height:34px;border-radius:9px;background:var(--paper-2);display:flex;align-items:center;justify-content:center;color:var(--ink-2)}.opt .ic svg{width:19px;height:19px}
+.opt-chk{width:18px;height:18px;color:var(--line-2);flex:0 0 18px}.opt.on .opt-chk{color:var(--accent)}
+/* settings + forms */
+.srow{display:flex;align-items:center;gap:13px;padding:13px 14px}
+.srow-ic{width:32px;height:32px;border-radius:9px;background:var(--paper-2);display:flex;align-items:center;justify-content:center;color:var(--ink-2);flex:0 0 32px}.srow-ic svg{width:17px;height:17px}
+.srow-label{font-weight:500;font-size:14px;flex:1}.srow-val{color:var(--muted);font-size:12.5px}.srow-chev{width:16px;height:16px;color:var(--muted-2);flex:0 0 16px}
+.switch{width:40px;height:24px;border-radius:999px;background:var(--line-2);position:relative;transition:.18s var(--ease-out);flex:0 0 40px;cursor:pointer}
+.switch i{position:absolute;top:2px;left:2px;width:20px;height:20px;border-radius:50%;background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.2);transition:.18s var(--ease-out)}
+.switch.on{background:var(--accent)}.switch.on i{left:18px}
+.fld{border:1px solid var(--line-2);border-radius:var(--r-md);padding:11px 13px;background:var(--paper)}
+.fld-val{display:flex;align-items:baseline;gap:4px;margin-top:5px;font-weight:600;font-size:16px}.fld-unit{font-family:var(--font-mono);font-size:11px;color:var(--muted)}
+.stepper{display:flex;align-items:center;justify-content:space-between;border:1px solid var(--line-2);border-radius:var(--r-md);padding:6px;background:var(--paper)}
+.step{width:38px;height:38px;border-radius:9px;border:none;background:var(--paper-2);color:var(--ink);cursor:pointer;display:flex;align-items:center;justify-content:center}.step svg{width:18px;height:18px}
+.step-val{font-family:var(--font-mono);font-weight:600;font-size:20px}.step-unit{font-size:12px;color:var(--muted);font-weight:400}
+.pick{cursor:pointer}
+.daychip{display:flex;flex-direction:column;align-items:center;gap:4px;padding:8px 0;border-radius:11px;flex:1;border:1px solid transparent;cursor:pointer}
+.daychip.on{background:var(--ink);color:var(--paper)}
+.daychip .d{font-family:var(--font-mono);font-size:9px;text-transform:uppercase;letter-spacing:.05em;opacity:.7}
+.daychip .n{font-family:var(--font-mono);font-weight:600;font-size:15px}
+.tabpill{flex:1;text-align:center;padding:9px;border-radius:9px;font-weight:600;font-size:13px;color:var(--muted);cursor:pointer}
+.tabpill.on{background:var(--paper);color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.06)}
+.toast{position:absolute;left:50%;top:58px;transform:translateX(-50%);background:var(--ink);color:var(--paper);font-family:var(--font-mono);font-size:11.5px;letter-spacing:.02em;padding:11px 15px;border-radius:11px;display:flex;gap:8px;align-items:center;box-shadow:0 12px 28px rgba(0,0,0,.28);z-index:40;opacity:0;pointer-events:none;transition:.3s var(--ease-out);white-space:nowrap}
+.toast.show{opacity:1;top:68px}.toast svg{width:14px;height:14px;color:var(--accent)}
+.scan-scrim{position:absolute;inset:0;background:rgba(8,10,12,.5);opacity:0;pointer-events:none;transition:.25s var(--ease-out);z-index:25}
+.scan-scrim.open{opacity:1;pointer-events:auto}
+.scan-sheet{position:absolute;left:0;right:0;bottom:0;background:var(--paper);border-radius:22px 22px 0 0;padding:10px 16px 26px;transform:translateY(115%);transition:transform .3s var(--ease-out);z-index:26;box-shadow:0 -10px 30px rgba(0,0,0,.22)}
+.scan-sheet.open{transform:translateY(0)}
+.sheet-grab{width:40px;height:4px;border-radius:3px;background:var(--line-2);margin:2px auto 10px}
+@media (prefers-reduced-motion: reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<header>
+  <div class="mast">
+    <div class="brand"><span class="seal" id="brandseal"></span><span class="wm">MacroLens</span><span class="ver eyebrow">Refonte · Prototype complet · v2</span></div>
+  </div>
+  <div class="hr"></div>
+  <div class="mast" style="padding-top:0">
+    <p class="lede">Système <b>« Clinical Trust »</b> appliqué à <b>toute l’app</b> — 44 écrans. Funnel d’onboarding complet façon Cal AI, puis <b>paywall hard</b> (timeline d’essai 7 jours), et la <b>connexion en tout dernier</b> (ordre recommandé par RevenueCat). Space Grotesk + IBM Plex Mono, accent émeraude unique, sceau <b>MetaboProof</b> + bandeau de tolérance comme signatures.</p>
+    <nav class="legend" id="legend"></nav>
+  </div>
+</header>
+<div class="board" id="board"></div>
+
+<script>
+/* ============ ICONS ============ */
+const stroke=(p,w='1.75')=>`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="${w}" stroke-linecap="round" stroke-linejoin="round">${p}</svg>`;
+const I={
+  home:stroke('<path d="M3 10.5 12 3l9 7.5"/><path d="M5.5 9.5V20h13V9.5"/>'),
+  list:stroke('<path d="M4 6h16M4 12h16M4 18h11"/>'),
+  chart:stroke('<path d="M4 19V5M4 19h16"/><path d="M8 16l3.5-4 3 2.2L20 8"/>'),
+  user:stroke('<circle cx="12" cy="8" r="3.5"/><path d="M5 20c0-3.6 3.1-5.5 7-5.5S19 16.4 19 20"/>'),
+  scan:stroke('<path d="M4 8V6a2 2 0 0 1 2-2h2M16 4h2a2 2 0 0 1 2 2v2M20 16v2a2 2 0 0 1-2 2h-2M8 20H6a2 2 0 0 1-2-2v-2"/><circle cx="12" cy="12" r="2.6"/>'),
+  plus:stroke('<path d="M12 5v14M5 12h14"/>','2'),
+  minus:stroke('<path d="M5 12h14"/>','2'),
+  chevR:stroke('<path d="m9 6 6 6-6 6"/>','2'),
+  chevD:stroke('<path d="m6 9 6 6 6-6"/>','2'),
+  back:stroke('<path d="m15 6-6 6 6 6"/>','2'),
+  close:stroke('<path d="M6 6l12 12M18 6 6 18"/>','2'),
+  check:stroke('<path d="M5 12l4 4 10-10"/>','2.4'),
+  flash:stroke('<path d="M13 3 5 13h6l-1 8 8-10h-6l1-8Z"/>'),
+  gallery:stroke('<rect x="4" y="5" width="16" height="14" rx="2.4"/><circle cx="9" cy="10" r="1.6"/><path d="m5 17 5-4 4 3 3-2.5 3 2.5"/>'),
+  edit:stroke('<path d="M14 5l5 5M4 20l1-4L16 5l3 3L8 19l-4 1Z"/>'),
+  seal:stroke('<path d="M12 2.5 19 5v6c0 4.8-3.3 8.1-7 10-3.7-1.9-7-5.2-7-10V5l7-2.5Z"/><path d="m8.7 11.8 2.3 2.3 4.4-4.6"/>'),
+  flame:stroke('<path d="M12 3c.5 3-2 4-2 6.5 0 1 .7 1.8 1.6 1.8 1.2 0 1.7-1 1.6-2.2 1.6 1 2.7 2.7 2.7 4.7A5.5 5.5 0 0 1 6.4 14c0-2 1-3.6 2.3-4.8C9.9 7.7 11 6 12 3Z"/>'),
+  thumbUp:stroke('<path d="M7 11v8H4v-8h3Zm0 0 4-7c1.3 0 2 .9 2 2l-.6 3H18c1.1 0 1.9 1 1.6 2l-1.3 5c-.2.9-1 1.5-1.9 1.5H7"/>'),
+  thumbDn:stroke('<path d="M17 13V5h3v8h-3Zm0 0-4 7c-1.3 0-2-.9-2-2l.6-3H6c-1.1 0-1.9-1-1.6-2l1.3-5C5.9 4.6 6.7 4 7.6 4H17"/>'),
+  trendDn:stroke('<path d="M4 7l6 6 3.5-3.5L20 16"/><path d="M20 11v5h-5"/>'),
+  trendUp:stroke('<path d="M4 17l6-6 3.5 3.5L20 8"/><path d="M20 13V8h-5"/>'),
+  barsUp:stroke('<path d="M6 20v-5M12 20V8M18 20v-9"/>','2'),
+  balance:stroke('<path d="M5 10h14M5 14h14"/>','2'),
+  search:stroke('<circle cx="11" cy="11" r="6"/><path d="m20 20-3.5-3.5"/>'),
+  weigh:stroke('<path d="M5 9h14l-1.5 10H6.5L5 9Z"/><path d="M9 9a3 3 0 0 1 6 0"/>'),
+  scale:stroke('<path d="M12 4v2M5 7h14l-2.5 4.5a4.5 4.5 0 0 1-9 0L5 7Z"/><path d="M9 20h6M12 6v14"/>'),
+  gear:stroke('<circle cx="12" cy="12" r="3"/><path d="M12 3v2.5M12 18.5V21M3 12h2.5M18.5 12H21M5.6 5.6l1.8 1.8M16.6 16.6l1.8 1.8M18.4 5.6l-1.8 1.8M7.4 16.6l-1.8 1.8"/>'),
+  bell:stroke('<path d="M6 9a6 6 0 0 1 12 0c0 5 2 6 2 6H4s2-1 2-6Z"/><path d="M10 20a2 2 0 0 0 4 0"/>'),
+  heart:stroke('<path d="M12 20S4 15 4 9.5A4.5 4.5 0 0 1 12 7a4.5 4.5 0 0 1 8 2.5C20 15 12 20 12 20Z"/>'),
+  mail:stroke('<rect x="3" y="5" width="18" height="14" rx="2.4"/><path d="m4 7 8 6 8-6"/>'),
+  key:stroke('<circle cx="8" cy="14" r="4"/><path d="m11 11 8-8M16 6l2 2M14 8l2 2"/>'),
+  trash:stroke('<path d="M5 7h14M9 7V5h6v2M6 7l1 13h10l1-13"/>'),
+  download:stroke('<path d="M12 4v11M8 11l4 4 4-4M5 20h14"/>'),
+  logout:stroke('<path d="M14 4h4a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1h-4M10 16l-4-4 4-4M6 12h10"/>'),
+  target:stroke('<circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="4"/><circle cx="12" cy="12" r="1" fill="currentColor"/>'),
+  ruler:stroke('<rect x="3" y="8" width="18" height="8" rx="1.5"/><path d="M7 8v3M11 8v4M15 8v3M19 8v4"/>'),
+  cal:stroke('<rect x="4" y="5" width="16" height="16" rx="2.4"/><path d="M4 9h16M8 3v4M16 3v4"/>'),
+  clock:stroke('<circle cx="12" cy="12" r="8"/><path d="M12 8v4l3 2"/>'),
+  alert:stroke('<path d="M12 4 3 19h18L12 4Z"/><path d="M12 10v4M12 17v.5"/>'),
+  info:stroke('<circle cx="12" cy="12" r="8"/><path d="M12 11v5M12 8v.5"/>'),
+  refresh:stroke('<path d="M4 10a8 8 0 0 1 13-3l3 2M20 14a8 8 0 0 1-13 3l-3-2"/><path d="M20 5v4h-4M4 19v-4h4"/>'),
+  share:stroke('<circle cx="6" cy="12" r="2.5"/><circle cx="18" cy="6" r="2.5"/><circle cx="18" cy="18" r="2.5"/><path d="m8.2 10.8 7.6-3.6M8.2 13.2l7.6 3.6"/>'),
+  star:stroke('<path d="M12 4l2.4 5 5.6.6-4.2 3.8 1.2 5.6L12 16.8 6.9 19.6 8.1 14 3.9 10.2 9.6 9.6 12 4Z"/>'),
+  card:stroke('<rect x="3" y="6" width="18" height="12" rx="2.4"/><path d="M3 10h18M7 15h4"/>'),
+  sliders:stroke('<path d="M5 21V14M5 10V3M12 21v-9M12 8V3M19 21v-5M19 12V3"/><path d="M3 14h4M10 8h4M17 16h4"/>'),
+  doc:stroke('<path d="M7 3h7l4 4v14H7V3Z"/><path d="M14 3v4h4M9 12h6M9 16h6"/>'),
+  life:stroke('<circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3.2"/><path d="m6.3 6.3 3.4 3.4M14.3 14.3l3.4 3.4M17.7 6.3l-3.4 3.4M9.7 14.3l-3.4 3.4"/>'),
+  dumbbell:stroke('<path d="M4 9v6M7 7v10M17 7v10M20 9v6M7 12h10"/>'),
+  sparkle:stroke('<path d="M12 3l1.6 5.4L19 10l-5.4 1.6L12 17l-1.6-5.4L5 10l5.4-1.6L12 3Z"/>'),
+  award:stroke('<circle cx="12" cy="9" r="5"/><path d="M9 13.5 8 21l4-2 4 2-1-7.5"/>'),
+  camOff:stroke('<path d="M4 7h3l1.5-2h2M21 7v10M3 3l18 18M9.5 9.5a3 3 0 0 0 4.2 4.2"/><path d="M5 7v11a1 1 0 0 0 1 1h11"/>'),
+  pencilLine:stroke('<path d="M14 5l5 5M4 20l1-4L16 5l3 3L8 19l-4 1Z"/>'),
+  apple:`<svg viewBox="0 0 24 24" fill="currentColor"><path d="M16.3 12.6c0-2.3 1.9-3.4 2-3.5-1.1-1.6-2.8-1.8-3.4-1.8-1.4-.1-2.8.8-3.5.8-.7 0-1.8-.8-3-.8-1.5 0-2.9.9-3.7 2.3-1.6 2.7-.4 6.7 1.1 8.9.7 1.1 1.6 2.3 2.7 2.2 1.1 0 1.5-.7 2.8-.7 1.3 0 1.6.7 2.8.7 1.2 0 1.9-1.1 2.6-2.1.8-1.2 1.2-2.3 1.2-2.4-.1 0-2.3-.9-2.3-3.5Zm-2.3-6.4c.6-.7 1-1.7.9-2.7-.9 0-1.9.6-2.5 1.3-.5.6-1 1.6-.9 2.6 1 .1 2-.5 2.5-1.2Z"/></svg>`,
+  google:`<svg viewBox="0 0 24 24"><path fill="#4285F4" d="M21.6 12.2c0-.6-.1-1.2-.2-1.8H12v3.4h5.4a4.6 4.6 0 0 1-2 3v2.5h3.2c1.9-1.7 3-4.3 3-7.1Z"/><path fill="#34A853" d="M12 22c2.7 0 5-.9 6.6-2.4l-3.2-2.5c-.9.6-2 .9-3.4.9-2.6 0-4.8-1.7-5.6-4.1H3.1v2.6A10 10 0 0 0 12 22Z"/><path fill="#FBBC05" d="M6.4 13.9a6 6 0 0 1 0-3.8V7.5H3.1a10 10 0 0 0 0 9l3.3-2.6Z"/><path fill="#EA4335" d="M12 6.1c1.5 0 2.8.5 3.8 1.5l2.8-2.8A10 10 0 0 0 3.1 7.5l3.3 2.6C7.2 7.8 9.4 6.1 12 6.1Z"/></svg>`,
+};
+const F={
+  egg:stroke('<circle cx="12" cy="12" r="7.5"/><circle cx="12" cy="12" r="3"/>'),
+  bowl:stroke('<path d="M3.5 11h17"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0"/><path d="M9.5 7.2c0-1 .7-1.8 1.4-1.8M13.2 6.6c0-1 .7-1.6 1.3-1.6"/>'),
+  leaf:stroke('<path d="M5 13.5C5 8.5 9.5 5.5 19 5.5c0 9-4.8 12-10 12a4 4 0 0 1-4-4Z"/><path d="M12.5 10.5c-2 1-3.2 3-3.2 5.2"/>'),
+  bar:stroke('<rect x="4.5" y="8" width="15" height="8" rx="2.2"/><path d="M9 8v8M13 8v8M17 8v8"/>'),
+  barcode:stroke('<path d="M5 6v12M8 6v12M11 6v12M15 6v12M18 6v12M21 6v12"/>','1.5'),
+};
+const foodTile=(icon,bg,fg,sz=44)=>`<div class="food" style="background:${bg};color:${fg};width:${sz}px;height:${sz}px;flex:0 0 ${sz}px">${F[icon]}</div>`;
+
+const SB=(light=false)=>`<div class="statusbar ${light?'light':''}"><span class="time">9:41</span><span class="sb-r">
+  <svg width="17" height="11" viewBox="0 0 17 11"><g fill="currentColor"><rect x="0" y="6.5" width="2.6" height="4.5" rx="1"/><rect x="4.6" y="4" width="2.6" height="7" rx="1"/><rect x="9.2" y="2" width="2.6" height="9" rx="1"/><rect x="13.8" y="0" width="2.6" height="11" rx="1"/></g></svg>
+  <svg width="16" height="11" viewBox="0 0 16 11" fill="currentColor"><path d="M8 1.8c2.4 0 4.6.9 6.3 2.5l1.1-1.2C14.4.9 11.4 0 8 0S1.6.9.6 3.1l1.1 1.2C3.4 2.7 5.6 1.8 8 1.8Z"/><path d="M8 5c1.5 0 2.9.6 3.9 1.6l1.1-1.2C11.7 4 9.9 3.3 8 3.3s-3.7.7-5 2.1l1.1 1.2C5.1 5.6 6.5 5 8 5Z"/><circle cx="8" cy="9.2" r="1.5"/></svg>
+  <svg width="25" height="12" viewBox="0 0 25 12"><rect x="0.5" y="0.5" width="20" height="11" rx="3" fill="none" stroke="currentColor" opacity=".4"/><rect x="2" y="2" width="15" height="8" rx="1.8" fill="currentColor"/><rect x="22" y="3.5" width="2" height="5" rx="1" fill="currentColor" opacity=".5"/></svg>
+</span></div>`;
+const TABBAR=(a)=>`<div class="tabbar">
+  <div class="tab ${a==='home'?'on':''}" data-goto="s-home">${I.home}Accueil</div>
+  <div class="tab ${a==='timeline'?'on':''}" data-goto="s-timeline">${I.list}Suivi</div>
+  <div style="width:50px"></div>
+  <div class="tab ${a==='progress'?'on':''}" data-goto="s-today">${I.chart}Progrès</div>
+  <div class="tab ${a==='profile'?'on':''}" data-goto="s-profile">${I.user}Profil</div>
+  <div class="fab" data-goto="s-scan"><span style="width:24px;height:24px;color:var(--paper);display:flex">${I.scan}</span></div>
+</div>`;
+const ring=(pct,size,sw,color,inner='')=>{const r=(size/2)-sw/2,c=2*Math.PI*r,off=c*(1-pct);
+  return `<div style="position:relative;width:${size}px;height:${size}px"><svg width="${size}" height="${size}" style="transform:rotate(-90deg)"><circle cx="${size/2}" cy="${size/2}" r="${r}" fill="none" stroke="var(--paper-3)" stroke-width="${sw}"/><circle cx="${size/2}" cy="${size/2}" r="${r}" fill="none" stroke="${color}" stroke-width="${sw}" stroke-linecap="round" stroke-dasharray="${c}" stroke-dashoffset="${off}"/></svg><div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center">${inner}</div></div>`;};
+const tol=(lo,hi)=>`<div class="tol"><span class="tol-cap num">${lo}</span><div class="tol-track"><span class="end" style="left:0"></span><span class="end" style="right:0"></span><i class="tol-fill"></i><b class="tol-dot"></b></div><span class="tol-cap num">${hi}</span></div>`;
+const pushHeader=(title,backTo,right='')=>`<div class="row between" style="padding:4px 0 16px"><span class="clickable" data-goto="${backTo}" style="width:30px;height:30px;display:flex;align-items:center;justify-content:center;margin-left:-6px;color:var(--ink-2)">${I.back}</span><div style="font-family:var(--font-display);font-weight:600;font-size:16px;letter-spacing:-.01em">${title}</div><div style="width:30px;display:flex;justify-content:flex-end;color:var(--ink-2)">${right}</div></div>`;
+const sGroup=(label,rows)=>`${label?`<div class="eyebrow" style="margin:22px 4px 10px">${label}</div>`:''}<div class="card" style="overflow:hidden">${rows.map((r,i)=>`${i?'<div class="rule" style="margin:0 14px"></div>':''}${r}`).join('')}</div>`;
+const sRow=(icon,label,o={})=>`<div class="srow ${o.goto?'clickable':''}" ${o.goto?`data-goto="${o.goto}"`:''}><span class="srow-ic" style="${o.danger?'color:var(--danger);background:var(--danger-wash)':''}">${icon}</span><span class="srow-label" style="${o.danger?'color:var(--danger-ink)':''}">${label}</span>${o.value?`<span class="srow-val num">${o.value}</span>`:''}${o.toggle!==undefined?`<span class="switch ${o.toggle?'on':''}"><i></i></span>`:(o.goto?`<span class="srow-chev">${I.chevR}</span>`:'')}</div>`;
+const fld=(label,value,unit='')=>`<div class="fld"><div class="eyebrow">${label}</div><div class="fld-val"><span class="num">${value}</span>${unit?`<span class="fld-unit">${unit}</span>`:''}</div></div>`;
+const funnelStep=(o)=>`${SB()}
+  <div class="body">
+    <div class="row between" style="margin:6px 0 22px"><span class="clickable" data-goto="${o.back}" style="width:24px;height:24px;color:var(--ink-2)">${I.back}</span><div class="prog" style="flex:1;margin:0 14px"><i style="width:${o.prog}%"></i></div><span class="num tiny muted">${o.step}</span></div>
+    ${o.kicker?`<div class="eyebrow" style="margin-bottom:10px">${o.kicker}</div>`:''}
+    <h2 class="scr-title">${o.title}</h2>
+    ${o.sub?`<p class="sub" style="margin:10px 0 22px">${o.sub}</p>`:'<div style="height:18px"></div>'}
+    ${o.content}
+  </div>
+  <div style="padding:12px 20px 28px"><button class="btn btn-dark clickable" data-goto="${o.next}">${o.nextLabel||'Continuer'} ${I.chevR}</button></div>
+  <div class="home-ind"></div>`;
+
+const SCREENS={};
+
+/* ===== A · ONBOARDING & COMPTE ===== */
+SCREENS['s-welcome']={label:'Bienvenue', html:`${SB()}
+  <div class="body" style="display:flex;flex-direction:column;height:100%">
+    <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center">
+      <div style="width:64px;height:64px;color:var(--accent)">${I.seal}</div>
+      <div class="eyebrow" style="margin-top:22px">Preuve · Précision · Progrès</div>
+      <h2 class="scr-title" style="font-size:30px;margin-top:14px;line-height:1.05">Vois ton repas.<br/>Connais tes macros.</h2>
+      <p class="sub" style="margin-top:14px;max-width:250px">Le suivi nutritionnel qui te dit à quel point chaque estimation est fiable.</p>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:10px;padding-bottom:24px">
+      <button class="btn btn-dark clickable" data-goto="s-source">Commencer</button>
+      <button class="btn btn-ghost clickable" data-goto="s-auth">J’ai déjà un compte</button>
+    </div>
+  </div>
+  <div class="home-ind"></div>`};
+
+SCREENS['s-source']={label:'Acquisition',html:funnelStep({step:'01 / 12',prog:8,back:'s-welcome',next:'s-onb1',kicker:'Bienvenue',title:'Où as-tu entendu<br/>parler de nous&nbsp;?',sub:'',content:`<div class="optgroup" style="display:flex;flex-direction:column;gap:10px">${['Instagram','TikTok','Un ami ou un proche','App Store','YouTube','Autre'].map((t,i)=>`<div class="opt ${i===0?'on':''}"><span style="flex:1">${t}</span><span class="opt-chk">${I.check}</span></div>`).join('')}</div>`})};
+
+SCREENS['s-onb1']={label:'Objectif',html:funnelStep({step:'02 / 12',prog:17,back:'s-source',next:'s-sex',kicker:'Objectif',title:'Quel est ton<br/>objectif&nbsp;?',sub:'On en déduit tes cibles caloriques et ta marge de précision visée.',content:`<div class="optgroup" style="display:flex;flex-direction:column;gap:11px">
+      <div class="opt on"><div class="ic">${I.trendDn}</div><div><div>Perdre de la graisse</div><div class="muted tiny" style="font-weight:400;margin-top:2px">Déficit maîtrisé, sans frustration</div></div></div>
+      <div class="opt"><div class="ic">${I.barsUp}</div><div><div>Prendre du muscle</div><div class="muted tiny" style="font-weight:400;margin-top:2px">Surplus léger, protéines hautes</div></div></div>
+      <div class="opt"><div class="ic">${I.balance}</div><div><div>Maintenir mon poids</div><div class="muted tiny" style="font-weight:400;margin-top:2px">Équilibre et régularité</div></div></div>
+      <div class="opt"><div class="ic">${I.search}</div><div><div>Comprendre ce que je mange</div><div class="muted tiny" style="font-weight:400;margin-top:2px">Zéro pression, juste de la clarté</div></div></div>
+    </div>`})};
+
+SCREENS['s-sex']={label:'Sexe',html:funnelStep({step:'03 / 12',prog:25,back:'s-onb1',next:'s-body',kicker:'Profil',title:'Tu es…&nbsp;?',sub:'Sert au calcul de ton métabolisme de base.',content:`<div class="optgroup" style="display:flex;flex-direction:column;gap:11px">
+      <div class="opt on"><div class="ic">${I.user}</div><span style="flex:1">Homme</span><span class="opt-chk">${I.check}</span></div>
+      <div class="opt"><div class="ic">${I.user}</div><span style="flex:1">Femme</span><span class="opt-chk">${I.check}</span></div>
+      <div class="opt"><div class="ic">${I.user}</div><span style="flex:1">Autre / préfère ne pas dire</span><span class="opt-chk">${I.check}</span></div>
+    </div>`})};
+
+SCREENS['s-body']={label:'Mensurations',html:funnelStep({step:'04 / 12',prog:33,back:'s-sex',next:'s-targetw',kicker:'Profil',title:'Tes mensurations',sub:'Âge, taille et poids pour un besoin calorique fiable.',content:`<div style="display:flex;gap:11px;margin-bottom:11px">${fld('Âge','27','ans')}${fld('Taille','178','cm')}</div><div>${fld('Poids actuel','74','kg')}</div>`})};
+
+SCREENS['s-targetw']={label:'Poids cible',html:funnelStep({step:'05 / 12',prog:42,back:'s-body',next:'s-speed',kicker:'Objectif',title:'Ton poids cible&nbsp;?',sub:'',content:`<div class="stepper" style="margin-bottom:14px"><button class="step">${I.minus}</button><div class="step-val">69 <span class="step-unit">kg</span></div><button class="step">${I.plus}</button></div><div class="card" style="padding:14px 16px;display:flex;gap:11px;align-items:center;background:var(--accent-wash);border-color:var(--accent-line)"><span style="width:18px;height:18px;color:var(--accent-ink);flex:0 0 18px;display:flex">${I.trendDn}</span><span class="tiny" style="color:var(--accent-ink);line-height:1.4">Objectif réaliste : <b>−5 kg</b>. On te proposera un rythme tenable à l’étape suivante.</span></div>`})};
+
+SCREENS['s-speed']={label:'Rythme',html:funnelStep({step:'06 / 12',prog:50,back:'s-targetw',next:'s-activity',kicker:'Rythme',title:'À quelle vitesse&nbsp;?',sub:'Un rythme régulier tient sur la durée.',content:`<div class="optgroup" style="display:flex;flex-direction:column;gap:11px">
+      <div class="opt"><div style="flex:1"><div>Tranquille</div><div class="muted tiny" style="font-weight:400;margin-top:2px">Confort maximal</div></div><span class="num muted tiny">0,25 kg/sem</span></div>
+      <div class="opt on"><div style="flex:1"><div>Régulier <span class="proof" style="margin-left:6px;padding:2px 6px">Recommandé</span></div><div class="muted tiny" style="font-weight:400;margin-top:2px">Le meilleur équilibre</div></div><span class="num muted tiny">0,5 kg/sem</span></div>
+      <div class="opt"><div style="flex:1"><div>Rapide</div><div class="muted tiny" style="font-weight:400;margin-top:2px">Plus exigeant au quotidien</div></div><span class="num muted tiny">0,75 kg/sem</span></div>
+    </div>`})};
+
+SCREENS['s-activity']={label:'Activité',html:funnelStep({step:'07 / 12',prog:58,back:'s-speed',next:'s-diet',kicker:'Dépense',title:'Ton niveau<br/>d’activité&nbsp;?',sub:'Séances de sport, cardio ou musculation par semaine.',content:`<div class="optgroup" style="display:flex;flex-direction:column;gap:11px">
+      <div class="opt"><div class="ic">${I.balance}</div><div style="flex:1"><div>Sédentaire</div><div class="muted tiny" style="font-weight:400;margin-top:2px">Peu ou pas d’exercice</div></div><span class="num muted tiny">0/sem</span></div>
+      <div class="opt on"><div class="ic">${I.trendUp}</div><div style="flex:1"><div>Léger</div><div class="muted tiny" style="font-weight:400;margin-top:2px">Activité douce régulière</div></div><span class="num muted tiny">1–3/sem</span></div>
+      <div class="opt"><div class="ic">${I.dumbbell}</div><div style="flex:1"><div>Modéré</div><div class="muted tiny" style="font-weight:400;margin-top:2px">Entraînement soutenu</div></div><span class="num muted tiny">4–6/sem</span></div>
+      <div class="opt"><div class="ic">${I.flame}</div><div style="flex:1"><div>Intense</div><div class="muted tiny" style="font-weight:400;margin-top:2px">Sport quotidien</div></div><span class="num muted tiny">7+/sem</span></div>
+    </div>`})};
+
+SCREENS['s-diet']={label:'Alimentation',html:funnelStep({step:'08 / 12',prog:67,back:'s-activity',next:'s-obstacles',kicker:'Alimentation',title:'Une préférence<br/>alimentaire&nbsp;?',sub:'Optionnel — pour des suggestions adaptées.',content:`<div class="optgroup" style="display:flex;flex-direction:column;gap:10px">${[['Classique',1],['Faible en glucides',0],['Végétarien',0],['Végan',0],['Méditerranéen',0],['Sans gluten',0]].map(([t,on])=>`<div class="opt ${on?'on':''}"><span style="flex:1">${t}</span><span class="opt-chk">${I.check}</span></div>`).join('')}</div>`})};
+
+SCREENS['s-obstacles']={label:'Obstacles',html:funnelStep({step:'09 / 12',prog:75,back:'s-diet',next:'s-compare',kicker:'Obstacles',title:'Qu’est-ce qui t’a<br/>bloqué avant&nbsp;?',sub:'Plusieurs choix possibles.',content:`<div class="optmulti" style="display:flex;flex-direction:column;gap:10px">${[['Manque de temps',1],['Grignotage',1],['Repas au restaurant',0],['Manque de motivation',0],['Suivi trop fastidieux',1],['Les week-ends',0]].map(([t,on])=>`<div class="opt ${on?'on':''}"><span style="flex:1">${t}</span><span class="opt-chk">${I.check}</span></div>`).join('')}</div>`})};
+
+SCREENS['s-compare']={label:'Preuve · comparatif',html:funnelStep({step:'10 / 12',prog:83,back:'s-obstacles',next:'s-social',kicker:'Pourquoi MacroLens',title:'Atteins ton objectif<br/>2× plus vite',sub:'',content:`<div class="card" style="padding:22px 20px;margin-top:4px"><div class="row" style="gap:20px;align-items:flex-end;justify-content:center;height:184px">
+      <div style="display:flex;flex-direction:column;align-items:center;gap:11px;flex:1"><div style="width:100%;height:56px;background:var(--paper-3);border-radius:12px 12px 0 0;display:flex;align-items:center;justify-content:center"><span class="num" style="font-weight:600;font-size:18px;color:var(--muted)">1×</span></div><span class="eyebrow" style="text-align:center;line-height:1.4">Sans<br/>MacroLens</span></div>
+      <div style="display:flex;flex-direction:column;align-items:center;gap:11px;flex:1"><div style="width:100%;height:152px;background:var(--ink);border-radius:12px 12px 0 0;display:flex;align-items:flex-start;justify-content:center;padding-top:14px"><span class="num" style="font-weight:600;font-size:26px;color:var(--paper)">2×</span></div><span class="eyebrow" style="text-align:center;line-height:1.4;color:var(--ink)">Avec<br/>MacroLens</span></div>
+    </div></div><div class="eyebrow" style="text-align:center;margin-top:14px;color:var(--muted-2)">Illustration · basée sur un suivi régulier</div>`})};
+
+SCREENS['s-social']={label:'Preuve · avis',html:funnelStep({step:'11 / 12',prog:92,back:'s-compare',next:'s-generating',kicker:'Ils y sont arrivés',title:'Rejoins le mouvement',sub:'',nextLabel:'Créer mon plan',content:`${[['LM','Léa M.','Enfin un tracker en qui j’ai confiance. Les marges d’erreur ont tout changé.'],['TR','Thomas R.','−6 kg en gardant le plaisir de manger. Le scan est bluffant.'],['SB','Sarah B.','La calibration a rendu mes estimations vraiment précises.']].map(([ini,nm,q])=>`<div class="card" style="padding:15px;margin-bottom:10px"><div class="row between" style="margin-bottom:9px"><div class="row" style="gap:10px"><div style="width:32px;height:32px;border-radius:10px;background:var(--ink);color:var(--paper);display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-weight:600;font-size:12px">${ini}</div><span style="font-weight:600;font-size:13px">${nm}</span></div><div class="row" style="gap:2px;color:var(--warn)">${[0,0,0,0,0].map(()=>`<span style="width:12px;height:12px;display:flex">${I.star}</span>`).join('')}</div></div><div class="muted tiny" style="line-height:1.45">«&nbsp;${q}&nbsp;»</div></div>`).join('')}<div class="eyebrow" style="text-align:center;margin-top:4px;color:var(--muted-2)">Avis illustratifs</div>`})};
+
+SCREENS['s-generating']={label:'Création du plan', html:`${SB()}
+  <div class="body" style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding-bottom:50px">
+    <div>${ring(0.75,140,7,'var(--accent)',`<span style="width:40px;height:40px;color:var(--ink-2);display:flex">${I.seal}</span>`)}</div>
+    <div class="eyebrow" style="margin-top:26px">MetaboProof</div>
+    <h2 class="scr-title" style="text-align:center;margin-top:8px;font-size:22px">Création de ton plan…</h2>
+    <p class="sub" style="text-align:center;margin:8px 0 28px">On personnalise tes cibles et ta marge</p>
+    <div style="width:100%;display:flex;flex-direction:column;gap:15px;padding:0 6px">
+      ${[['Analyse de ton profil','done'],['Calcul de ton métabolisme','done'],['Optimisation des macros','active'],['Calibrage MetaboProof','idle']].map(([t,st])=>`<div class="row" style="gap:12px;${st==='idle'?'opacity:.38':''}"><div style="width:22px;height:22px;border-radius:50%;flex:0 0 22px;display:flex;align-items:center;justify-content:center;${st==='done'?'background:var(--accent);color:#fff':st==='active'?'background:var(--ink)':'background:var(--paper-3)'}">${st==='done'?`<span style="width:12px;height:12px;display:flex">${I.check}</span>`:st==='active'?'<span style="display:inline-block;width:9px;height:9px;border:2px solid #fff;border-top-color:transparent;border-radius:50%;animation:spin 1s linear infinite"></span>':''}</div><span style="font-weight:500;font-size:13.5px">${t}</span></div>`).join('')}
+    </div>
+    <button class="btn btn-dark clickable" data-goto="s-onb2" style="margin-top:34px;width:auto;padding:13px 24px;font-size:14px">Voir mon plan ${I.chevR}</button>
+  </div>
+  <div class="home-ind"></div>`};
+
+SCREENS['s-onb2']={label:'Ton plan', html:`${SB()}
+  <div class="body" style="display:flex;flex-direction:column">
+    <div class="row between" style="margin:6px 0 22px"><span class="clickable" data-goto="s-generating" style="width:24px;height:24px;color:var(--ink-2)">${I.back}</span><div class="prog" style="flex:1;margin:0 14px"><i style="width:100%"></i></div><span class="num tiny muted">12 / 12</span></div>
+    <div class="eyebrow" style="margin-bottom:10px">Ton plan</div>
+    <h2 class="scr-title">Ton plan est prêt</h2>
+    <p class="sub" style="margin:10px 0 20px">Dérivé de ton objectif, ton corps et ton activité.</p>
+    <div class="card" style="padding:24px 22px;margin-bottom:13px"><div class="eyebrow">Calories / jour</div><div class="num" style="font-size:50px;font-weight:500;letter-spacing:-.02em;line-height:1.05;margin:6px 0 14px">2 180</div><div class="proof">${I.seal} Ajusté chaque semaine selon tes données</div></div>
+    <div class="row" style="gap:10px">
+      <div class="card" style="flex:1;padding:15px 14px"><div class="row" style="gap:6px;align-items:center"><span style="width:7px;height:7px;border-radius:2px;background:var(--protein)"></span><span class="eyebrow">Prot</span></div><div class="num" style="font-weight:600;font-size:19px;margin-top:7px">165<span style="font-size:12px;color:var(--muted)">g</span></div></div>
+      <div class="card" style="flex:1;padding:15px 14px"><div class="row" style="gap:6px;align-items:center"><span style="width:7px;height:7px;border-radius:2px;background:var(--carbs)"></span><span class="eyebrow">Gluc</span></div><div class="num" style="font-weight:600;font-size:19px;margin-top:7px">208<span style="font-size:12px;color:var(--muted)">g</span></div></div>
+      <div class="card" style="flex:1;padding:15px 14px"><div class="row" style="gap:6px;align-items:center"><span style="width:7px;height:7px;border-radius:2px;background:var(--fat)"></span><span class="eyebrow">Lip</span></div><div class="num" style="font-weight:600;font-size:19px;margin-top:7px">62<span style="font-size:12px;color:var(--muted)">g</span></div></div>
+    </div>
+    <div style="margin-top:14px;padding:15px 16px;border:1px solid var(--accent-line);background:var(--accent-wash);border-radius:var(--r-md);display:flex;gap:12px;align-items:flex-start"><span style="width:20px;height:20px;color:var(--accent);flex:0 0 20px;margin-top:1px">${I.seal}</span><div style="font-size:12.5px;line-height:1.5;color:var(--accent-ink)">Avec <b>MetaboProof</b>, chaque repas affiche son <b>niveau de preuve</b> et sa <b>marge d’erreur</b>.</div></div>
+  </div>
+  <div style="padding:12px 20px 28px"><button class="btn btn-dark clickable" data-goto="s-perms">Continuer ${I.chevR}</button></div>
+  <div class="home-ind"></div>`};
+
+SCREENS['s-perms']={label:'Autorisations', html:`${SB()}
+  <div class="body" style="display:flex;flex-direction:column">
+    <div class="row between" style="margin:6px 0 18px"><span class="clickable" data-goto="s-onb2" style="width:24px;height:24px;color:var(--ink-2)">${I.back}</span><span class="eyebrow">Presque fini</span><span style="width:24px"></span></div>
+    <h2 class="scr-title">Active tes rappels</h2>
+    <p class="sub" style="margin:10px 0 22px">Pour ne jamais casser ta série. Modifiable à tout moment.</p>
+    ${sGroup('',[
+      sRow(I.bell,'Rappels de repas',{value:'',toggle:true}),
+      sRow(I.scan,'Accès caméra',{value:'',toggle:true}),
+      sRow(I.heart,'Synchro Santé',{value:'',toggle:false}),
+    ])}
+    <div style="flex:1"></div>
+    <button class="btn btn-dark clickable" data-goto="s-paywall" style="margin:24px 0 28px">Continuer</button>
+  </div>
+  <div class="home-ind"></div>`};
+
+SCREENS['s-auth']={label:'Connexion', html:`${SB()}
+  <div class="body" style="display:flex;flex-direction:column">
+    <div style="padding:20px 0 6px;text-align:center"><span style="width:38px;height:38px;color:var(--accent);display:inline-flex">${I.seal}</span></div>
+    <h2 class="scr-title" style="text-align:center;font-size:22px">Sauvegarde<br/>ta progression</h2>
+    <p class="sub" style="text-align:center;margin:9px 0 24px">Crée ton compte pour retrouver ton plan et tes données sur tous tes appareils.</p>
+    <button class="btn btn-dark clickable" data-goto="s-home" style="margin-bottom:10px"><span style="width:18px;height:18px;display:flex">${I.apple}</span> Continuer avec Apple</button>
+    <button class="btn btn-ghost clickable" data-goto="s-home" style="margin-bottom:10px"><span style="width:18px;height:18px;display:flex">${I.google}</span> Continuer avec Google</button>
+    <div class="row" style="gap:12px;margin:14px 0"><div class="rule" style="flex:1"></div><span class="eyebrow">ou par email</span><div class="rule" style="flex:1"></div></div>
+    <div class="fld" style="display:flex;align-items:center;gap:10px;margin-bottom:11px"><span style="width:17px;height:17px;color:var(--muted)">${I.mail}</span><span class="num" style="font-size:14px;color:var(--ink-2)">idriss@email.com</span></div>
+    <div class="fld" style="display:flex;align-items:center;gap:10px"><span style="width:17px;height:17px;color:var(--muted)">${I.key}</span><span class="num" style="font-size:14px;color:var(--ink-2)">••••••••</span></div>
+    <button class="btn btn-accent clickable" data-goto="s-home" style="margin-top:14px">Créer mon compte</button>
+    <div style="text-align:center;margin-top:16px"><span class="eyebrow clickable" data-goto="s-home">Passer pour l’instant</span></div>
+  </div>
+  <div class="home-ind"></div>`};
+
+/* ===== B · SCAN & ANALYSE ===== */
+/* (s-scanhub supprimé — le FAB ouvre la caméra directement ; méthodes secondaires dans le bottom-sheet « Saisir autrement » de la caméra, Calibration déplacée dans Réglages) */
+SCREENS['s-scan']={label:'Caméra', html:`
+  <div style="position:absolute;inset:0;background:var(--night)"></div>
+  <div style="position:absolute;inset:0;background:radial-gradient(110% 70% at 50% 36%, var(--night-2) 0%, var(--night) 72%)"></div>
+  ${SB(true)}
+  <div style="position:relative;color:#fff;z-index:3;flex:1;display:flex;flex-direction:column">
+    <div class="row between" style="padding:4px 22px 0"><span class="clickable" data-goto="s-home" style="width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,.14);display:flex;align-items:center;justify-content:center"><span style="width:18px;height:18px;color:#fff;display:flex">${I.close}</span></span><span style="width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,.14);display:flex;align-items:center;justify-content:center"><span style="width:17px;height:17px;color:#fff;display:flex">${I.flash}</span></span></div>
+    <div style="flex:1;position:relative;margin:28px 44px">
+      <div style="position:absolute;top:0;left:0;width:40px;height:40px;border-top:2px solid #fff;border-left:2px solid #fff;border-radius:12px 0 0 0"></div><div style="position:absolute;top:0;right:0;width:40px;height:40px;border-top:2px solid #fff;border-right:2px solid #fff;border-radius:0 12px 0 0"></div><div style="position:absolute;bottom:0;left:0;width:40px;height:40px;border-bottom:2px solid #fff;border-left:2px solid #fff;border-radius:0 0 0 12px"></div><div style="position:absolute;bottom:0;right:0;width:40px;height:40px;border-bottom:2px solid #fff;border-right:2px solid #fff;border-radius:0 0 12px 0"></div>
+      <div style="position:absolute;left:0;right:0;top:50%;transform:translateY(-50%);display:flex;justify-content:center"><span style="width:60px;height:60px;color:rgba(255,255,255,.85);display:flex">${F.bowl}</span></div>
+      <div style="position:absolute;left:0;right:0;bottom:-4px;text-align:center;color:rgba(255,255,255,.7);font-family:var(--font-mono);font-size:10.5px;letter-spacing:.04em">Cadre l’assiette · lumière suffisante</div>
+    </div>
+    <div style="padding:0 22px 10px"><div class="seg" style="border-color:rgba(255,255,255,.22);background:rgba(255,255,255,.10)"><button class="on" style="background:#fff;color:var(--ink)">Repas</button><button style="color:rgba(255,255,255,.75)">Code</button><button style="color:rgba(255,255,255,.75)">Étiquette</button><button style="color:rgba(255,255,255,.75)">Galerie</button></div></div>
+    <div class="row" style="justify-content:space-around;align-items:center;padding:12px 30px 28px">
+      <div class="clickable" data-goto="s-analyze" style="display:flex;flex-direction:column;align-items:center;gap:7px;width:54px"><div style="width:44px;height:44px;border-radius:12px;background:rgba(255,255,255,.14);display:flex;align-items:center;justify-content:center"><span style="width:20px;height:20px;color:#fff;display:flex">${I.gallery}</span></div><span style="font-family:var(--font-mono);font-size:9px;text-transform:uppercase;letter-spacing:.06em;color:#fff">Galerie</span></div>
+      <div class="clickable" data-goto="s-analyze" style="width:72px;height:72px;border-radius:50%;background:#fff;border:4px solid rgba(255,255,255,.35)"></div>
+      <div class="clickable" data-sheet="open" style="display:flex;flex-direction:column;align-items:center;gap:7px;width:54px"><div style="width:44px;height:44px;border-radius:12px;background:rgba(255,255,255,.14);display:flex;align-items:center;justify-content:center"><span style="width:20px;height:20px;color:#fff;display:flex">${I.list}</span></div><span style="font-family:var(--font-mono);font-size:9px;text-transform:uppercase;letter-spacing:.06em;color:#fff">Autre</span></div>
+    </div>
+  </div>
+  <div class="scan-scrim" data-sheet="close"></div>
+  <div class="scan-sheet">
+    <div class="sheet-grab"></div>
+    <div class="eyebrow" style="margin:2px 2px 8px">Saisir autrement</div>
+    <div class="srow clickable" data-goto="s-search"><span class="srow-ic">${I.search}</span><span class="srow-label">Rechercher un aliment</span><span class="srow-val">Base USDA</span><span class="srow-chev">${I.chevR}</span></div>
+    <div class="rule"></div>
+    <div class="srow clickable" data-goto="s-manual"><span class="srow-ic">${I.pencilLine}</span><span class="srow-label">Saisie manuelle</span><span class="srow-chev">${I.chevR}</span></div>
+    <div class="rule"></div>
+    <div class="srow clickable" data-goto="s-recipe"><span class="srow-ic">${I.scale}</span><span class="srow-label">Recette pesée</span><span class="srow-val">Vérifié</span><span class="srow-chev">${I.chevR}</span></div>
+  </div>
+  <div class="home-ind light"></div>`};
+
+SCREENS['s-analyze']={label:'Analyse', html:`${SB()}
+  <div class="body" style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding-bottom:50px">
+    <div>${ring(0.7,140,7,'var(--accent)',`<span style="width:42px;height:42px;color:var(--ink-2);display:flex">${F.bowl}</span>`)}</div>
+    <div class="eyebrow" style="margin-top:26px">MetaboProof</div>
+    <h2 class="scr-title" style="text-align:center;margin-top:8px;font-size:22px">Analyse en cours</h2>
+    <p class="sub" style="text-align:center;margin:8px 0 28px">Vérification de chaque ingrédient</p>
+    <div style="width:100%;display:flex;flex-direction:column;gap:15px;padding:0 6px">
+      ${[['Reconnaissance des aliments','done'],['Estimation des portions','done'],['Calcul des macros & marge d’erreur','active'],['Niveau de preuve MetaboProof','idle']].map(([t,st])=>`<div class="row" style="gap:12px;${st==='idle'?'opacity:.38':''}"><div style="width:22px;height:22px;border-radius:50%;flex:0 0 22px;display:flex;align-items:center;justify-content:center;${st==='done'?'background:var(--accent);color:#fff':st==='active'?'background:var(--ink)':'background:var(--paper-3)'}">${st==='done'?`<span style="width:12px;height:12px;display:flex">${I.check}</span>`:st==='active'?'<span style="display:inline-block;width:9px;height:9px;border:2px solid #fff;border-top-color:transparent;border-radius:50%;animation:spin 1s linear infinite"></span>':''}</div><span style="font-weight:500;font-size:13.5px">${t}</span></div>`).join('')}
+    </div>
+    <button class="btn btn-ghost clickable" data-goto="s-result" style="margin-top:34px;width:auto;padding:12px 22px;font-size:13px">Voir le résultat ${I.chevR}</button>
+  </div>
+  <style>@keyframes spin{to{transform:rotate(360deg)}}</style>
+  <div class="home-ind"></div>`};
+
+SCREENS['s-result']={label:'Résultat · MetaboProof', html:`${SB()}
+  <div class="body flush" style="padding-bottom:108px">
+    <div style="height:200px;position:relative;background:linear-gradient(0deg,rgba(20,24,28,.04),rgba(20,24,28,.04)),repeating-linear-gradient(0deg,transparent,transparent 21px,rgba(20,24,28,.05) 21px,rgba(20,24,28,.05) 22px),repeating-linear-gradient(90deg,transparent,transparent 21px,rgba(20,24,28,.05) 21px,rgba(20,24,28,.05) 22px),var(--accent-wash);display:flex;align-items:center;justify-content:center">
+      <span style="width:84px;height:84px;color:var(--accent-ink);opacity:.8;display:flex">${F.bowl}</span>
+      <div class="row between" style="position:absolute;top:8px;left:0;right:0;padding:0 18px"><span class="clickable" data-goto="s-home" style="width:34px;height:34px;border-radius:50%;background:color-mix(in oklch,var(--paper) 86%,transparent);backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;border:1px solid var(--line)"><span style="width:17px;height:17px;color:var(--ink);display:flex">${I.back}</span></span><span class="eyebrow" style="background:color-mix(in oklch,var(--paper) 86%,transparent);backdrop-filter:blur(8px);border:1px solid var(--line);border-radius:7px;padding:5px 8px;color:var(--ink-2)">IMG · 13:05</span></div>
+    </div>
+    <div style="padding:18px 20px 0">
+      <div class="row between" style="align-items:flex-start"><div><h2 class="scr-title" style="font-size:22px">Pâtes bolognaise</h2><div class="num muted tiny" style="margin-top:4px">Aujourd’hui · 13:05</div></div><span class="proof clickable" data-goto="s-portion" style="background:var(--paper-2);color:var(--ink-2);border-color:var(--line-2)">${I.edit} Ajuster</span></div>
+      <div class="eyebrow" style="margin:20px 0 6px">Énergie</div>
+      <div style="display:flex;align-items:baseline;gap:8px"><div class="num" style="font-size:46px;font-weight:500;letter-spacing:-.02em">642</div><div class="muted" style="font-family:var(--font-mono);font-size:14px;font-weight:500">kcal</div></div>
+      <div style="margin:12px 0 18px">${tol('590','710')}<div class="eyebrow" style="margin-top:7px;color:var(--muted-2)">Marge d’erreur ±9% · intervalle p10–p90</div></div>
+      <div class="mbar" style="height:10px"><span style="width:34%;background:var(--protein)"></span><span style="width:44%;background:var(--carbs)"></span><span style="width:22%;background:var(--fat)"></span></div>
+      <div class="mlegend"><div class="it"><div class="row" style="gap:6px;align-items:center"><span class="dot" style="background:var(--protein)"></span><span class="eyebrow">Prot</span></div><div class="num" style="font-weight:600;font-size:16px;margin-top:4px">34g</div></div><div class="it"><div class="row" style="gap:6px;align-items:center"><span class="dot" style="background:var(--carbs)"></span><span class="eyebrow">Gluc</span></div><div class="num" style="font-weight:600;font-size:16px;margin-top:4px">71g</div></div><div class="it"><div class="row" style="gap:6px;align-items:center"><span class="dot" style="background:var(--fat)"></span><span class="eyebrow">Lip</span></div><div class="num" style="font-weight:600;font-size:16px;margin-top:4px">21g</div></div></div>
+      <div style="margin-top:18px;padding:15px 16px;border:1px solid var(--warn-line);background:var(--warn-wash);border-radius:var(--r-md)"><div class="row between"><div class="row" style="gap:11px;align-items:center"><span style="width:22px;height:22px;color:var(--warn);display:flex">${I.seal}</span><div><div class="eyebrow" style="color:var(--warn-ink)">Niveau de preuve</div><div style="font-weight:600;font-size:14px;color:var(--warn-ink);margin-top:2px">Estimé visuel</div></div></div><span style="width:16px;height:16px;color:var(--warn-ink)">${I.chevR}</span></div><div style="height:1px;background:var(--warn-line);margin:13px 0"></div><div class="row clickable" data-goto="s-calib" style="gap:9px;align-items:center"><span style="width:15px;height:15px;color:var(--warn-ink);display:flex">${I.weigh}</span><span class="tiny" style="color:var(--warn-ink);line-height:1.4">Pèse ton assiette pour passer en <b>Vérifié</b> et réduire la marge à <span class="num">±3%</span></span></div></div>
+      <div class="eyebrow" style="margin:22px 2px 12px">Ingrédients détectés</div>
+      <div class="card" style="overflow:hidden">${[['bowl','var(--protein-w)','var(--protein)','Pâtes cuites','≈ 180g','280'],['bowl','var(--protein-w)','var(--protein)','Sauce bolognaise','≈ 140g','300'],['leaf','var(--accent-wash)','var(--accent-ink)','Parmesan','≈ 12g','62']].map(([ic,bg,fg,nm,q,kc],i)=>`${i?'<div class="rule" style="margin:0 16px"></div>':''}<div class="row between clickable" data-goto="s-portion" style="padding:13px 16px"><div class="row" style="gap:12px">${foodTile(ic,bg,fg,36)}<div><div style="font-weight:600;font-size:13.5px">${nm}</div><div class="num muted tiny" style="margin-top:2px">${q} · ${kc} kcal</div></div></div><span style="width:16px;height:16px;color:var(--muted-2)">${I.chevR}</span></div>`).join('')}</div>
+      <div class="row" style="gap:12px;margin-top:16px;justify-content:center;align-items:center"><span class="muted tiny">Estimation correcte&nbsp;?</span><span style="width:18px;height:18px;color:var(--muted)">${I.thumbUp}</span><span style="width:18px;height:18px;color:var(--muted)">${I.thumbDn}</span></div>
+    </div>
+  </div>
+  <div style="position:absolute;left:0;right:0;bottom:0;padding:14px 20px 26px;background:linear-gradient(transparent,var(--paper) 24%)"><button class="btn btn-dark clickable" data-goto="s-save" data-toast="Repas enregistré">Enregistrer le repas</button></div>
+  <div class="home-ind"></div>`};
+
+SCREENS['s-error']={label:'Scan · erreur', html:`${SB()}
+  <div class="body" style="display:flex;flex-direction:column">
+    ${pushHeader('','s-scan')}
+    <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center">
+      <div style="width:72px;height:72px;border-radius:20px;background:var(--warn-wash);border:1px solid var(--warn-line);color:var(--warn);display:flex;align-items:center;justify-content:center"><span style="width:34px;height:34px;display:flex">${I.camOff}</span></div>
+      <h2 class="scr-title" style="margin-top:22px;font-size:21px">Aucun aliment détecté</h2>
+      <p class="sub" style="margin-top:10px;max-width:250px">La photo est peut-être trop sombre ou ne montre pas de nourriture clairement.</p>
+      <div class="card" style="width:100%;text-align:left;margin-top:22px;padding:6px 14px">
+        ${[['Cadre toute l’assiette dans le viseur'],['Ajoute de la lumière naturelle'],['Évite les reflets et les ombres'],['Une seule assiette à la fois']].map(([t],i)=>`${i?'<div class="rule"></div>':''}<div class="row" style="gap:11px;padding:11px 0"><span style="width:16px;height:16px;color:var(--accent);display:flex;flex:0 0 16px">${I.check}</span><span style="font-size:13px">${t}</span></div>`).join('')}
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:10px;padding:16px 0 28px"><button class="btn btn-dark clickable" data-goto="s-scan">${I.refresh} Réessayer</button><button class="btn btn-ghost clickable" data-goto="s-manual">Saisie manuelle</button></div>
+  </div>
+  <div class="home-ind"></div>`};
+
+SCREENS['s-portion']={label:'Ajuster la portion', html:`${SB()}
+  <div class="body" style="display:flex;flex-direction:column">
+    ${pushHeader('Ajuster','s-result',`<span class="clickable" data-goto="s-result" style="color:var(--accent-ink);font-weight:600;font-size:13px;font-family:var(--font-sans)">OK</span>`)}
+    <div class="row" style="gap:13px;margin-bottom:20px">${foodTile('bowl','var(--protein-w)','var(--protein)',48)}<div><div style="font-weight:600;font-size:16px">Pâtes cuites</div><div class="num muted tiny" style="margin-top:3px">Spaghetti · cuites</div></div></div>
+    <div class="eyebrow" style="margin-bottom:9px">Quantité estimée</div>
+    <div class="stepper" style="margin-bottom:8px"><button class="step">${I.minus}</button><div class="step-val">180 <span class="step-unit">g</span></div><button class="step">${I.plus}</button></div>
+    <div class="eyebrow" style="margin:6px 0 18px;color:var(--muted-2)">Glisse pour affiner — la marge se recalcule</div>
+    <div class="card" style="padding:18px">
+      <div class="row between" style="margin-bottom:6px"><span class="eyebrow">Énergie recalculée</span></div>
+      <div style="display:flex;align-items:baseline;gap:8px;margin-bottom:14px"><div class="num" style="font-size:32px;font-weight:500">280</div><div class="muted num" style="font-size:13px">kcal</div></div>
+      <div class="mbar"><span style="width:18%;background:var(--protein)"></span><span style="width:70%;background:var(--carbs)"></span><span style="width:12%;background:var(--fat)"></span></div>
+      <div class="mlegend"><div class="it"><span class="eyebrow">Prot</span><div class="num" style="font-weight:600;font-size:14px;margin-top:3px">10g</div></div><div class="it"><span class="eyebrow">Gluc</span><div class="num" style="font-weight:600;font-size:14px;margin-top:3px">55g</div></div><div class="it"><span class="eyebrow">Lip</span><div class="num" style="font-weight:600;font-size:14px;margin-top:3px">3g</div></div></div>
+    </div>
+    <div style="flex:1"></div>
+    <button class="btn btn-dark clickable" data-goto="s-result" data-toast="Portion mise à jour" style="margin:18px 0 28px">Valider</button>
+  </div>
+  <div class="home-ind"></div>`};
+
+/* ===== C · SAISIE REPAS ===== */
+SCREENS['s-manual']={label:'Saisie manuelle', html:`${SB()}
+  <div class="body">
+    ${pushHeader('Saisie manuelle','s-scan')}
+    <div class="eyebrow" style="margin-bottom:8px">Nom du repas</div>
+    <div class="fld" style="margin-bottom:18px"><span style="font-size:14px;font-weight:600">Salade César maison</span></div>
+    <div class="eyebrow" style="margin-bottom:9px">Macros</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:11px">${fld('Calories','420','kcal')}${fld('Protéines','28','g')}${fld('Glucides','24','g')}${fld('Lipides','22','g')}</div>
+    <div style="margin-top:11px">${fld('Fibres','5','g')}</div>
+    <div style="margin-top:18px;padding:13px 15px;border:1px solid var(--warn-line);background:var(--warn-wash);border-radius:var(--r-md);display:flex;gap:10px;align-items:center"><span style="width:16px;height:16px;color:var(--warn-ink);flex:0 0 16px;display:flex">${I.info}</span><span class="tiny" style="color:var(--warn-ink);line-height:1.4">Saisie manuelle = niveau <b>Estimé</b>. Scanne le code-barres pour passer en Vérifié.</span></div>
+  </div>
+  <div style="padding:12px 20px 28px"><button class="btn btn-dark clickable" data-goto="s-save" data-toast="Repas enregistré">Enregistrer</button></div>
+  <div class="home-ind"></div>`};
+
+SCREENS['s-search']={label:'Recherche aliment', html:`${SB()}
+  <div class="body">
+    ${pushHeader('Rechercher','s-scan')}
+    <div class="fld" style="display:flex;align-items:center;gap:10px;margin-bottom:8px"><span style="width:17px;height:17px;color:var(--muted)">${I.search}</span><span style="font-size:14px;color:var(--ink-2)">poulet rôti</span></div>
+    <div class="eyebrow" style="margin:14px 4px 12px">Base USDA · 8 résultats</div>
+    ${[['Poulet rôti, blanc','par 100g','165','Vérifié'],['Poulet rôti, cuisse','par 100g','209','Vérifié'],['Poulet grillé, filet','par 100g','190','Vérifié'],['Poulet pané','par 100g','248','Estimé']].map(([nm,sv,kc,k])=>`
+      <div class="card clickable" data-goto="s-packaged" style="padding:13px 14px;display:flex;align-items:center;gap:12px;margin-bottom:9px">
+        ${foodTile('bowl','var(--protein-w)','var(--protein)',38)}
+        <div style="flex:1"><div style="font-weight:600;font-size:13.5px">${nm}</div><div class="num muted tiny" style="margin-top:2px">${sv} · ${kc} kcal</div></div>
+        ${k==='Vérifié'?`<span class="proof" style="padding:4px 7px">${I.seal}</span>`:`<span class="proof est" style="padding:4px 7px">◇</span>`}
+        <span style="width:18px;height:18px;color:var(--accent)">${I.plus}</span>
+      </div>`).join('')}
+  </div>
+  <div class="home-ind"></div>`};
+
+SCREENS['s-packaged']={label:'Produit emballé', html:`${SB()}
+  <div class="body flush" style="padding-bottom:96px">
+    <div style="height:150px;background:var(--paper-2);display:flex;align-items:center;justify-content:center;position:relative;border-bottom:1px solid var(--line)">
+      <span style="width:90px;height:54px;color:var(--ink-2);display:flex">${F.barcode}</span>
+      <span class="clickable" data-goto="s-search" style="position:absolute;top:8px;left:14px;width:34px;height:34px;border-radius:50%;background:var(--paper);border:1px solid var(--line);display:flex;align-items:center;justify-content:center"><span style="width:17px;height:17px;color:var(--ink);display:flex">${I.back}</span></span>
+    </div>
+    <div style="padding:18px 20px 0">
+      <div class="row between" style="align-items:flex-start"><div><h2 class="scr-title" style="font-size:20px">Skyr nature</h2><div class="num muted tiny" style="margin-top:4px">Siggi’s · 7612100054 · code-barres</div></div><span class="proof">${I.seal} Vérifié</span></div>
+      <div class="eyebrow" style="margin:20px 0 9px">Portion</div>
+      <div class="stepper" style="margin-bottom:18px"><button class="step">${I.minus}</button><div class="step-val">150 <span class="step-unit">g · 1 pot</span></div><button class="step">${I.plus}</button></div>
+      <div class="card" style="padding:6px 16px">
+        ${[['Calories','144','kcal'],['Protéines','16','g'],['Glucides','9','g'],['Lipides','4,5','g'],['Sucres','7','g'],['Sel','0,1','g']].map(([k,v,u],i)=>`${i?'<div class="rule"></div>':''}<div class="row between" style="padding:12px 0"><span style="font-size:13.5px;${k==='Calories'?'font-weight:600':''}">${k}</span><span class="num" style="${k==='Calories'?'font-weight:600;font-size:15px':'color:var(--ink-2);font-size:13.5px'}">${v} ${u}</span></div>`).join('')}
+      </div>
+    </div>
+  </div>
+  <div style="position:absolute;left:0;right:0;bottom:0;padding:14px 20px 26px;background:linear-gradient(transparent,var(--paper) 24%)"><button class="btn btn-dark clickable" data-goto="s-save" data-toast="Ajouté · Vérifié">Ajouter au journal</button></div>
+  <div class="home-ind"></div>`};
+
+SCREENS['s-recipe']={label:'Recette pesée', html:`${SB()}
+  <div class="body flush" style="padding-bottom:96px">
+    <div class="body" style="padding-bottom:0">
+      ${pushHeader('Recette pesée','s-scan')}
+      <div class="fld" style="margin-bottom:16px"><div class="eyebrow">Nom de la recette</div><div style="font-weight:600;font-size:15px;margin-top:5px">Bowl poulet riz</div></div>
+      <div class="row between" style="margin:4px 4px 12px"><span class="eyebrow">Ingrédients pesés</span><span class="proof">${I.scale} <span class="num">3</span></span></div>
+      <div class="card" style="overflow:hidden;margin-bottom:14px">
+        ${[['bowl','var(--protein-w)','var(--protein)','Poulet grillé','180 g','342'],['bowl','var(--carbs-w)','var(--carbs)','Riz basmati cuit','200 g','260'],['leaf','var(--accent-wash)','var(--accent-ink)','Brocoli vapeur','120 g','41']].map(([ic,bg,fg,nm,g,kc],i)=>`${i?'<div class="rule" style="margin:0 14px"></div>':''}<div class="row between" style="padding:12px 14px"><div class="row" style="gap:11px">${foodTile(ic,bg,fg,34)}<div><div style="font-weight:600;font-size:13px">${nm}</div><div class="num muted tiny" style="margin-top:2px">${g} · ${kc} kcal</div></div></div><span style="width:16px;height:16px;color:var(--muted-2)">${I.edit}</span></div>`).join('')}
+        <div class="rule" style="margin:0 14px"></div>
+        <div class="row clickable" data-goto="s-search" style="gap:9px;padding:13px 14px;color:var(--accent-ink);justify-content:center"><span style="width:16px;height:16px;display:flex">${I.plus}</span><span style="font-weight:600;font-size:13px">Ajouter un ingrédient pesé</span></div>
+      </div>
+      <div class="card" style="padding:16px;background:var(--accent-wash);border-color:var(--accent-line)">
+        <div class="row between"><span class="eyebrow" style="color:var(--accent-ink)">Total recette</span><span class="proof">${I.seal} Vérifié · pesée</span></div>
+        <div class="row" style="gap:14px;margin-top:12px;align-items:baseline"><div class="num" style="font-size:28px;font-weight:600;color:var(--accent-ink)">643</div><span class="num" style="color:var(--accent-ink);font-size:12px">kcal · 500 g</span></div>
+        <div class="mlegend" style="margin-top:10px"><div class="it"><span class="eyebrow" style="color:var(--accent-ink)">Prot</span><div class="num" style="font-weight:600;font-size:14px;color:var(--accent-ink);margin-top:3px">58g</div></div><div class="it"><span class="eyebrow" style="color:var(--accent-ink)">Gluc</span><div class="num" style="font-weight:600;font-size:14px;color:var(--accent-ink);margin-top:3px">64g</div></div><div class="it"><span class="eyebrow" style="color:var(--accent-ink)">Lip</span><div class="num" style="font-weight:600;font-size:14px;color:var(--accent-ink);margin-top:3px">14g</div></div></div>
+      </div>
+    </div>
+  </div>
+  <div style="position:absolute;left:0;right:0;bottom:0;padding:14px 20px 26px;background:linear-gradient(transparent,var(--paper) 24%)"><button class="btn btn-dark clickable" data-goto="s-save" data-toast="Recette enregistrée">Enregistrer la recette</button></div>
+  <div class="home-ind"></div>`};
+
+SCREENS['s-calib']={label:'Calibration', html:`${SB()}
+  <div class="body">
+    ${pushHeader('Calibration','s-settings')}
+    <div class="row" style="gap:13px;margin-bottom:18px"><div style="width:46px;height:46px;border-radius:13px;background:var(--accent-wash);border:1px solid var(--accent-line);color:var(--accent);display:flex;align-items:center;justify-content:center"><span style="width:24px;height:24px;display:flex">${I.target}</span></div><div><h2 class="scr-title" style="font-size:18px">Améliore ta précision</h2><div class="muted tiny" style="margin-top:3px">Pèse 5 repas pour calibrer l’estimation visuelle.</div></div></div>
+    <div class="card" style="padding:18px;margin-bottom:16px">
+      <div class="row between" style="margin-bottom:12px"><span class="eyebrow">Progression</span><span class="num" style="font-weight:600;font-size:14px">2 / 5</span></div>
+      <div class="prog" style="height:6px"><i style="width:40%;background:var(--accent)"></i></div>
+      <div class="row between" style="margin-top:14px;padding-top:14px;border-top:1px solid var(--line)"><div><div class="eyebrow">Marge actuelle</div><div class="num" style="font-weight:600;font-size:17px;margin-top:3px">±9%</div></div><span style="width:18px;height:18px;color:var(--accent)">${I.trendDn}</span><div style="text-align:right"><div class="eyebrow">Marge visée</div><div class="num" style="font-weight:600;font-size:17px;margin-top:3px;color:var(--accent-ink)">±4%</div></div></div>
+    </div>
+    <div class="eyebrow" style="margin:0 4px 12px">Repas calibrés</div>
+    ${[['Petit-déj œufs','done'],['Bowl déjeuner','done'],['Dîner pâtes','todo'],['Snack','todo'],['Repas libre','todo']].map(([nm,st])=>`<div class="card" style="padding:12px 14px;display:flex;align-items:center;gap:12px;margin-bottom:9px;${st==='todo'?'opacity:.6':''}"><div style="width:24px;height:24px;border-radius:50%;flex:0 0 24px;display:flex;align-items:center;justify-content:center;${st==='done'?'background:var(--accent);color:#fff':'background:var(--paper-3);color:var(--muted)'}">${st==='done'?`<span style="width:13px;height:13px;display:flex">${I.check}</span>`:`<span style="width:13px;height:13px;display:flex">${I.scale}</span>`}</div><span style="flex:1;font-weight:500;font-size:13.5px">${nm}</span>${st==='done'?'<span class="proof">Pesé</span>':'<span class="num muted tiny">à peser</span>'}</div>`).join('')}
+  </div>
+  <div style="padding:12px 20px 28px"><button class="btn btn-dark clickable" data-goto="s-scan">${I.scale} Peser un repas</button></div>
+  <div class="home-ind"></div>`};
+
+/* ===== D · ACCUEIL & SUIVI ===== */
+SCREENS['s-home']={label:'Accueil', html:`${SB()}
+  <div class="body" style="padding-bottom:100px">
+    <div class="row between" style="margin:8px 0 18px"><div><div class="eyebrow">Mer. 04 juin</div><h2 class="scr-title" style="font-size:24px;margin-top:5px">Bonjour, Idriss</h2></div><div class="row" style="gap:6px;align-items:center;border:1px solid var(--line-2);border-radius:9px;padding:7px 10px"><span style="width:15px;height:15px;color:var(--warn)">${I.flame}</span><span class="num" style="font-weight:600;font-size:13px">7</span></div></div>
+    <div class="card" style="padding:20px;display:flex;align-items:center;gap:18px">${ring(0.62,116,9,'var(--ink)',`<div class="num" style="font-size:27px;font-weight:500;letter-spacing:-.02em">820</div><div class="eyebrow" style="margin-top:1px">restantes</div>`)}<div style="flex:1;display:flex;flex-direction:column;gap:13px"><div><div class="row between" style="margin-bottom:6px"><span class="tiny" style="font-weight:600">Protéines</span><span class="num tiny muted">102 / 165</span></div><div class="mbar"><span style="width:62%;background:var(--protein)"></span></div></div><div><div class="row between" style="margin-bottom:6px"><span class="tiny" style="font-weight:600">Glucides</span><span class="num tiny muted">131 / 208</span></div><div class="mbar"><span style="width:63%;background:var(--carbs)"></span></div></div><div><div class="row between" style="margin-bottom:6px"><span class="tiny" style="font-weight:600">Lipides</span><span class="num tiny muted">38 / 62</span></div><div class="mbar"><span style="width:61%;background:var(--fat)"></span></div></div></div></div>
+    <div class="card clickable" data-goto="s-timeline" style="margin-top:13px;padding:15px 16px;display:flex;align-items:center;justify-content:space-between"><div style="display:flex;align-items:center;gap:13px"><div style="width:40px;height:40px;border-radius:11px;background:var(--accent-wash);border:1px solid var(--accent-line);display:flex;align-items:center;justify-content:center;color:var(--accent)">${I.seal}</div><div><div style="font-weight:600;font-size:14px">Confiance du jour · <span class="num">86%</span></div><div class="muted tiny" style="margin-top:2px">3 repas vérifiés · 1 estimé</div></div></div><span style="width:18px;height:18px;color:var(--muted-2)">${I.chevR}</span></div>
+    <div class="row between" style="margin:24px 2px 13px"><div class="eyebrow">Repas — aujourd’hui</div><span class="num tiny muted clickable" data-goto="s-saved">Récents</span></div>
+    <div class="card clickable" data-goto="s-result" style="padding:12px;display:flex;align-items:center;gap:12px;margin-bottom:10px">${foodTile('egg','var(--warn-wash)','var(--warn-ink)')}<div style="flex:1"><div class="row between"><div style="font-weight:600;font-size:14px">Œufs, avocat & toast</div><div class="num" style="font-weight:600;font-size:14px">412</div></div><div class="row between" style="margin-top:6px"><span class="proof">${I.seal} Vérifié</span><span class="num muted tiny">08:12</span></div></div></div>
+    <div class="card clickable" data-goto="s-result" style="padding:12px;display:flex;align-items:center;gap:12px;margin-bottom:10px">${foodTile('leaf','var(--accent-wash)','var(--accent-ink)')}<div style="flex:1"><div class="row between"><div style="font-weight:600;font-size:14px">Poke bowl saumon</div><div class="num" style="font-weight:600;font-size:14px">548</div></div><div class="row between" style="margin-top:6px"><span class="proof est">◇ Estimé visuel</span><span class="num muted tiny">13:05</span></div></div></div>
+    <div class="card clickable" data-goto="s-scan" style="padding:14px;display:flex;align-items:center;justify-content:center;gap:9px;border-style:dashed;color:var(--ink-2)"><span style="width:18px;height:18px;color:var(--accent)">${I.plus}</span><span style="font-weight:600;font-size:14px">Scanner un repas</span></div>
+  </div>
+  ${TABBAR('home')}
+  <div class="home-ind"></div>`};
+
+SCREENS['s-today']={label:'Progrès du jour', html:`${SB()}
+  <div class="body" style="padding-bottom:100px">
+    <div class="eyebrow" style="margin:8px 0 5px">Progrès</div>
+    <h2 class="scr-title" style="margin-bottom:14px">Aujourd’hui</h2>
+    <div class="pickgroup row" style="gap:6px;margin-bottom:18px">${[['Lun','31'],['Mar','01'],['Mer','02'],['Jeu','03'],['Ven','04','on'],['Sam','05'],['Dim','06']].map(([d,n,on])=>`<div class="daychip pick ${on?'on':''}"><span class="d">${d}</span><span class="n">${n}</span></div>`).join('')}</div>
+    <div class="card" style="padding:20px;margin-bottom:13px"><div class="row" style="justify-content:space-between;text-align:center"><div><div class="num" style="font-weight:600;font-size:22px">1 360</div><div class="eyebrow" style="margin-top:3px">Consommé</div></div><div><div class="num" style="font-weight:600;font-size:22px;color:var(--accent-ink)">820</div><div class="eyebrow" style="margin-top:3px">Restant</div></div><div><div class="num" style="font-weight:600;font-size:22px">240</div><div class="eyebrow" style="margin-top:3px">Brûlé</div></div></div><div class="mbar" style="height:10px;margin-top:16px"><span style="width:62%;background:var(--ink)"></span></div><div class="row between" style="margin-top:8px"><span class="num tiny muted">0</span><span class="num tiny muted">Objectif 2 180 kcal</span></div></div>
+    <div class="card" style="padding:18px;margin-bottom:13px"><div class="eyebrow" style="margin-bottom:14px">Macros — cibles</div>${[['Protéines','102','165','var(--protein)',62],['Glucides','131','208','var(--carbs)',63],['Lipides','38','62','var(--fat)',61],['Fibres','18','30','var(--fiber)',60]].map(([nm,c,t,col,w],i)=>`<div style="${i?'margin-top:13px':''}"><div class="row between" style="margin-bottom:6px"><span class="tiny" style="font-weight:600">${nm}</span><span class="num tiny muted">${c} / ${t} g</span></div><div class="mbar"><span style="width:${w}%;background:${col}"></span></div></div>`).join('')}</div>
+    <div class="row" style="gap:11px"><button class="btn btn-ghost clickable" data-goto="s-weighin" style="font-size:13.5px">${I.scale} Pesée</button><button class="btn btn-ghost clickable" data-goto="s-weekly" style="font-size:13.5px">${I.doc} Rapport</button></div>
+  </div>
+  ${TABBAR('progress')}
+  <div class="home-ind"></div>`};
+
+SCREENS['s-timeline']={label:'Suivi', html:`${SB()}
+  <div class="body" style="padding-bottom:100px">
+    <div class="eyebrow" style="margin:10px 0 6px">Historique</div>
+    <h2 class="scr-title" style="margin-bottom:6px">Suivi</h2>
+    <p class="sub" style="margin-bottom:18px">Ta régularité et ta fiabilité dans le temps.</p>
+    <div class="card" style="padding:18px"><div class="row between" style="margin-bottom:16px"><div class="eyebrow">Cette semaine</div><span class="proof">${I.seal} <span class="num">86%</span> vérifié</span></div><div class="row" style="justify-content:space-between;align-items:flex-end;height:72px">${[['L',0.7,'var(--accent)'],['M',0.92,'var(--accent)'],['M',0.55,'var(--warn)'],['J',0.8,'var(--accent)'],['V',0.96,'var(--accent)'],['S',0.42,'var(--warn)'],['D',0.66,'var(--ink)']].map(([d,h,c])=>`<div style="display:flex;flex-direction:column;align-items:center;gap:8px;flex:1"><div style="width:11px;height:${Math.round(h*56)}px;background:${c};border-radius:6px"></div><span class="eyebrow" style="font-size:9px">${d}</span></div>`).join('')}</div><div class="row between" style="margin-top:15px;padding-top:15px;border-top:1px solid var(--line)"><div><div class="num" style="font-weight:600;font-size:17px">1 940</div><div class="eyebrow" style="margin-top:2px">kcal moy/j</div></div><div><div class="num" style="font-weight:600;font-size:17px">158g</div><div class="eyebrow" style="margin-top:2px">prot moy</div></div><div><div class="num" style="font-weight:600;font-size:17px">7</div><div class="eyebrow" style="margin-top:2px">jours loggés</div></div></div></div>
+    <div class="eyebrow" style="margin:24px 2px 13px">Hier — mar. 03 juin</div>
+    ${[['egg','var(--warn-wash)','var(--warn-ink)','Petit-déj complet','438','ok','Vérifié','08:20'],['bowl','var(--protein-w)','var(--protein)','Ramen poulet','610','est','Estimé visuel','12:50'],['bar','var(--fiber-w)','var(--fiber)','Barre protéinée','214','ok','Code-barres','16:30']].map(([ic,bg,fg,nm,kc,kind,lbl,time])=>`<div class="card clickable" data-goto="s-result" style="padding:12px;display:flex;align-items:center;gap:12px;margin-bottom:10px">${foodTile(ic,bg,fg)}<div style="flex:1"><div class="row between"><div style="font-weight:600;font-size:14px">${nm}</div><div class="num" style="font-weight:600;font-size:14px">${kc}</div></div><div class="row between" style="margin-top:6px">${kind==='est'?`<span class="proof est">◇ ${lbl}</span>`:`<span class="proof">${I.seal} ${lbl}</span>`}<span class="num muted tiny">${time}</span></div></div></div>`).join('')}
+  </div>
+  ${TABBAR('timeline')}
+  <div class="home-ind"></div>`};
+
+SCREENS['s-saved']={label:'Repas enregistrés', html:`${SB()}
+  <div class="body">
+    ${pushHeader('Repas enregistrés','s-home')}
+    <div class="pickgroup seg" style="margin-bottom:18px"><button class="pick tabpill on" style="font-family:var(--font-sans)">Répéter</button><button class="pick tabpill" style="font-family:var(--font-sans)">Récents</button></div>
+    <div class="eyebrow" style="margin:0 4px 12px">Tes habitudes</div>
+    ${[['egg','var(--warn-wash)','var(--warn-ink)','Petit-déj œufs avocat','412','Vérifié','42×'],['bowl','var(--protein-w)','var(--protein)','Bowl poulet riz','643','Vérifié','28×'],['leaf','var(--accent-wash)','var(--accent-ink)','Salade César','420','Estimé','15×'],['bar','var(--fiber-w)','var(--fiber)','Skyr + fruits','210','Vérifié','31×']].map(([ic,bg,fg,nm,kc,k,n])=>`<div class="card" style="padding:12px;display:flex;align-items:center;gap:12px;margin-bottom:10px">${foodTile(ic,bg,fg)}<div style="flex:1"><div style="font-weight:600;font-size:14px">${nm}</div><div class="row" style="gap:8px;margin-top:5px;align-items:center"><span class="num muted tiny">${kc} kcal</span><span class="muted tiny">·</span><span class="num muted tiny">${n}</span></div></div><div class="clickable" data-goto="s-save" data-toast="Repas ajouté" style="width:34px;height:34px;border-radius:50%;background:var(--ink);color:var(--paper);display:flex;align-items:center;justify-content:center"><span style="width:18px;height:18px;display:flex">${I.plus}</span></div></div>`).join('')}
+  </div>
+  <div class="home-ind"></div>`};
+
+SCREENS['s-weekly']={label:'Rapport hebdo', html:`${SB()}
+  <div class="body">
+    ${pushHeader('Rapport hebdo','s-today',`<span style="width:18px;height:18px;color:var(--ink-2)">${I.share}</span>`)}
+    <div class="eyebrow" style="margin-bottom:5px">26 mai – 01 juin</div>
+    <h2 class="scr-title" style="font-size:21px;margin-bottom:16px">Belle semaine</h2>
+    <div class="card" style="padding:18px;margin-bottom:13px"><div class="row between"><div><div class="eyebrow">Adhérence</div><div class="num" style="font-weight:600;font-size:30px;margin-top:5px;color:var(--accent-ink)">88%</div></div><div style="text-align:right"><div class="eyebrow">vs sem. dernière</div><div class="row" style="gap:5px;justify-content:flex-end;margin-top:7px;color:var(--accent-ink)"><span style="width:16px;height:16px;display:flex">${I.trendUp}</span><span class="num" style="font-weight:600;font-size:15px">+6%</span></div></div></div></div>
+    <div class="row" style="gap:11px;margin-bottom:18px"><div class="card" style="flex:1;padding:15px"><div class="eyebrow">kcal moy/j</div><div class="num" style="font-weight:600;font-size:19px;margin-top:6px">1 940</div></div><div class="card" style="flex:1;padding:15px"><div class="eyebrow">prot moy/j</div><div class="num" style="font-weight:600;font-size:19px;margin-top:6px">158g</div></div><div class="card" style="flex:1;padding:15px"><div class="eyebrow">vérifié</div><div class="num" style="font-weight:600;font-size:19px;margin-top:6px">86%</div></div></div>
+    <div class="eyebrow" style="margin:0 4px 11px">Recommandations</div>
+    ${[[I.trendUp,'Protéines un peu basses','Vise +15g/j pour soutenir ta prise de muscle.'],[I.seal,'Augmente les repas vérifiés','3 estimés cette semaine — pèse-les pour fiabiliser ton suivi.']].map(([ic,t,d])=>`<div class="card" style="padding:15px;display:flex;gap:12px;margin-bottom:10px"><div style="width:34px;height:34px;border-radius:10px;background:var(--accent-wash);color:var(--accent-ink);display:flex;align-items:center;justify-content:center;flex:0 0 34px"><span style="width:18px;height:18px;display:flex">${ic}</span></div><div><div style="font-weight:600;font-size:13.5px">${t}</div><div class="muted tiny" style="margin-top:3px;line-height:1.45">${d}</div></div></div>`).join('')}
+  </div>
+  <div class="home-ind"></div>`};
+
+SCREENS['s-weighin']={label:'Pesée', html:`${SB()}
+  <div class="body" style="display:flex;flex-direction:column">
+    ${pushHeader('Pesée','s-today')}
+    <div class="card" style="padding:24px;text-align:center;margin-bottom:16px"><div class="eyebrow">Poids du jour</div><div class="stepper" style="margin:14px 0 4px;border:none;padding:0"><button class="step" style="background:var(--paper-2)">${I.minus}</button><div class="step-val" style="font-size:34px">73,4 <span class="step-unit">kg</span></div><button class="step" style="background:var(--paper-2)">${I.plus}</button></div><div class="num muted tiny">${'Mer. 04 juin · 08:05'}</div></div>
+    <div class="card" style="padding:18px"><div class="row between" style="margin-bottom:14px"><span class="eyebrow">Tendance · 30 jours</span><span class="row" style="gap:5px;color:var(--accent-ink)"><span style="width:15px;height:15px;display:flex">${I.trendDn}</span><span class="num tiny" style="font-weight:600">−1,2 kg</span></span></div>
+      <svg viewBox="0 0 280 90" style="width:100%;height:90px"><polyline fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" points="6,20 46,28 86,24 126,40 166,46 206,58 246,66 274,72"/>${[ [6,20],[46,28],[86,24],[126,40],[166,46],[206,58],[246,66],[274,72] ].map(([x,y])=>`<circle cx="${x}" cy="${y}" r="2.6" fill="var(--paper)" stroke="var(--accent)" stroke-width="2"/>`).join('')}</svg>
+      <div class="row between" style="margin-top:6px"><span class="num tiny muted">74,6 kg</span><span class="num tiny muted">objectif 69 kg</span></div>
+    </div>
+    <div style="flex:1"></div>
+    <button class="btn btn-dark clickable" data-goto="s-today" data-toast="Pesée enregistrée" style="margin:18px 0 28px">Enregistrer</button>
+  </div>
+  <div class="home-ind"></div>`};
+
+SCREENS['s-save']={label:'Confirmation', html:`${SB()}
+  <div class="body" style="display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center">
+    <div style="width:88px;height:88px;border-radius:26px;background:var(--accent-wash);border:1px solid var(--accent-line);color:var(--accent);display:flex;align-items:center;justify-content:center"><span style="width:46px;height:46px;display:flex">${I.seal}</span></div>
+    <h2 class="scr-title" style="margin-top:24px;font-size:23px">Repas enregistré</h2>
+    <p class="sub" style="margin-top:10px;max-width:230px">Ton journal et ta confiance du jour sont à jour.</p>
+    <div class="row" style="gap:7px;align-items:center;margin-top:20px;background:var(--warn-wash);border:1px solid var(--warn-line);border-radius:var(--r-pill);padding:9px 16px"><span style="width:17px;height:17px;color:var(--warn);display:flex">${I.flame}</span><span style="font-weight:600;font-size:14px">Streak</span><span class="num" style="font-weight:600;font-size:14px;color:var(--warn-ink)">8 jours</span></div>
+    <div style="display:flex;flex-direction:column;gap:10px;width:100%;margin-top:34px"><button class="btn btn-dark clickable" data-goto="s-home">Voir l’accueil</button><button class="btn btn-ghost clickable" data-goto="s-timeline">Historique</button></div>
+  </div>
+  <div class="home-ind"></div>`};
+
+/* ===== conversion : paywall hard + premium (rendus dans la section A, dans l'ordre RevenueCat) ===== */
+SCREENS['s-paywall']={label:'Paywall hard · essai 7j', html:`${SB()}
+  <div class="body" style="display:flex;flex-direction:column;padding-bottom:24px">
+    <div style="display:flex;justify-content:center;margin:14px 0 6px"><span style="width:40px;height:40px;color:var(--accent);display:flex">${I.seal}</span></div>
+    <div class="eyebrow" style="text-align:center">MacroLens Pro</div>
+    <h2 class="scr-title" style="text-align:center;font-size:23px;line-height:1.12;margin-top:7px">Débloque<br/>ta précision</h2>
+    <div class="row" style="justify-content:center;gap:3px;margin:11px 0 18px;color:var(--warn)">${[0,0,0,0,0].map(()=>`<span style="width:15px;height:15px;display:flex">${I.star}</span>`).join('')}</div>
+    <div class="card" style="padding:18px 18px 8px">
+      ${[[I.seal,'Aujourd’hui','Accès complet à MacroLens Pro, gratuit','accent'],[I.bell,'Jour 5','On te prévient avant la fin de l’essai','muted'],[I.cal,'Jour 7','Ton abonnement démarre — annulable avant','muted']].map((r,i,arr)=>`<div class="row" style="gap:13px;align-items:flex-start;padding-bottom:${i<arr.length-1?'16px':'4px'};position:relative">${i<arr.length-1?`<span style="position:absolute;left:13px;top:30px;bottom:0;width:2px;background:var(--accent-line)"></span>`:''}<span style="width:28px;height:28px;border-radius:50%;flex:0 0 28px;display:flex;align-items:center;justify-content:center;z-index:1;${r[3]==='accent'?'background:var(--accent);color:#fff':'background:var(--accent-wash);color:var(--accent-ink);border:1px solid var(--accent-line)'}"><span style="width:15px;height:15px;display:flex">${r[0]}</span></span><div><div style="font-weight:600;font-size:13.5px">${r[1]}</div><div class="muted tiny" style="margin-top:2px;line-height:1.4">${r[2]}</div></div></div>`).join('')}
+    </div>
+    <div class="row between" style="margin-top:13px;padding:12px 14px;border:1px solid var(--line-2);border-radius:var(--r-md)"><span style="font-weight:600;font-size:13px">Rappel avant la fin de l’essai</span><span class="switch on"><i></i></span></div>
+    <div style="text-align:center;margin-top:16px"><div class="num" style="font-weight:600;font-size:15px">7 jours gratuits, puis 49,99€/an</div><div class="num muted tiny" style="margin-top:3px">soit 4,17€/mois · annule à tout moment</div></div>
+    <button class="btn btn-dark clickable" data-goto="s-unlocked" style="margin-top:16px">Commencer l’essai gratuit</button>
+    <div class="row" style="justify-content:center;gap:18px;margin-top:13px"><span class="eyebrow clickable">Restaurer</span><span class="eyebrow clickable">Conditions</span><span class="eyebrow clickable">Confidentialité</span></div>
+  </div>
+  <div class="home-ind"></div>`};
+
+SCREENS['s-unlocked']={label:'Premium débloqué', html:`${SB()}
+  <div class="body" style="display:flex;flex-direction:column;align-items:center;text-align:center">
+    <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center">
+      <div style="width:84px;height:84px;border-radius:24px;background:var(--ink);color:var(--paper);display:flex;align-items:center;justify-content:center"><span style="width:44px;height:44px;display:flex">${I.seal}</span></div>
+      <div class="eyebrow" style="margin-top:22px">Essai 7 jours · actif</div>
+      <h2 class="scr-title" style="margin-top:10px;font-size:25px">Bienvenue dans Pro</h2>
+      <p class="sub" style="margin-top:10px;max-width:240px">Ton essai gratuit est lancé. Voici tout ce qui est débloqué.</p>
+      <div class="card" style="width:100%;text-align:left;margin-top:22px;padding:6px 16px">${[['Scans illimités'],['Niveaux de preuve & marges'],['Calibration & recettes pesées'],['Synchro multi-appareils']].map(([t],i)=>`${i?'<div class="rule"></div>':''}<div class="row" style="gap:12px;padding:12px 0"><span style="width:18px;height:18px;color:var(--accent);flex:0 0 18px;display:flex">${I.check}</span><span style="font-weight:500;font-size:13.5px">${t}</span></div>`).join('')}</div>
+    </div>
+    <button class="btn btn-dark clickable" data-goto="s-auth" style="width:100%;margin:24px 0 28px">Continuer ${I.chevR}</button>
+  </div>
+  <div class="home-ind"></div>`};
+
+/* ===== F · PROFIL & RÉGLAGES ===== */
+SCREENS['s-profile']={label:'Profil', html:`${SB()}
+  <div class="body" style="padding-bottom:100px">
+    <div class="row between" style="margin:10px 0 18px"><h2 class="scr-title">Profil</h2><span class="clickable" data-goto="s-settings" style="width:24px;height:24px;color:var(--ink-2)">${I.gear}</span></div>
+    <div class="card" style="padding:18px;display:flex;align-items:center;gap:14px"><div style="width:54px;height:54px;border-radius:16px;background:var(--ink);color:var(--paper);display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-weight:600;font-size:20px">IS</div><div style="flex:1"><div style="font-weight:600;font-size:16px">Idriss Saighi</div><div class="num muted tiny" style="margin-top:3px">Membre depuis fév. 2026</div></div><span class="proof">${I.seal} Pro</span></div>
+    <div class="row" style="gap:11px;margin-top:13px"><div class="card" style="flex:1;padding:16px;text-align:center"><div style="width:20px;height:20px;color:var(--warn);margin:0 auto 6px;display:flex">${I.flame}</div><div class="num" style="font-weight:600;font-size:19px">7</div><div class="eyebrow" style="margin-top:2px">jours</div></div><div class="card" style="flex:1;padding:16px;text-align:center"><div style="width:20px;height:20px;color:var(--accent);margin:0 auto 6px;display:flex">${I.seal}</div><div class="num" style="font-weight:600;font-size:19px">142</div><div class="eyebrow" style="margin-top:2px">vérifiés</div></div><div class="card" style="flex:1;padding:16px;text-align:center"><div style="width:20px;height:20px;color:var(--ink-2);margin:0 auto 6px;display:flex">${I.trendDn}</div><div class="num" style="font-weight:600;font-size:19px">−1,2</div><div class="eyebrow" style="margin-top:2px">kg/30j</div></div></div>
+    <div class="eyebrow" style="margin:24px 4px 11px">Badges</div>
+    <div class="row" style="gap:11px">${[[I.award,'7 jours','on'],[I.scale,'Calibré','on'],[I.target,'Précision','off'],[I.flame,'30 jours','off']].map(([ic,nm,st])=>`<div class="card" style="flex:1;padding:14px 8px;text-align:center;${st==='off'?'opacity:.42':''}"><div style="width:24px;height:24px;margin:0 auto 7px;color:${st==='on'?'var(--accent)':'var(--muted)'};display:flex">${ic}</div><div class="eyebrow" style="font-size:8.5px">${nm}</div></div>`).join('')}</div>
+  </div>
+  ${TABBAR('profile')}
+  <div class="home-ind"></div>`};
+
+SCREENS['s-settings']={label:'Réglages', html:`${SB()}
+  <div class="body" style="padding-bottom:30px">
+    ${pushHeader('Réglages','s-profile')}
+    <div class="card clickable" data-goto="s-editprofile" style="padding:15px;display:flex;align-items:center;gap:13px"><div style="width:46px;height:46px;border-radius:13px;background:var(--ink);color:var(--paper);display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-weight:600;font-size:17px">IS</div><div style="flex:1"><div style="font-weight:600;font-size:15px">Idriss Saighi</div><div class="num muted tiny" style="margin-top:2px">idriss@email.com</div></div><span class="srow-chev">${I.chevR}</span></div>
+    ${sGroup('Compte',[sRow(I.user,'Modifier le profil',{goto:'s-editprofile'}),sRow(I.target,'Cibles & macros',{goto:'s-targets'}),sRow(I.card,'Abonnement',{value:'Pro',goto:'s-subscription'})])}
+    ${sGroup('Préférences',[sRow(I.bell,'Rappels',{goto:'s-reminders'}),sRow(I.heart,'Santé',{goto:'s-health'}),sRow(I.target,'Calibration précision',{value:'2/5',goto:'s-calib'})])}
+    ${sGroup('Données',[sRow(I.sliders,'Données & confidentialité',{goto:'s-privacy'})])}
+    ${sGroup('Aide',[sRow(I.life,'Légal & support',{goto:'s-legal'})])}
+    <div class="eyebrow" style="text-align:center;margin-top:24px;color:var(--muted-2)">MacroLens · v2.0.0 (build 184)</div>
+  </div>
+  <div class="home-ind"></div>`};
+
+SCREENS['s-editprofile']={label:'Modifier le profil', html:`${SB()}
+  <div class="body">
+    ${pushHeader('Modifier le profil','s-settings',`<span class="clickable" data-goto="s-settings" data-toast="Profil mis à jour" style="color:var(--accent-ink);font-weight:600;font-size:13px;font-family:var(--font-sans)">OK</span>`)}
+    <div class="eyebrow" style="margin-bottom:9px">Objectif</div>
+    <div class="seg" style="margin-bottom:18px"><button class="on">Perte</button><button>Muscle</button><button>Maintien</button></div>
+    <div class="eyebrow" style="margin-bottom:9px">Sexe</div>
+    <div class="seg" style="margin-bottom:18px"><button class="on">Homme</button><button>Femme</button><button>Autre</button></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:11px">${fld('Âge','27','ans')}${fld('Taille','178','cm')}${fld('Poids','74','kg')}${fld('Poids cible','69','kg')}</div>
+    <div class="eyebrow" style="margin:18px 0 9px">Niveau d’activité</div>
+    <div class="fld clickable" style="display:flex;align-items:center;justify-content:space-between"><span style="font-weight:600;font-size:14px">Léger · 1–3 séances/sem</span><span style="width:16px;height:16px;color:var(--muted)">${I.chevD}</span></div>
+  </div>
+  <div class="home-ind"></div>`};
+
+SCREENS['s-targets']={label:'Cibles & macros', html:`${SB()}
+  <div class="body">
+    ${pushHeader('Cibles & macros','s-settings')}
+    <div class="card" style="padding:16px;margin-bottom:16px;background:var(--accent-wash);border-color:var(--accent-line)"><div class="row between"><div><div class="eyebrow" style="color:var(--accent-ink)">Calculé automatiquement</div><div class="num" style="font-weight:600;font-size:26px;margin-top:5px;color:var(--accent-ink)">2 180 <span style="font-size:13px">kcal</span></div></div><span class="proof">${I.seal} Auto</span></div></div>
+    <div class="row between" style="margin:4px 4px 12px"><span class="eyebrow">Personnaliser</span><span class="switch on"><i></i></span></div>
+    ${[['Calories','2 180','kcal','var(--ink)'],['Protéines','165','g','var(--protein)'],['Glucides','208','g','var(--carbs)'],['Lipides','62','g','var(--fat)'],['Fibres','30','g','var(--fiber)']].map(([nm,v,u,c])=>`<div class="card" style="padding:13px 15px;display:flex;align-items:center;gap:13px;margin-bottom:9px"><span style="width:10px;height:10px;border-radius:3px;background:${c};flex:0 0 10px"></span><span style="flex:1;font-weight:500;font-size:14px">${nm}</span><div class="row" style="gap:4px;align-items:baseline"><span class="num" style="font-weight:600;font-size:16px">${v}</span><span class="num muted tiny">${u}</span></div><span style="width:16px;height:16px;color:var(--muted-2)">${I.edit}</span></div>`).join('')}
+  </div>
+  <div style="padding:12px 20px 28px"><button class="btn btn-dark clickable" data-goto="s-settings" data-toast="Cibles enregistrées">Enregistrer</button></div>
+  <div class="home-ind"></div>`};
+
+SCREENS['s-subscription']={label:'Abonnement', html:`${SB()}
+  <div class="body">
+    ${pushHeader('Abonnement','s-settings')}
+    <div class="card" style="padding:20px;background:var(--ink);color:var(--paper);border:none"><div class="row between"><span class="eyebrow" style="color:var(--paper);opacity:.7">Plan actuel</span><span style="width:20px;height:20px;color:var(--accent)">${I.seal}</span></div><div style="font-family:var(--font-display);font-weight:600;font-size:22px;margin-top:10px">MacroLens Pro</div><div class="num tiny" style="opacity:.7;margin-top:4px">Annuel · 49,99€/an</div><div class="rule" style="background:rgba(255,255,255,.14);margin:16px 0"></div><div class="row between"><span class="num tiny" style="opacity:.7">Prochain renouvellement</span><span class="num tiny" style="font-weight:600">12 fév. 2027</span></div></div>
+    ${sGroup('Gérer',[sRow(I.card,'Changer de formule',{goto:'s-paywall'}),sRow(I.refresh,'Restaurer mes achats',{}),sRow(I.doc,'Historique de facturation',{})])}
+    <div class="card" style="margin-top:22px;padding:14px;display:flex;gap:10px;align-items:flex-start"><span style="width:16px;height:16px;color:var(--muted);flex:0 0 16px;margin-top:1px;display:flex">${I.info}</span><span class="muted tiny" style="line-height:1.45">La gestion et l’annulation se font via l’App Store. Aucun remboursement automatique.</span></div>
+  </div>
+  <div class="home-ind"></div>`};
+
+SCREENS['s-reminders']={label:'Rappels', html:`${SB()}
+  <div class="body">
+    ${pushHeader('Rappels','s-settings')}
+    ${sGroup('Repas',[sRow(I.clock,'Petit-déjeuner',{value:'08:00',toggle:true}),sRow(I.clock,'Déjeuner',{value:'12:30',toggle:true}),sRow(I.clock,'Dîner',{value:'19:30',toggle:true}),sRow(I.clock,'Collation',{value:'16:00',toggle:false})])}
+    ${sGroup('Habitudes',[sRow(I.scale,'Rappel de pesée',{value:'Lun 08:00',toggle:true}),sRow(I.flame,'Alerte streak',{value:'21:00',toggle:true}),sRow(I.doc,'Rapport hebdo',{value:'Dim',toggle:true})])}
+    <div class="card" style="margin-top:22px;padding:14px;display:flex;gap:10px;align-items:flex-start"><span style="width:16px;height:16px;color:var(--muted);flex:0 0 16px;margin-top:1px;display:flex">${I.bell}</span><span class="muted tiny" style="line-height:1.45">Les rappels n’apparaissent que si tu n’as pas déjà loggé le repas concerné.</span></div>
+  </div>
+  <div class="home-ind"></div>`};
+
+SCREENS['s-health']={label:'Santé', html:`${SB()}
+  <div class="body">
+    ${pushHeader('Santé','s-settings')}
+    <div class="card" style="padding:16px;display:flex;align-items:center;gap:13px;margin-bottom:6px"><div style="width:42px;height:42px;border-radius:12px;background:var(--danger-wash);color:var(--danger);display:flex;align-items:center;justify-content:center"><span style="width:22px;height:22px;display:flex">${I.heart}</span></div><div style="flex:1"><div style="font-weight:600;font-size:15px">Apple Santé</div><div class="num muted tiny" style="margin-top:2px">Connecté</div></div><span class="proof">${I.check} Actif</span></div>
+    ${sGroup('Synchronisation',[sRow(I.download,'Lire le poids',{value:'',toggle:true}),sRow(I.flame,'Lire l’énergie active',{value:'',toggle:true}),sRow(I.share,'Écrire les calories',{value:'',toggle:true}),sRow(I.scale,'Écrire le poids',{value:'',toggle:false})])}
+    ${sGroup('Entraînements',[sRow(I.dumbbell,'Importer les séances',{value:'',toggle:true})])}
+  </div>
+  <div class="home-ind"></div>`};
+
+SCREENS['s-privacy']={label:'Données', html:`${SB()}
+  <div class="body">
+    ${pushHeader('Données & confidentialité','s-settings')}
+    ${sGroup('Tes données',[sRow(I.download,'Exporter mes données',{goto:''}),sRow(I.refresh,'Vider le cache',{value:'24 Mo'})])}
+    ${sGroup('Confidentialité',[sRow(I.sliders,'Partage analytique',{value:'',toggle:false}),sRow(I.bell,'Communications produit',{value:'',toggle:true})])}
+    <div class="eyebrow" style="margin:22px 4px 10px">Zone sensible</div>
+    <div class="card" style="overflow:hidden">${sRow(I.logout,'Se déconnecter',{goto:'s-welcome'})}<div class="rule" style="margin:0 14px"></div>${sRow(I.trash,'Supprimer mon compte',{goto:'',danger:true})}</div>
+    <div class="card" style="margin-top:18px;padding:14px;display:flex;gap:10px;align-items:flex-start"><span style="width:16px;height:16px;color:var(--danger);flex:0 0 16px;margin-top:1px;display:flex">${I.alert}</span><span class="muted tiny" style="line-height:1.45">La suppression du compte est définitive et efface tout ton historique sous 30 jours.</span></div>
+  </div>
+  <div class="home-ind"></div>`};
+
+SCREENS['s-legal']={label:'Légal & support', html:`${SB()}
+  <div class="body">
+    ${pushHeader('Légal & support','s-settings')}
+    ${sGroup('Support',[sRow(I.mail,'Contacter le support',{goto:''}),sRow(I.life,'Centre d’aide',{goto:''}),sRow(I.star,'Noter l’app',{goto:''})])}
+    ${sGroup('Légal',[sRow(I.doc,'Conditions d’utilisation',{goto:''}),sRow(I.sliders,'Politique de confidentialité',{goto:''}),sRow(I.info,'Mentions & licences',{goto:''})])}
+    <div style="text-align:center;margin-top:30px"><div style="width:34px;height:34px;color:var(--muted-2);margin:0 auto;display:flex">${I.seal}</div><div class="eyebrow" style="margin-top:10px;color:var(--muted-2)">MacroLens · v2.0.0</div><div class="eyebrow" style="margin-top:4px;color:var(--muted-2)">Fait avec preuve & précision</div></div>
+  </div>
+  <div class="home-ind"></div>`};
+
+/* ============ RENDER ============ */
+document.getElementById('brandseal').innerHTML=I.seal;
+const SECTIONS=[
+  {code:'A',title:'Onboarding → Paywall → Connexion',ids:['s-welcome','s-source','s-onb1','s-sex','s-body','s-targetw','s-speed','s-activity','s-diet','s-obstacles','s-compare','s-social','s-generating','s-onb2','s-perms','s-paywall','s-unlocked','s-auth']},
+  {code:'B',title:'Scan & analyse',ids:['s-scan','s-analyze','s-result','s-error','s-portion']},
+  {code:'C',title:'Saisie repas',ids:['s-manual','s-search','s-packaged','s-recipe','s-calib']},
+  {code:'D',title:'Accueil & suivi',ids:['s-home','s-today','s-timeline','s-saved','s-weekly','s-weighin','s-save']},
+  {code:'E',title:'Profil & réglages',ids:['s-profile','s-settings','s-editprofile','s-targets','s-subscription','s-reminders','s-health','s-legal','s-privacy']},
+];
+const board=document.getElementById('board');
+const legend=document.getElementById('legend');
+let n=0;
+SECTIONS.forEach(sec=>{
+  const sh=document.createElement('div');sh.className='section-head';
+  sh.innerHTML=`<span class="badge">${sec.code}</span><span class="t">${sec.title}</span><span class="ln"></span>`;
+  board.appendChild(sh);
+  sec.ids.forEach(id=>{
+    n++;const s=SCREENS[id];if(!s){return;}
+    const wrap=document.createElement('div');wrap.className='fw';
+    wrap.innerHTML=`<div class="phone" id="${id}"><div class="scroll">${s.html}</div><div class="toast" data-toast-el></div></div><div class="flabel"><span class="n num">${String(n).padStart(2,'0')}</span>${s.label}</div>`;
+    board.appendChild(wrap);
+  });
+  const a=document.createElement('a');a.setAttribute('data-goto',sec.ids[0]);
+  a.innerHTML=`<span class="k">${sec.code}</span>${sec.title}`;legend.appendChild(a);
+});
+
+/* ============ INTERACTIONS ============ */
+function goTo(id){const el=document.getElementById(id);if(!el)return;el.scrollIntoView({behavior:'smooth',block:'center',inline:'center'});el.classList.add('pulse');setTimeout(()=>el.classList.remove('pulse'),1100);}
+document.addEventListener('click',e=>{
+  const sheetBtn=e.target.closest('[data-sheet]');if(sheetBtn){const ph=sheetBtn.closest('.phone');const open=sheetBtn.getAttribute('data-sheet')==='open';ph.querySelectorAll('.scan-scrim,.scan-sheet').forEach(el=>el.classList.toggle('open',open));return;}
+  const sw=e.target.closest('.switch');if(sw){sw.classList.toggle('on');return;}
+  const segb=e.target.closest('.seg button');if(segb){segb.parentElement.querySelectorAll('button').forEach(b=>b.classList.remove('on'));segb.classList.add('on');return;}
+  const pick=e.target.closest('.pick');if(pick&&pick.closest('.pickgroup')){const g=pick.closest('.pickgroup');g.querySelectorAll('.pick').forEach(p=>p.classList.remove('on'));pick.classList.add('on');return;}
+  const optm=e.target.closest('.optmulti .opt');if(optm){optm.classList.toggle('on');return;}
+  const opt=e.target.closest('.opt');if(opt&&opt.closest('.optgroup')&&!opt.hasAttribute('data-goto')){const g=opt.closest('.optgroup');g.querySelectorAll('.opt').forEach(o=>o.classList.remove('on'));opt.classList.add('on');return;}
+  const t=e.target.closest('[data-goto]');if(!t)return;
+  const msg=t.getAttribute('data-toast');
+  if(msg){const phone=t.closest('.phone');const toast=phone&&phone.querySelector('[data-toast-el]');if(toast){toast.innerHTML=`${I.seal}<span class="num">${msg}</span>`;toast.classList.add('show');setTimeout(()=>toast.classList.remove('show'),1700);}}
+  document.querySelectorAll('.scan-scrim.open,.scan-sheet.open').forEach(el=>el.classList.remove('open'));
+  goTo(t.getAttribute('data-goto'));
+});
+</script>
+</body>
+</html>

@@ -8,7 +8,7 @@ const meals: Meal[] = [
     userId: 'local-user',
     imageUri: 'file://meal.jpg',
     capturedAt: '2026-05-23T12:30:00.000Z',
-    mealName: 'Poulet, riz et legumes',
+    mealName: 'Chicken, rice, and vegetables',
     caloriesEstimate: 506,
     caloriesLow: 430,
     caloriesHigh: 582,
@@ -58,9 +58,9 @@ describe('dashboard view model', () => {
     expect(summary.proteinProgress).toBe(51);
   });
 
-  it('formats confidence labels in French', () => {
-    expect(formatConfidenceLabel('high')).toBe('Fiabilite elevee');
-    expect(formatConfidenceLabel('medium')).toBe('Fiabilite moyenne');
-    expect(formatConfidenceLabel('low')).toBe('A verifier');
+  it('formats confidence labels in English', () => {
+    expect(formatConfidenceLabel('high')).toBe('High confidence');
+    expect(formatConfidenceLabel('medium')).toBe('Medium confidence');
+    expect(formatConfidenceLabel('low')).toBe('Needs review');
   });
 });

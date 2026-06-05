@@ -26,6 +26,7 @@ describe('createManualMacroMeal', () => {
     expect(meal.confidence).toBe('low');
     expect(meal.items).toHaveLength(1);
     expect(meal.items[0].dataSource).toBe('estimated');
+    expect(meal.proof?.evidenceLevel).toBe('ESTIMATED_VISUAL_ONLY');
   });
 
   it('defaults optional macros to zero', () => {

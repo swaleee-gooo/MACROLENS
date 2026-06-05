@@ -23,18 +23,18 @@ const emptyTargets: MacroTargets = {
 };
 
 const goals: { value: UserGoal; label: string }[] = [
-  { value: 'lose_fat', label: 'Perdre du gras' },
+  { value: 'lose_fat', label: 'Lose fat' },
   { value: 'build_muscle', label: 'Muscle' },
-  { value: 'maintain', label: 'Maintien' },
-  { value: 'understand_eating', label: 'Comprendre' },
+  { value: 'maintain', label: 'Maintain' },
+  { value: 'understand_eating', label: 'Understand' },
 ];
 
 const ageRanges: UserProfile['ageRange'][] = ['18-24', '25-34', '35-44', '45-54', '55+'];
 
 const activityLevels: { value: UserProfile['activityLevel']; label: string }[] = [
-  { value: 'low', label: 'Calme' },
-  { value: 'moderate', label: 'Actif' },
-  { value: 'high', label: 'Sportif' },
+  { value: 'low', label: 'Calm' },
+  { value: 'moderate', label: 'Active' },
+  { value: 'high', label: 'Athletic' },
 ];
 
 function parsePositiveNumber(value: string): number {
@@ -124,18 +124,18 @@ export function ProfileScreen({ profile, userId, onBack, onSave }: Props) {
     <ScrollView style={{ backgroundColor: colors.background, flex: 1 }} contentContainerStyle={{ gap: spacing.xl, padding: spacing.xl }}>
       <Pressable onPress={onBack} style={{ alignItems: 'center', flexDirection: 'row', gap: spacing.xs }}>
         <ArrowLeft color={colors.blue} size={18} strokeWidth={2.5} />
-        <Text style={{ color: colors.blue, fontSize: typography.body, fontWeight: '800' }}>Retour</Text>
+        <Text style={{ color: colors.blue, fontSize: typography.body, fontWeight: '800' }}>Back</Text>
       </Pressable>
 
       <View style={{ gap: spacing.xs }}>
-        <Text style={{ color: colors.ink, fontSize: typography.title, fontWeight: '900' }}>Profil</Text>
+        <Text style={{ color: colors.ink, fontSize: typography.title, fontWeight: '900' }}>Profile</Text>
         <Text style={{ color: colors.muted, fontSize: typography.body, lineHeight: 23 }}>
-          Ces donnees servent uniquement a personnaliser tes objectifs locaux.
+          This data is only used to personalize your local targets.
         </Text>
       </View>
 
       <View style={{ gap: spacing.sm }}>
-        <Text style={{ color: colors.ink, fontSize: typography.small, fontWeight: '900', textTransform: 'uppercase' }}>Objectif</Text>
+        <Text style={{ color: colors.ink, fontSize: typography.small, fontWeight: '900', textTransform: 'uppercase' }}>Goal</Text>
         <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm }}>
           {goals.map((item) => (
             <OptionButton key={item.value} label={item.label} value={item.value} selected={goal === item.value} onSelect={setGoal} />
@@ -153,11 +153,11 @@ export function ProfileScreen({ profile, userId, onBack, onSave }: Props) {
       </View>
 
       <View style={{ gap: spacing.sm }}>
-        <Text style={{ color: colors.ink, fontSize: typography.small, fontWeight: '900', textTransform: 'uppercase' }}>Sexe</Text>
+        <Text style={{ color: colors.ink, fontSize: typography.small, fontWeight: '900', textTransform: 'uppercase' }}>Sex</Text>
         <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm }}>
-          <OptionButton label="Femme" value="female" selected={sex === 'female'} onSelect={setSex} />
-          <OptionButton label="Homme" value="male" selected={sex === 'male'} onSelect={setSex} />
-          <OptionButton label="Neutre" value="prefer_not_to_say" selected={sex === 'prefer_not_to_say'} onSelect={setSex} />
+          <OptionButton label="Female" value="female" selected={sex === 'female'} onSelect={setSex} />
+          <OptionButton label="Male" value="male" selected={sex === 'male'} onSelect={setSex} />
+          <OptionButton label="Neutral" value="prefer_not_to_say" selected={sex === 'prefer_not_to_say'} onSelect={setSex} />
         </View>
       </View>
 
@@ -165,7 +165,7 @@ export function ProfileScreen({ profile, userId, onBack, onSave }: Props) {
         value={heightCm}
         onChangeText={setHeightCm}
         keyboardType="numeric"
-        placeholder="Taille en cm"
+        placeholder="Height in cm"
         placeholderTextColor={colors.muted}
         style={{ backgroundColor: colors.surface, borderColor: colors.line, borderRadius: radius.sm, borderWidth: 1, color: colors.ink, padding: spacing.md }}
       />
@@ -173,7 +173,7 @@ export function ProfileScreen({ profile, userId, onBack, onSave }: Props) {
         value={weightKg}
         onChangeText={setWeightKg}
         keyboardType="numeric"
-        placeholder="Poids en kg"
+        placeholder="Weight in kg"
         placeholderTextColor={colors.muted}
         style={{ backgroundColor: colors.surface, borderColor: colors.line, borderRadius: radius.sm, borderWidth: 1, color: colors.ink, padding: spacing.md }}
       />
@@ -181,13 +181,13 @@ export function ProfileScreen({ profile, userId, onBack, onSave }: Props) {
         value={targetWeightKg}
         onChangeText={setTargetWeightKg}
         keyboardType="numeric"
-        placeholder="Poids cible optionnel"
+        placeholder="Optional target weight"
         placeholderTextColor={colors.muted}
         style={{ backgroundColor: colors.surface, borderColor: colors.line, borderRadius: radius.sm, borderWidth: 1, color: colors.ink, padding: spacing.md }}
       />
 
       <View style={{ gap: spacing.sm }}>
-        <Text style={{ color: colors.ink, fontSize: typography.small, fontWeight: '900', textTransform: 'uppercase' }}>Activite</Text>
+        <Text style={{ color: colors.ink, fontSize: typography.small, fontWeight: '900', textTransform: 'uppercase' }}>Activity</Text>
         <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm }}>
           {activityLevels.map((item) => (
             <OptionButton key={item.value} label={item.label} value={item.value} selected={activityLevel === item.value} onSelect={setActivityLevel} />
@@ -197,11 +197,11 @@ export function ProfileScreen({ profile, userId, onBack, onSave }: Props) {
 
       {preview ? (
         <Text style={{ color: colors.muted, fontSize: typography.small, lineHeight: 18 }}>
-          Cible estimee: {preview.calorieTarget} kcal, {preview.proteinTargetG} g proteines.
+          Estimated target: {preview.calorieTarget} kcal, {preview.proteinTargetG} g protein.
         </Text>
       ) : (
         <Text style={{ color: colors.red, fontSize: typography.small, lineHeight: 18 }}>
-          Entre une taille et un poids realistes pour generer tes objectifs.
+          Enter a realistic height and weight to generate your targets.
         </Text>
       )}
 
@@ -219,7 +219,7 @@ export function ProfileScreen({ profile, userId, onBack, onSave }: Props) {
         }}
       >
         <Save color="white" size={20} strokeWidth={2.5} />
-        <Text style={{ color: 'white', fontSize: typography.body, fontWeight: '900' }}>Enregistrer</Text>
+        <Text style={{ color: 'white', fontSize: typography.body, fontWeight: '900' }}>Save</Text>
       </Pressable>
     </ScrollView>
   );

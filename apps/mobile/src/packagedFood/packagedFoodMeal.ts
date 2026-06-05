@@ -1,5 +1,6 @@
 import { recalculateMeal, roundMacro, roundWhole } from '../domain/nutrition';
 import type { FoodItem, Meal } from '../domain/types';
+import { createMealProofMetadata } from '../metaboproof/mealProof';
 import type { PackagedFoodItem } from './packagedFoodSchema';
 
 type Input = {
@@ -33,7 +34,7 @@ export function createPackagedFoodMeal({ userId, item, servingGrams = 100, image
     sourceFoodId: item.barcode,
   };
 
-  return recalculateMeal({
+  const meal = recalculateMeal({
     id: mealId,
     userId,
     imageUri: imageUri ?? `barcode://${item.barcode}`,
@@ -49,8 +50,8 @@ export function createPackagedFoodMeal({ userId, item, servingGrams = 100, image
     confidence: 'high',
     notes:
       item.source === 'nutrition_label_ocr'
-        ? "Produit cree depuis l'OCR de l'etiquette nutritionnelle. Verifie la portion avant d'enregistrer."
-        : `Produit scanne via Open Food Facts: ${item.barcode}.`,
+        ? 'Product created from nutrition label OCR. Check the serving before saving.'
+        : `Product scanned via Open Food Facts: ${item.barcode}.`,
     source: item.source,
     items: [foodItem],
     uncertaintyReasons: [],
@@ -59,4 +60,9 @@ export function createPackagedFoodMeal({ userId, item, servingGrams = 100, image
       { id: 'portion-down', label: 'Portion -15%', correctionType: 'portion_down', targetItemId: foodItem.id },
     ],
   });
+
+  return {
+    ...meal,
+    proof: createMealProofMetadata(meal),
+  };
 }

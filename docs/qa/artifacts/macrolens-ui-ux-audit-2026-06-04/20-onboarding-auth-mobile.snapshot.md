@@ -1,0 +1,31 @@
+- generic [ref=e4] [box=0,0,394,852]:
+  - generic [ref=e6] [box=0,0,378,831]:
+    - generic [ref=e7] [box=0,0,378,110]:
+      - generic [ref=e8] [box=24,16,330,44]:
+        - generic [ref=e10] [cursor=pointer] [box=36,18,21,39]: <
+        - generic [ref=e11] [box=145,29,88,18]: MACROLENS
+      - generic [ref=e103] [box=24,76,330,18]:
+        - generic [ref=e104] [box=24,78,74,14]: Step 10 of 13
+        - generic [ref=e105] [box=327,76,27,18]: 80%
+    - generic [ref=e354] [box=0,142,378,563]:
+      - generic [ref=e355] [box=24,166,330,96]:
+        - generic [ref=e356] [box=32,166,315,40]: Create your account
+        - generic [ref=e357] [box=24,214,330,48]: Save your progress and find it on all your devices.
+      - generic [ref=e358] [box=24,286,330,395]:
+        - generic [ref=e359] [cursor=pointer] [box=24,286,330,76]:
+          - img [ref=e361] [box=49,312,24,24]
+          - generic [ref=e365] [box=97,313,209,22]: Continue with Apple
+        - generic [ref=e367] [cursor=pointer] [box=24,374,330,76]:
+          - img [ref=e369] [box=49,400,24,24]
+          - generic [ref=e374] [box=97,401,209,22]: Continue with Google
+        - generic [ref=e377] [box=41,478,297,138]:
+          - generic [ref=e378] [box=41,478,297,22]:
+            - img [ref=e379] [box=41,480,18,18]
+            - generic [ref=e382] [box=67,478,158,22]: Continue with Email
+          - textbox "you@example.com" [ref=e383] [box=41,512,297,46]
+          - textbox "Password" [ref=e384] [box=41,570,297,46]
+        - generic [ref=e385] [box=24,645,330,36]: Your data stays private. MacroLens does not resell your information.
+  - generic [ref=e349] [box=0,739,394,113]:
+    - generic [active] [box=24,764,346,64]:
+      - generic [ref=e351] [box=97,784,164,24]: Create my account
+      - img [ref=e352] [box=273,784,24,24]

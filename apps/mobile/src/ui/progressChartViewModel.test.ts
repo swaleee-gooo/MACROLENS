@@ -23,6 +23,6 @@ describe('buildProgressChartViewModel', () => {
     const vm = buildProgressChartViewModel([], null, 'kg');
 
     expect(vm.isEmpty).toBe(true);
-    expect(vm.selected.label).toBe('Aucune donnee');
+    expect(vm.selected.label).toBe('No data');
   });
 });

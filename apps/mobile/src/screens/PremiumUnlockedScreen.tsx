@@ -1,5 +1,6 @@
 import { Pressable, Text, View } from 'react-native';
-import { BarChart3, Camera, Check, ShieldCheck } from 'lucide-react-native';
+import { BarChart3, Camera, ShieldCheck } from 'lucide-react-native';
+import { StateSignalAsset } from '../components/BrandAssets';
 import { colors, radius, spacing, typography } from '../ui/theme';
 
 type Props = {
@@ -12,8 +13,8 @@ export function PremiumUnlockedScreen({ onStartScan }: Props) {
       <View />
       <View style={{ alignItems: 'center', gap: spacing.lg }}>
         <Text style={{ color: colors.black, fontSize: typography.small, fontWeight: '900' }}>MACROLENS</Text>
-        <View style={{ alignItems: 'center', borderColor: colors.green, borderRadius: radius.pill, borderWidth: 3, height: 118, justifyContent: 'center', width: 118 }}>
-          <Check color={colors.green} size={62} strokeWidth={2.5} />
+        <View style={{ alignItems: 'center', height: 126, justifyContent: 'center', width: 150 }}>
+          <StateSignalAsset height={126} variant="success" width={150} />
         </View>
         <View style={{ alignItems: 'center', gap: spacing.sm }}>
           <Text style={{ color: colors.black, fontSize: typography.heading, fontWeight: '900', textAlign: 'center' }}>MacroLens Pro is active!</Text>

@@ -1,0 +1,196 @@
+- generic [ref=e461] [box=0,0,394,852]:
+  - generic [ref=e464] [box=0,0,378,1523]:
+    - generic [ref=e465] [box=0,0,378,80]:
+      - generic [ref=e466] [box=24,17,246,46]:
+        - img [ref=e467] [box=24,28,24,24]
+        - generic [ref=e469] [box=56,17,214,46]: MACROLENS
+      - img [ref=e471] [cursor=pointer] [box=319,29,22,22]
+    - generic [ref=e476] [box=-948,96,1578,52]:
+      - generic [ref=e477] [cursor=pointer] [box=-948,96,42,52]:
+        - generic [ref=e479] [box=-930,104,7,18]: J
+        - generic [ref=e480] [box=-933,134,12,14]: "14"
+      - generic [ref=e481] [cursor=pointer] [box=-894,96,42,52]:
+        - generic [ref=e483] [box=-878,104,9,18]: V
+        - generic [ref=e484] [box=-879,134,12,14]: "15"
+      - generic [ref=e485] [cursor=pointer] [box=-840,96,42,52]:
+        - generic [ref=e487] [box=-823,104,7,18]: S
+        - generic [ref=e488] [box=-825,134,12,14]: "16"
+      - generic [ref=e489] [cursor=pointer] [box=-786,96,42,52]:
+        - generic [ref=e491] [box=-770,104,10,18]: D
+        - generic [ref=e492] [box=-771,134,12,14]: "17"
+      - generic [ref=e493] [cursor=pointer] [box=-732,96,42,52]:
+        - generic [ref=e495] [box=-715,104,7,18]: L
+        - generic [ref=e496] [box=-717,134,12,14]: "18"
+      - generic [ref=e497] [cursor=pointer] [box=-678,96,42,52]:
+        - generic [ref=e499] [box=-663,104,13,18]: M
+        - generic [ref=e500] [box=-663,134,12,14]: "19"
+      - generic [ref=e501] [cursor=pointer] [box=-624,96,42,52]:
+        - generic [ref=e503] [box=-609,104,13,18]: M
+        - generic [ref=e504] [box=-610,134,13,14]: "20"
+      - generic [ref=e505] [cursor=pointer] [box=-570,96,42,52]:
+        - generic [ref=e507] [box=-552,104,7,18]: J
+        - generic [ref=e508] [box=-555,134,12,14]: "21"
+      - generic [ref=e509] [cursor=pointer] [box=-516,96,42,52]:
+        - generic [ref=e511] [box=-500,104,9,18]: V
+        - generic [ref=e512] [box=-502,134,13,14]: "22"
+      - generic [ref=e513] [cursor=pointer] [box=-462,96,42,52]:
+        - generic [ref=e515] [box=-445,104,7,18]: S
+        - generic [ref=e516] [box=-448,134,13,14]: "23"
+      - generic [ref=e517] [cursor=pointer] [box=-408,96,42,52]:
+        - generic [ref=e519] [box=-392,104,10,18]: D
+        - generic [ref=e520] [box=-394,134,13,14]: "24"
+      - generic [ref=e521] [cursor=pointer] [box=-354,96,42,52]:
+        - generic [ref=e523] [box=-337,104,7,18]: L
+        - generic [ref=e524] [box=-340,134,13,14]: "25"
+      - generic [ref=e525] [cursor=pointer] [box=-300,96,42,52]:
+        - generic [ref=e527] [box=-285,104,13,18]: M
+        - generic [ref=e528] [box=-286,134,13,14]: "26"
+      - generic [ref=e529] [cursor=pointer] [box=-246,96,42,52]:
+        - generic [ref=e531] [box=-231,104,13,18]: M
+        - generic [ref=e532] [box=-232,134,13,14]: "27"
+      - generic [ref=e533] [cursor=pointer] [box=-192,96,42,52]:
+        - generic [ref=e535] [box=-174,104,7,18]: J
+        - generic [ref=e536] [box=-178,134,13,14]: "28"
+      - generic [ref=e537] [cursor=pointer] [box=-138,96,42,52]:
+        - generic [ref=e539] [box=-122,104,9,18]: V
+        - generic [ref=e540] [box=-124,134,13,14]: "29"
+      - generic [ref=e541] [cursor=pointer] [box=-84,96,42,52]:
+        - generic [ref=e543] [box=-67,104,7,18]: S
+        - generic [ref=e544] [box=-70,134,13,14]: "30"
+      - generic [ref=e545] [cursor=pointer] [box=-30,96,42,52]:
+        - generic [ref=e547] [box=-14,104,10,18]: D
+        - generic [ref=e548] [box=-15,134,12,14]: "31"
+      - generic [ref=e549] [cursor=pointer] [box=24,96,42,52]:
+        - generic [ref=e551] [box=41,104,7,18]: L
+        - generic [ref=e552] [box=42,134,5,14]: "1"
+      - generic [ref=e553] [cursor=pointer] [box=78,96,42,52]:
+        - generic [ref=e555] [box=93,104,13,18]: M
+        - generic [ref=e556] [box=96,134,7,14]: "2"
+      - generic [ref=e557] [cursor=pointer] [box=132,96,42,52]:
+        - generic [ref=e559] [box=147,104,13,18]: M
+        - generic [ref=e560] [box=150,134,7,14]: "3"
+      - generic [ref=e561] [cursor=pointer] [box=186,96,42,52]:
+        - generic [ref=e563] [box=204,104,7,18]: J
+        - generic [ref=e564] [box=204,134,7,14]: "4"
+      - generic [ref=e565] [cursor=pointer] [box=240,96,42,52]:
+        - generic [ref=e567] [box=256,104,9,18]: V
+        - generic [ref=e568] [box=258,134,7,14]: "5"
+      - generic [ref=e569] [cursor=pointer] [box=294,96,42,52]:
+        - generic [ref=e571] [box=311,104,7,18]: S
+        - generic [ref=e572] [box=312,134,7,14]: "6"
+      - generic [ref=e573] [cursor=pointer] [box=348,96,42,52]:
+        - generic [ref=e575] [box=364,104,10,18]: D
+        - generic [ref=e576] [box=366,134,7,14]: "7"
+      - generic [ref=e577] [cursor=pointer] [box=402,96,42,52]:
+        - generic [ref=e579] [box=419,104,7,18]: L
+        - generic [ref=e580] [box=420,134,7,14]: "8"
+      - generic [ref=e581] [cursor=pointer] [box=456,96,42,52]:
+        - generic [ref=e583] [box=471,104,13,18]: M
+        - generic [ref=e584] [box=474,134,7,14]: "9"
+      - generic [ref=e585] [cursor=pointer] [box=510,96,42,52]:
+        - generic [ref=e587] [box=525,104,13,18]: M
+        - generic [ref=e588] [box=525,134,12,14]: "10"
+      - generic [ref=e589] [cursor=pointer] [box=564,96,42,52]:
+        - generic [ref=e591] [box=582,104,7,18]: J
+        - generic [ref=e592] [box=580,134,11,14]: "11"
+    - generic [ref=e593] [box=0,164,378,81]:
+      - generic [ref=e594] [box=24,175,91,61]:
+        - generic [ref=e595] [box=24,175,91,39]: Today
+        - generic [ref=e596] [box=24,218,91,18]: 1 meal logged
+      - generic [ref=e597] [box=257,164,97,81]:
+        - generic [ref=e598] [box=303,164,52,35]:
+          - img [ref=e599] [box=315,174,16,16]
+          - generic [ref=e601] [box=335,173,6,18]: "1"
+        - generic [ref=e602] [cursor=pointer] [box=257,208,97,38]:
+          - img [ref=e603] [box=269,219,15,15]
+          - generic [ref=e606] [box=288,219,54,14]: Scan meal
+    - generic [ref=e608] [box=24,262,330,377]:
+      - generic [ref=e609] [box=41,278,297,18]:
+        - generic [ref=e610] [box=41,280,93,14]: Total calories
+        - img [ref=e611] [box=320,278,18,18]
+      - generic [ref=e613] [box=75,308,228,228]:
+        - img [ref=e614] [box=75,308,228,228]
+        - generic [ref=e617] [box=154,392,70,60]:
+          - generic [ref=e618] [box=160,392,58,42]: "720"
+          - generic [ref=e619] [box=154,435,70,18]: / 2260 kcal
+      - generic [ref=e620] [box=41,548,297,44]:
+        - generic [ref=e621] [box=41,548,94,44]:
+          - generic [ref=e623] [box=68,559,40,14]: Protein
+          - generic [ref=e624] [box=65,578,45,14]: 42/145g
+        - generic [ref=e625] [box=142,548,94,44]:
+          - generic [ref=e627] [box=174,559,30,14]: Carbs
+          - generic [ref=e628] [box=167,578,45,14]: 68/263g
+        - generic [ref=e629] [box=244,548,94,44]:
+          - generic [ref=e631] [box=282,559,17,14]: Fat
+          - generic [ref=e632] [box=271,578,39,14]: 24/70g
+      - generic [ref=e633] [box=147,604,85,18]: 1540 kcal left
+    - generic [ref=e634] [box=0,655,378,329]:
+      - generic [ref=e635] [box=24,655,330,102]:
+        - generic [ref=e636] [box=41,681,97,48]:
+          - generic [ref=e637] [box=41,681,97,14]: Protein
+          - generic [ref=e638] [box=41,700,97,30]:
+            - text: 42g
+            - generic [ref=e639] [box=88,706,50,22]: / 145g
+        - img [ref=e641] [box=270,671,68,68]
+      - generic [ref=e644] [box=24,768,330,102]:
+        - generic [ref=e645] [box=41,795,98,48]:
+          - generic [ref=e646] [box=41,795,98,14]: Carbs
+          - generic [ref=e647] [box=41,813,98,30]:
+            - text: 68g
+            - generic [ref=e648] [box=87,820,51,22]: / 263g
+        - img [ref=e650] [box=270,785,68,68]
+      - generic [ref=e653] [box=24,882,330,102]:
+        - generic [ref=e654] [box=41,909,89,48]:
+          - generic [ref=e655] [box=41,909,89,14]: Fat
+          - generic [ref=e656] [box=41,927,89,30]:
+            - text: 24g
+            - generic [ref=e657] [box=88,933,42,22]: / 70g
+        - img [ref=e659] [box=270,899,68,68]
+    - generic [ref=e662] [box=0,999,378,225]:
+      - generic [ref=e663] [box=24,999,330,76]:
+        - generic [ref=e664] [box=24,999,330,24]:
+          - generic [ref=e665] [box=24,999,111,24]: Quick access
+          - generic [ref=e666] [box=213,1004,141,14]: Long press for details
+        - generic [ref=e669] [cursor=pointer] [box=24,1031,164,44]:
+          - img [ref=e671] [box=42,1047,13,13]
+          - generic [ref=e674] [box=69,1037,106,32]:
+            - generic [ref=e675] [box=69,1037,106,18]: Salmon poke bowl
+            - generic [ref=e676] [box=69,1055,106,14]: 1x - 720 kcal
+      - generic [ref=e677] [box=24,1087,330,30]:
+        - generic [ref=e678] [box=24,1087,159,30]:
+          - img [ref=e679] [box=24,1092,21,21]
+          - generic [ref=e682] [box=53,1087,130,30]: Quick meals
+        - generic [ref=e683] [box=323,1093,31,18]: 1 tap
+      - generic [ref=e685] [box=41,1146,297,62]:
+        - generic [ref=e686] [box=41,1146,178,62]:
+          - generic [ref=e687] [box=41,1146,178,22]: Salmon poke bowl
+          - generic [ref=e688] [box=41,1171,178,18]: 720 kcal - 42 g protein
+          - generic [ref=e689] [box=41,1193,178,14]: "1x logged - last: 04/06"
+        - generic [ref=e690] [cursor=pointer] [box=231,1156,106,42]:
+          - img [ref=e691] [box=243,1169,16,16]
+          - generic [ref=e692] [box=263,1168,62,18]: Log again
+    - generic [ref=e693] [box=0,1240,378,143]:
+      - generic [ref=e694] [box=24,1240,330,30]:
+        - generic [ref=e695] [box=24,1240,150,30]: Logged meals
+        - generic [ref=e696] [box=314,1246,41,18]: 1 meal
+      - generic [ref=e697] [cursor=pointer] [box=24,1282,330,102]:
+        - img [ref=e699] [box=60,1318,30,30]
+        - generic [ref=e704] [box=125,1295,217,76]:
+          - generic [ref=e705] [box=125,1295,217,22]: Salmon poke bowl
+          - generic [ref=e706] [box=125,1320,217,18]: 720 kcal - 42 g protein
+          - generic [ref=e708] [box=138,1347,92,18]: Review needed
+  - generic [ref=e709] [box=0,776,394,76]:
+    - generic [ref=e710] [cursor=pointer] [box=0,785,79,55]:
+      - img [ref=e711] [box=28,792,22,22]
+      - generic [ref=e714] [box=23,818,32,14]: Home
+    - generic [ref=e715] [cursor=pointer] [box=79,785,79,55]:
+      - img [ref=e716] [box=107,792,22,22]
+      - generic [ref=e719] [box=94,818,48,14]: Progress
+    - generic "Scan" [ref=e721] [cursor=pointer] [box=165,767,64,64]:
+      - img [ref=e722] [box=184,787,25,25]
+    - generic [ref=e725] [cursor=pointer] [box=236,785,79,55]:
+      - img [ref=e726] [box=265,792,22,22]
+      - generic [ref=e728] [box=255,818,40,14]: History
+    - generic [ref=e729] [cursor=pointer] [box=315,785,79,55]:
+      - img [ref=e730] [box=343,792,22,22]
+      - generic [ref=e733] [box=336,818,37,14]: Profile

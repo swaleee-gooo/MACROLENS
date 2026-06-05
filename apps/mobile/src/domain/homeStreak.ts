@@ -20,7 +20,7 @@ export type HomeStreakTimelineOptions = {
   daysAfter: number;
 };
 
-const weekdayLabels = ['D', 'L', 'M', 'M', 'J', 'V', 'S'];
+const weekdayLabels = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
 function isoDateAtNoon(isoDate: string): Date {
   return new Date(`${isoDate}T12:00:00.000Z`);

@@ -1,0 +1,33 @@
+- generic [ref=e4] [box=0,0,394,852]:
+  - generic [ref=e6] [box=0,0,394,696]:
+    - generic [ref=e7] [box=0,0,394,110]:
+      - generic [ref=e8] [box=24,16,346,44]:
+        - generic [ref=e10] [cursor=pointer] [box=36,18,21,39]: <
+        - generic [ref=e11] [box=153,29,88,18]: MACROLENS
+      - generic [ref=e103] [box=24,76,346,18]:
+        - generic [ref=e104] [box=24,78,67,14]: Step 1 of 13
+        - generic [ref=e105] [box=342,76,27,18]: 20%
+    - generic [ref=e108] [box=0,142,394,428]:
+      - generic [ref=e109] [box=24,166,346,72]:
+        - generic [ref=e110] [box=51,166,292,40]: What is your goal?
+        - generic [ref=e111] [box=87,214,219,24]: This personalizes your plan.
+      - generic [ref=e112] [box=24,262,346,284]:
+        - generic [ref=e113] [cursor=pointer] [box=24,262,162,136]:
+          - img [ref=e115] [box=93,287,24,24]
+          - generic [ref=e118] [box=67,331,77,18]: Lose weight
+          - generic [ref=e119] [box=46,357,118,14]: Reach a target weight
+        - generic [ref=e120] [cursor=pointer] [box=207,262,162,136]:
+          - img [ref=e122] [box=276,286,24,24]
+          - generic [ref=e128] [box=248,330,82,18]: Build muscle
+          - generic [ref=e129] [box=220,356,137,29]: More protein, controlled surplus
+        - generic [ref=e130] [cursor=pointer] [box=24,410,162,136]:
+          - img [ref=e132] [box=93,434,24,24]
+          - generic [ref=e136] [box=77,478,57,18]: Maintain
+          - generic [ref=e137] [box=37,504,137,29]: Keep your habits under control
+        - generic [ref=e138] [cursor=pointer] [box=207,410,162,136]:
+          - img [ref=e140] [box=276,434,24,24]
+          - generic [ref=e143] [box=229,478,119,18]: Understand eating
+          - generic [ref=e144] [box=220,504,137,14]: See your nutrition clearly
+  - generic [active] [ref=e34] [cursor=pointer] [box=24,764,346,64]:
+    - generic [ref=e35] [box=157,784,43,24]: Next
+    - img [ref=e36] [box=212,784,24,24]

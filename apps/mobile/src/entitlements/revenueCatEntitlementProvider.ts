@@ -28,8 +28,8 @@ type RevenueCatModule = {
 
 const entitlementId = 'macrolens_pro';
 const defaultProductIds: Record<PurchasePlan, string> = {
-  monthly: 'macrolens_pro_monthly',
-  annual: 'macrolens_pro_annual',
+  monthly: 'prod03d96b4e28',
+  annual: 'prod0ef75e0b34',
 };
 
 let configuredApiKey: string | null = null;

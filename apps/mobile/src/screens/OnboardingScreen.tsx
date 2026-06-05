@@ -1,12 +1,328 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Animated, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
-import { Camera as CameraIcon, Check, ChevronRight, Dumbbell, EyeOff, Flame, Heart, Image as ImageIcon, Mail, Ruler, Scale, ShieldCheck, Sparkles, Target, TrendingDown, TrendingUp, Utensils } from 'lucide-react-native';
+import { ArrowLeft, Camera as CameraIcon, Check, ChevronRight, Dumbbell, EyeOff, Flame, Heart, Mail, Ruler, Scale, Sparkles, Target, TrendingDown, TrendingUp, Utensils } from 'lucide-react-native';
 import { useCameraPermissions } from 'expo-camera';
+import { useLang } from '../i18n/LanguageContext';
 import { StickyFooterButton } from '../components/StickyFooterButton';
+import { MacroPlanAsset, MealScanAsset, ScannerPermissionAsset } from '../components/BrandAssets';
 import { buildPersonalizedPromise, type TrackingFriction } from '../domain/onboardingConversion';
 import { buildUserProfileFromOnboarding, isOnboardingDraftValid, type OnboardingProfileDraft } from '../domain/onboardingProfile';
 import type { UserGoal, UserProfile } from '../domain/types';
-import { colors, radius, spacing, typography } from '../ui/theme';
+import { Card, Eyebrow, Num, PrimaryButton, Seal } from '../ui/primitives';
+import { colors, fonts, radius, spacing, typography } from '../ui/theme';
+
+const STR = {
+  en: {
+    // Welcome step
+    welcomeEyebrow: 'Nutrition intelligence',
+    welcomeTitle: 'Track macros\nfrom a photo',
+    welcomeSubtitle: 'AI analysis, quick corrections,\nclear tracking. Simple. Fast. Honest.',
+    // Value step
+    valueEyebrow: 'How it works',
+    valueTitle: 'From photo to macros',
+    valueSubtitle: '1. Take a photo\n2. Get your macros\n3. Improve and reach your goals',
+    valueProtein: 'Protein',
+    valueCarbs: 'Carbs',
+    valueFat: 'Fat',
+    valueTrack: 'Track',
+    valueAdjust: 'Adjust',
+    valueProgress: 'Progress',
+    // Goal step
+    goalEyebrow: 'Step 1 — Goal',
+    goalTitle: 'What is your goal?',
+    goalSubtitle: 'This personalizes your plan.',
+    goalLoseFatLabel: 'Lose weight',
+    goalLoseFatDetail: 'Reach a target weight',
+    goalBuildMuscleLabel: 'Build muscle',
+    goalBuildMuscleDetail: 'More protein, controlled surplus',
+    goalMaintainLabel: 'Maintain',
+    goalMaintainDetail: 'Keep your habits under control',
+    goalUnderstandLabel: 'Understand eating',
+    goalUnderstandDetail: 'See your nutrition clearly',
+    // Friction step
+    frictionEyebrow: 'Step 2 — Context',
+    frictionTitle: 'What makes tracking\ndifficult?',
+    frictionSubtitle: 'Select the main blocker.',
+    frictionRestaurant: 'Restaurant meals',
+    frictionHiddenCalories: 'Hidden calories',
+    frictionWeighingFood: 'Weighing food',
+    frictionForgetting: 'Forgetting to log',
+    // Body step
+    bodyEyebrow: 'Step 3 — Profile',
+    bodyTitle: 'Tell us about you',
+    bodySubtitle: 'This data stays private.',
+    bodyAge: 'Age',
+    bodyAgePlaceholder: 'Ex: 28',
+    bodyAgeUnit: 'years',
+    bodySex: 'Biological sex',
+    bodySexFemale: 'Female',
+    bodySexMale: 'Male',
+    // Height / Weight step
+    heightWeightEyebrow: 'Step 4 — Measurements',
+    heightWeightTitle: 'Your height and weight',
+    heightWeightSubtitle: 'We adjust calories and macros\nwith conservative estimates.',
+    heightLabel: 'Height',
+    heightPlaceholder: 'Ex: 175',
+    weightLabel: 'Current weight',
+    weightPlaceholder: 'Ex: 70.0',
+    // Target / Pace step
+    targetPaceEyebrow: 'Step 5 — Target',
+    targetPaceTitle: 'Your target and pace',
+    targetPaceSubtitle: 'A realistic pace makes tracking more sustainable.',
+    targetWeightLabel: 'Target weight',
+    targetWeightPlaceholder: 'Ex: 62.0',
+    weeklyPace: 'Weekly pace',
+    paceUnit: (pace: number) => `${pace} kg / week`,
+    safeRange: 'Safe range',
+    safeRangeDetail: '0.25 to 1 kg per week depending on your goal.',
+    // Activity step
+    activityEyebrow: 'Step 6 — Activity',
+    activityTitle: 'What is your\nactivity level?',
+    activitySubtitle: 'This refines your calorie needs.',
+    activitySedentaryTitle: 'Sedentary',
+    activitySedentaryDetail: 'Little or no sport',
+    activityModerateTitle: 'Moderate',
+    activityModerateDetail: '3-5 days / week',
+    activityIntenseTitle: 'Intense',
+    activityIntenseDetail: '6-7 days / week',
+    // Diet step
+    dietEyebrow: 'Step 7 — Diet',
+    dietTitle: 'Diet and restrictions',
+    dietSubtitle: 'This helps MacroLens better\nunderstand your meals.',
+    dietPreference: 'Preference',
+    dietAllergies: 'Allergies / restrictions',
+    dietOmnivore: 'Omnivore',
+    dietVegetarian: 'Vegetarian',
+    dietVegan: 'Vegan',
+    dietPescatarian: 'Pescatarian',
+    restrictionGluten: 'Gluten-free',
+    restrictionLactose: 'Lactose-free',
+    restrictionNuts: 'Nuts',
+    restrictionSoy: 'Soy',
+    restrictionHalal: 'Halal',
+    restrictionOther: 'Other',
+    // Plan loading step
+    planLoadingEyebrow: 'Calculating',
+    planLoadingTitle: 'Building your plan',
+    planLoadingSubtitle: 'Calorie targets, macros, and first benchmarks are coming.',
+    // Plan reveal step
+    planEyebrow: 'Your plan',
+    planTitle: 'Your personalized plan',
+    planDefaultSubtitle: 'Your plan is ready.',
+    planCaloriesPerDay: 'Calories / day',
+    planStartingTarget: 'Starting target',
+    planProtein: (g: number | string) => `${g}g Protein`,
+    planCarbs: (g: number | string) => `${g}g Carbs`,
+    planFat: (g: number | string) => `${g}g Fat`,
+    metaboProofNote: 'Personalized starting plan — adjust it after your first logs.',
+    // Auth step
+    authEyebrow: 'Account',
+    authTitle: 'Create your account',
+    authSubtitle: 'Save your progress and find it on all your devices.',
+    authApple: 'Continue with Apple',
+    authGoogle: 'Continue with Google',
+    authEmail: 'Continue with Email',
+    authPassword: 'Password',
+    authConnected: (email: string) => `Connected account: ${email}`,
+    authPrivacy: 'Your data stays private. MacroLens does not resell your information.',
+    authApprove: 'Approve the sign-in, then return to MacroLens.',
+    authAppleUnavailable: 'Apple sign-in is unavailable.',
+    authGoogleUnavailable: 'Google sign-in is unavailable.',
+    authUnavailable: 'Sign-in unavailable: configure Supabase to enable accounts.',
+    authCreateFailed: 'Unable to create account.',
+    // Notifications step
+    notificationsEyebrow: 'Reminders',
+    notificationsTitle: 'Stay on track',
+    notificationsSubtitle: 'Gentle reminders so you do not forget a meal.',
+    notificationsLunch: 'Time to log your lunch',
+    notificationsLunchDetail: "Let's keep your streak going.",
+    notificationsDinner: 'Dinner reminder',
+    notificationsDinnerDetail: 'Choose exact times later.',
+    notificationsSettings: 'You can change this later in settings.',
+    // Health step
+    healthEyebrow: 'Integrations',
+    healthTitle: 'Health sync',
+    healthSubtitle: 'Later, you can connect steps, weight, and activity.',
+    healthSteps: 'Steps',
+    healthWeight: 'Weight',
+    healthActivity: 'Activity',
+    healthApple: 'Compatible Apple Health',
+    // Camera step
+    cameraEyebrow: 'Permissions',
+    cameraTitle: 'Camera access',
+    cameraSubtitle: 'For meal scans, barcodes, and nutrition labels in the app.',
+    cameraInstant: 'Instant meal scans',
+    cameraBarcodes: 'Barcodes and labels',
+    cameraPrivate: 'Private and secure photos',
+    cameraAlreadyAllowed: 'Camera already allowed',
+    // Primary button labels
+    btnGetStarted: 'Get started',
+    btnSeePlan: 'See my plan',
+    btnContinue: 'Continue',
+    btnCreating: 'Creating...',
+    btnCreateAccount: 'Create my account',
+    btnEnableReminders: 'Enable reminders',
+    btnConnectLater: 'Connect later',
+    btnAllowCamera: 'Allow camera',
+    btnNext: 'Next',
+    btnSaveLocally: 'Save locally for now',
+  },
+  fr: {
+    // Welcome step
+    welcomeEyebrow: 'Intelligence nutritionnelle',
+    welcomeTitle: 'Suivez vos macros\ndepuis une photo',
+    welcomeSubtitle: "Analyse IA, corrections rapides,\nsuivi clair. Simple. Rapide. Honnête.",
+    // Value step
+    valueEyebrow: 'Comment ça fonctionne',
+    valueTitle: 'De la photo aux macros',
+    valueSubtitle: '1. Prenez une photo\n2. Obtenez vos macros\n3. Progressez et atteignez vos objectifs',
+    valueProtein: 'Protéines',
+    valueCarbs: 'Glucides',
+    valueFat: 'Lipides',
+    valueTrack: 'Suivre',
+    valueAdjust: 'Ajuster',
+    valueProgress: 'Progrès',
+    // Goal step
+    goalEyebrow: 'Étape 1 — Objectif',
+    goalTitle: 'Quel est votre objectif ?',
+    goalSubtitle: 'Cela personnalise votre plan.',
+    goalLoseFatLabel: 'Perdre du poids',
+    goalLoseFatDetail: 'Atteindre un poids cible',
+    goalBuildMuscleLabel: 'Prendre du muscle',
+    goalBuildMuscleDetail: 'Plus de protéines, surplus contrôlé',
+    goalMaintainLabel: 'Maintenir',
+    goalMaintainDetail: 'Garder vos habitudes sous contrôle',
+    goalUnderstandLabel: 'Comprendre son alimentation',
+    goalUnderstandDetail: 'Voir sa nutrition clairement',
+    // Friction step
+    frictionEyebrow: 'Étape 2 — Contexte',
+    frictionTitle: "Qu'est-ce qui rend le suivi\ndifficile ?",
+    frictionSubtitle: 'Sélectionnez le principal obstacle.',
+    frictionRestaurant: 'Repas au restaurant',
+    frictionHiddenCalories: 'Calories cachées',
+    frictionWeighingFood: 'Peser les aliments',
+    frictionForgetting: 'Oublier de noter',
+    // Body step
+    bodyEyebrow: 'Étape 3 — Profil',
+    bodyTitle: 'Parlez-nous de vous',
+    bodySubtitle: 'Ces données restent privées.',
+    bodyAge: 'Âge',
+    bodyAgePlaceholder: 'Ex : 28',
+    bodyAgeUnit: 'ans',
+    bodySex: 'Sexe biologique',
+    bodySexFemale: 'Femme',
+    bodySexMale: 'Homme',
+    // Height / Weight step
+    heightWeightEyebrow: 'Étape 4 — Mesures',
+    heightWeightTitle: 'Votre taille et votre poids',
+    heightWeightSubtitle: 'Nous ajustons calories et macros\navec des estimations prudentes.',
+    heightLabel: 'Taille',
+    heightPlaceholder: 'Ex : 175',
+    weightLabel: 'Poids actuel',
+    weightPlaceholder: 'Ex : 70,0',
+    // Target / Pace step
+    targetPaceEyebrow: 'Étape 5 — Cible',
+    targetPaceTitle: 'Votre cible et votre rythme',
+    targetPaceSubtitle: 'Un rythme réaliste rend le suivi plus durable.',
+    targetWeightLabel: 'Poids cible',
+    targetWeightPlaceholder: 'Ex : 62,0',
+    weeklyPace: 'Rythme hebdomadaire',
+    paceUnit: (pace: number) => `${pace} kg / semaine`,
+    safeRange: 'Plage recommandée',
+    safeRangeDetail: '0,25 à 1 kg par semaine selon votre objectif.',
+    // Activity step
+    activityEyebrow: 'Étape 6 — Activité',
+    activityTitle: "Quel est votre\nniveau d'activité ?",
+    activitySubtitle: 'Cela affine vos besoins caloriques.',
+    activitySedentaryTitle: 'Sédentaire',
+    activitySedentaryDetail: 'Peu ou pas de sport',
+    activityModerateTitle: 'Modéré',
+    activityModerateDetail: '3-5 jours / semaine',
+    activityIntenseTitle: 'Intensif',
+    activityIntenseDetail: '6-7 jours / semaine',
+    // Diet step
+    dietEyebrow: 'Étape 7 — Alimentation',
+    dietTitle: 'Alimentation et restrictions',
+    dietSubtitle: 'Cela aide MacroLens à mieux\ncomprendre vos repas.',
+    dietPreference: 'Préférence',
+    dietAllergies: 'Allergies / restrictions',
+    dietOmnivore: 'Omnivore',
+    dietVegetarian: 'Végétarien',
+    dietVegan: 'Végétalien',
+    dietPescatarian: 'Pescatarien',
+    restrictionGluten: 'Sans gluten',
+    restrictionLactose: 'Sans lactose',
+    restrictionNuts: 'Noix',
+    restrictionSoy: 'Soja',
+    restrictionHalal: 'Halal',
+    restrictionOther: 'Autre',
+    // Plan loading step
+    planLoadingEyebrow: 'Calcul en cours',
+    planLoadingTitle: 'Construction de votre plan',
+    planLoadingSubtitle: 'Objectifs caloriques, macros et premières références arrivent.',
+    // Plan reveal step
+    planEyebrow: 'Votre plan',
+    planTitle: 'Votre plan personnalisé',
+    planDefaultSubtitle: 'Votre plan est prêt.',
+    planCaloriesPerDay: 'Calories / jour',
+    planStartingTarget: 'Objectif de départ',
+    planProtein: (g: number | string) => `${g}g Protéines`,
+    planCarbs: (g: number | string) => `${g}g Glucides`,
+    planFat: (g: number | string) => `${g}g Lipides`,
+    metaboProofNote: 'Plan de départ personnalisé — ajustez-le après vos premiers repas enregistrés.',
+    // Auth step
+    authEyebrow: 'Compte',
+    authTitle: 'Créez votre compte',
+    authSubtitle: 'Sauvegardez votre progression et retrouvez-la sur tous vos appareils.',
+    authApple: 'Continuer avec Apple',
+    authGoogle: 'Continuer avec Google',
+    authEmail: 'Continuer avec e-mail',
+    authPassword: 'Mot de passe',
+    authConnected: (email: string) => `Compte connecté : ${email}`,
+    authPrivacy: 'Vos données restent privées. MacroLens ne revend pas vos informations.',
+    authApprove: 'Approuvez la connexion, puis revenez sur MacroLens.',
+    authAppleUnavailable: 'La connexion Apple est indisponible.',
+    authGoogleUnavailable: 'La connexion Google est indisponible.',
+    authUnavailable: 'Connexion indisponible : configurez Supabase pour activer les comptes.',
+    authCreateFailed: 'Impossible de créer le compte.',
+    // Notifications step
+    notificationsEyebrow: 'Rappels',
+    notificationsTitle: 'Restez sur la bonne voie',
+    notificationsSubtitle: 'Des rappels doux pour ne pas oublier un repas.',
+    notificationsLunch: 'Il est temps de noter votre déjeuner',
+    notificationsLunchDetail: 'Gardons votre série active.',
+    notificationsDinner: 'Rappel pour le dîner',
+    notificationsDinnerDetail: 'Choisissez les horaires exacts plus tard.',
+    notificationsSettings: 'Vous pouvez modifier cela plus tard dans les réglages.',
+    // Health step
+    healthEyebrow: 'Intégrations',
+    healthTitle: 'Synchronisation santé',
+    healthSubtitle: 'Plus tard, vous pourrez connecter pas, poids et activité.',
+    healthSteps: 'Pas',
+    healthWeight: 'Poids',
+    healthActivity: 'Activité',
+    healthApple: 'Compatible Apple Santé',
+    // Camera step
+    cameraEyebrow: 'Autorisations',
+    cameraTitle: 'Accès à la caméra',
+    cameraSubtitle: 'Pour les scans de repas, codes-barres et étiquettes nutritionnelles.',
+    cameraInstant: 'Scans de repas instantanés',
+    cameraBarcodes: 'Codes-barres et étiquettes',
+    cameraPrivate: 'Photos privées et sécurisées',
+    cameraAlreadyAllowed: 'Caméra déjà autorisée',
+    // Primary button labels
+    btnGetStarted: 'Commencer',
+    btnSeePlan: 'Voir mon plan',
+    btnContinue: 'Continuer',
+    btnCreating: 'Création...',
+    btnCreateAccount: 'Créer mon compte',
+    btnEnableReminders: 'Activer les rappels',
+    btnConnectLater: 'Connecter plus tard',
+    btnAllowCamera: 'Autoriser la caméra',
+    btnNext: 'Suivant',
+    btnSaveLocally: 'Sauvegarder localement',
+  },
+};
 
 type Props = {
   userId: string;
@@ -35,24 +351,6 @@ type OnboardingStep =
   | 'health'
   | 'camera';
 
-type GoalOption = {
-  value: UserGoal;
-  label: string;
-  detail: string;
-  icon: typeof TrendingDown;
-};
-
-type ActivityOption = {
-  value: OnboardingProfileDraft['activityLevel'];
-  title: string;
-  detail: string;
-  icon: typeof Dumbbell;
-};
-
-type ChipOption = {
-  id: string;
-  label: string;
-};
 
 const steps: OnboardingStep[] = [
   'welcome',
@@ -72,41 +370,30 @@ const steps: OnboardingStep[] = [
   'camera',
 ];
 
-const goalOptions: GoalOption[] = [
-  { value: 'lose_fat', label: 'Perdre du poids', detail: 'Atteindre un poids cible', icon: TrendingDown },
-  { value: 'build_muscle', label: 'Prendre du muscle', detail: 'Plus de proteines, surplus controle', icon: Dumbbell },
-  { value: 'maintain', label: 'Maintenir', detail: 'Garder tes habitudes sous controle', icon: Scale },
-  { value: 'understand_eating', label: 'Comprendre', detail: 'Lire clairement ton alimentation', icon: TrendingUp },
+// Option arrays are built at render time using translated strings (see OnboardingScreen body).
+// The icon-only meta is kept here for reference by the builder functions below.
+const goalOptionsMeta: { value: UserGoal; icon: typeof TrendingDown }[] = [
+  { value: 'lose_fat', icon: TrendingDown },
+  { value: 'build_muscle', icon: Dumbbell },
+  { value: 'maintain', icon: Scale },
+  { value: 'understand_eating', icon: TrendingUp },
 ];
 
-const frictionOptions: { value: TrackingFriction; title: string; icon: typeof Utensils }[] = [
-  { value: 'restaurant_meals', title: 'Repas restaurant', icon: Utensils },
-  { value: 'hidden_calories', title: 'Calories cachees', icon: EyeOff },
-  { value: 'weighing_food', title: 'Peser la nourriture', icon: Scale },
-  { value: 'forgetting_meals', title: 'Oublier de logger', icon: Target },
+const frictionOptionsMeta: { value: TrackingFriction; icon: typeof Utensils }[] = [
+  { value: 'restaurant_meals', icon: Utensils },
+  { value: 'hidden_calories', icon: EyeOff },
+  { value: 'weighing_food', icon: Scale },
+  { value: 'forgetting_meals', icon: Target },
 ];
 
-const activityOptions: ActivityOption[] = [
-  { value: 'low', title: 'Sedentaire', detail: 'Peu ou pas de sport', icon: Ruler },
-  { value: 'moderate', title: 'Modere', detail: '3-5 jours / semaine', icon: Dumbbell },
-  { value: 'high', title: 'Intense', detail: '6-7 jours / semaine', icon: Flame },
+const activityOptionsMeta: { value: OnboardingProfileDraft['activityLevel']; icon: typeof Dumbbell }[] = [
+  { value: 'low', icon: Ruler },
+  { value: 'moderate', icon: Dumbbell },
+  { value: 'high', icon: Flame },
 ];
 
-const dietOptions: ChipOption[] = [
-  { id: 'omnivore', label: 'Omnivore' },
-  { id: 'vegetarian', label: 'Vegetarien' },
-  { id: 'vegan', label: 'Vegan' },
-  { id: 'pescatarian', label: 'Pescetarien' },
-];
-
-const restrictionOptions: ChipOption[] = [
-  { id: 'gluten', label: 'Sans gluten' },
-  { id: 'lactose', label: 'Sans lactose' },
-  { id: 'nuts', label: 'Noix' },
-  { id: 'soy', label: 'Soja' },
-  { id: 'halal', label: 'Halal' },
-  { id: 'other', label: 'Autre' },
-];
+const dietOptionIds = ['omnivore', 'vegetarian', 'vegan', 'pescatarian'] as const;
+const restrictionOptionIds = ['gluten', 'lactose', 'nuts', 'soy', 'halal', 'other'] as const;
 
 const paceOptions = [0.25, 0.5, 0.75, 1];
 
@@ -152,52 +439,104 @@ function progressForStep(stepIndex: number): number {
   return Math.round(((stepIndex + 1) / steps.length) * 100);
 }
 
+// ─── Clinical Trust sub-components ───────────────────────────────────────────
+
+/** Top navigation bar + progress track. */
 function Header({ stepIndex, onBack }: { stepIndex: number; onBack: () => void }) {
   const progress = progressForStep(stepIndex);
   const showProgress = stepIndex > 1;
+  const canGoBack = stepIndex > 0;
+  // Human-visible step number skips the two non-counted splash screens (welcome, value)
+  const visibleStep = Math.max(1, stepIndex - 1);
+  // Total countable steps = steps.length - 2 splash steps
+  const totalVisible = steps.length - 2;
 
   return (
-    <View style={{ gap: spacing.lg, paddingHorizontal: spacing.xl, paddingTop: spacing.lg }}>
+    <View style={{ gap: spacing.md, paddingHorizontal: spacing.xl, paddingTop: spacing.lg }}>
+      {/* Nav row */}
       <View style={{ alignItems: 'center', flexDirection: 'row', justifyContent: 'space-between' }}>
-        <Pressable onPress={onBack} style={{ alignItems: 'center', height: 44, justifyContent: 'center', width: 44 }}>
-          <Text style={{ color: colors.black, fontSize: 30, fontWeight: '500' }}>‹</Text>
-        </Pressable>
-        <Text style={{ color: colors.black, fontSize: 14, fontWeight: '900', letterSpacing: 0 }}>MACROLENS</Text>
-        <View style={{ width: 44 }} />
+        {canGoBack ? (
+          <Pressable
+            accessibilityLabel="Back"
+            onPress={onBack}
+            style={{ alignItems: 'center', backgroundColor: colors.surface, borderColor: colors.line2, borderRadius: radius.md, borderWidth: 1, height: 40, justifyContent: 'center', width: 40 }}
+          >
+            <ArrowLeft color={colors.ink2} size={18} strokeWidth={2.2} />
+          </Pressable>
+        ) : (
+          <View style={{ width: 40 }} />
+        )}
+
+        <Text style={{ color: colors.ink, fontFamily: fonts.mono, fontSize: 11, fontWeight: '700', letterSpacing: 2, textTransform: 'uppercase' }}>
+          MacroLens
+        </Text>
+
+        {/* Step counter (Num style) — only when progress is visible */}
+        {showProgress ? (
+          <Num style={{ color: colors.muted, fontSize: 11 }}>
+            {String(visibleStep).padStart(2, '0')} / {String(totalVisible).padStart(2, '0')}
+          </Num>
+        ) : (
+          <View style={{ width: 40 }} />
+        )}
       </View>
+
+      {/* Thin progress track */}
       {showProgress ? (
-        <View style={{ gap: spacing.sm }}>
-          <View style={{ alignItems: 'center', flexDirection: 'row', justifyContent: 'space-between' }}>
-            <Text style={{ color: colors.muted, fontSize: typography.tiny, fontWeight: '900', textTransform: 'uppercase' }}>Etape {Math.max(1, stepIndex - 1)} sur 13</Text>
-            <Text style={{ color: colors.black, fontSize: typography.small, fontWeight: '900' }}>{progress}%</Text>
-          </View>
-          <View style={{ backgroundColor: colors.surfaceMuted, borderRadius: radius.pill, height: 8, overflow: 'hidden' }}>
-            <View style={{ backgroundColor: colors.black, height: 8, width: `${progress}%` }} />
-          </View>
+        <View style={{ backgroundColor: colors.paper3, borderRadius: radius.pill, height: 3, overflow: 'hidden' }}>
+          <View style={{ backgroundColor: colors.ink, borderRadius: radius.pill, height: 3, width: `${progress}%` }} />
         </View>
       ) : null}
     </View>
   );
 }
 
-function SectionTitle({ title, subtitle, centered = false }: { title: string; subtitle?: string; centered?: boolean }) {
+/** Big heading block with mono eyebrow above. */
+function SectionTitle({
+  eyebrow,
+  title,
+  subtitle,
+  centered = false,
+}: {
+  eyebrow?: string;
+  title: string;
+  subtitle?: string;
+  centered?: boolean;
+}) {
   return (
     <View style={{ alignItems: centered ? 'center' : 'flex-start', gap: spacing.sm }}>
-      <Text style={{ color: colors.black, fontSize: typography.title, fontWeight: '900', lineHeight: 40, textAlign: centered ? 'center' : 'left' }}>{title}</Text>
-      {subtitle ? <Text style={{ color: colors.muted, fontSize: typography.body, fontWeight: '800', lineHeight: 24, textAlign: centered ? 'center' : 'left' }}>{subtitle}</Text> : null}
+      {eyebrow ? <Eyebrow>{eyebrow}</Eyebrow> : null}
+      <Text
+        style={{
+          color: colors.ink,
+          fontSize: typography.title,
+          fontWeight: '800',
+          letterSpacing: -0.6,
+          lineHeight: 36,
+          textAlign: centered ? 'center' : 'left',
+        }}
+      >
+        {title}
+      </Text>
+      {subtitle ? (
+        <Text
+          style={{
+            color: colors.muted,
+            fontSize: typography.body,
+            lineHeight: 24,
+            marginTop: 2,
+            textAlign: centered ? 'center' : 'left',
+          }}
+        >
+          {subtitle}
+        </Text>
+      ) : null}
     </View>
   );
 }
 
-function PrimaryCard({ children }: { children: React.ReactNode }) {
-  return (
-    <View style={{ backgroundColor: colors.surface, borderColor: colors.line, borderRadius: radius.lg, borderWidth: 1, padding: spacing.lg }}>
-      {children}
-    </View>
-  );
-}
-
-function OptionCard({
+/** Single-select option row with left accent strip on selection. */
+function OptionRow({
   title,
   detail,
   selected,
@@ -216,29 +555,60 @@ function OptionCard({
       style={{
         alignItems: 'center',
         backgroundColor: colors.surface,
-        borderColor: selected ? colors.green : colors.line,
-        borderRadius: radius.lg,
-        borderWidth: selected ? 2 : 1,
+        borderColor: selected ? colors.ink : colors.line2,
+        borderRadius: radius.md,
+        borderWidth: 1,
         flexDirection: 'row',
         gap: spacing.md,
-        minHeight: 76,
+        minHeight: 68,
+        overflow: 'hidden',
         padding: spacing.md,
       }}
     >
-      <View style={{ alignItems: 'center', backgroundColor: selected ? colors.greenSoft : colors.surfaceMuted, borderRadius: radius.md, height: 48, justifyContent: 'center', width: 48 }}>
-        <Icon color={selected ? colors.green : colors.black} size={24} strokeWidth={2.5} />
+      {/* Left accent strip */}
+      <View
+        style={{
+          backgroundColor: selected ? colors.ink : 'transparent',
+          bottom: 0,
+          left: 0,
+          position: 'absolute',
+          top: 0,
+          width: 3,
+        }}
+      />
+
+      {/* Icon tile */}
+      <View
+        style={{
+          alignItems: 'center',
+          backgroundColor: selected ? colors.paper3 : colors.paper2,
+          borderRadius: radius.sm,
+          height: 44,
+          justifyContent: 'center',
+          marginLeft: 6, // offset past accent strip
+          width: 44,
+        }}
+      >
+        <Icon color={selected ? colors.ink : colors.ink2} size={22} strokeWidth={2} />
       </View>
-      <View style={{ flex: 1, gap: spacing.xs }}>
-        <Text style={{ color: colors.black, fontSize: typography.body, fontWeight: '900' }}>{title}</Text>
-        {detail ? <Text style={{ color: colors.muted, fontSize: typography.small, fontWeight: '800' }}>{detail}</Text> : null}
+
+      {/* Text */}
+      <View style={{ flex: 1, gap: 3 }}>
+        <Text style={{ color: colors.ink, fontSize: typography.body, fontWeight: '700' }}>{title}</Text>
+        {detail ? <Text style={{ color: colors.muted, fontSize: typography.small, lineHeight: 18 }}>{detail}</Text> : null}
       </View>
-      <View style={{ alignItems: 'center', borderColor: selected ? colors.green : colors.line, borderRadius: radius.pill, borderWidth: 2, height: 24, justifyContent: 'center', width: 24 }}>
-        {selected ? <View style={{ backgroundColor: colors.green, borderRadius: radius.pill, height: 12, width: 12 }} /> : null}
-      </View>
+
+      {/* Trailing check */}
+      {selected ? (
+        <Check color={colors.ink} size={18} strokeWidth={2.5} />
+      ) : (
+        <View style={{ borderColor: colors.line2, borderRadius: radius.pill, borderWidth: 1.5, height: 20, width: 20 }} />
+      )}
     </Pressable>
   );
 }
 
+/** 2-up tile option (goal grid). */
 function TileOption({
   label,
   detail,
@@ -256,26 +626,56 @@ function TileOption({
     <Pressable
       onPress={onPress}
       style={{
-        alignItems: 'center',
+        alignItems: 'flex-start',
         backgroundColor: colors.surface,
-        borderColor: selected ? colors.green : colors.line,
+        borderColor: selected ? colors.ink : colors.line2,
         borderRadius: radius.lg,
-        borderWidth: selected ? 2 : 1,
+        borderWidth: 1,
         flexBasis: '47%',
         gap: spacing.sm,
-        minHeight: 128,
+        minHeight: 120,
+        overflow: 'hidden',
         padding: spacing.md,
       }}
     >
-      <View style={{ alignItems: 'center', backgroundColor: selected ? colors.greenSoft : colors.surfaceMuted, borderRadius: radius.md, height: 48, justifyContent: 'center', width: 48 }}>
-        <Icon color={selected ? colors.green : colors.black} size={24} strokeWidth={2.5} />
+      {/* Top accent strip on selected */}
+      <View
+        style={{
+          backgroundColor: selected ? colors.ink : 'transparent',
+          height: 3,
+          left: 0,
+          position: 'absolute',
+          right: 0,
+          top: 0,
+        }}
+      />
+
+      <View
+        style={{
+          alignItems: 'center',
+          backgroundColor: selected ? colors.paper3 : colors.paper2,
+          borderRadius: radius.sm,
+          height: 44,
+          justifyContent: 'center',
+          width: 44,
+        }}
+      >
+        <Icon color={selected ? colors.ink : colors.ink2} size={22} strokeWidth={2} />
       </View>
-      <Text style={{ color: colors.black, fontSize: typography.small, fontWeight: '900', textAlign: 'center' }}>{label}</Text>
-      {detail ? <Text style={{ color: colors.muted, fontSize: typography.tiny, fontWeight: '800', textAlign: 'center' }}>{detail}</Text> : null}
+
+      <Text style={{ color: colors.ink, fontSize: typography.small, fontWeight: '700' }}>{label}</Text>
+      {detail ? <Text style={{ color: colors.muted, fontSize: typography.tiny, lineHeight: 16 }}>{detail}</Text> : null}
+
+      {selected ? (
+        <View style={{ position: 'absolute', right: spacing.md, top: spacing.md }}>
+          <Check color={colors.ink} size={14} strokeWidth={2.5} />
+        </View>
+      ) : null}
     </Pressable>
   );
 }
 
+/** Labeled numeric text field. */
 function Field({
   label,
   value,
@@ -291,22 +691,35 @@ function Field({
 }) {
   return (
     <View style={{ gap: spacing.sm }}>
-      <Text style={{ color: colors.black, fontSize: typography.tiny, fontWeight: '900', textTransform: 'uppercase' }}>{label}</Text>
-      <View style={{ alignItems: 'center', backgroundColor: colors.surface, borderColor: colors.line, borderRadius: radius.md, borderWidth: 1, flexDirection: 'row', paddingHorizontal: spacing.lg }}>
+      <Eyebrow>{label}</Eyebrow>
+      <View
+        style={{
+          alignItems: 'center',
+          backgroundColor: colors.surface,
+          borderColor: colors.line2,
+          borderRadius: radius.md,
+          borderWidth: 1,
+          flexDirection: 'row',
+          paddingHorizontal: spacing.lg,
+        }}
+      >
         <TextInput
           value={value}
           onChangeText={onChangeText}
           keyboardType="numeric"
           placeholder={placeholder}
-          placeholderTextColor={colors.muted}
-          style={{ color: colors.black, flex: 1, fontSize: typography.heading, fontWeight: '900', minHeight: 64, minWidth: 0 }}
+          placeholderTextColor={colors.muted2}
+          style={{ color: colors.ink, flex: 1, fontSize: typography.heading, fontWeight: '700', minHeight: 60, minWidth: 0 }}
         />
-        {unit ? <Text style={{ color: colors.muted, fontSize: typography.body, fontWeight: '900' }}>{unit}</Text> : null}
+        {unit ? (
+          <Num style={{ color: colors.muted, fontSize: typography.body }}>{unit}</Num>
+        ) : null}
       </View>
     </View>
   );
 }
 
+/** Binary segmented control (sex selector). */
 function SegmentedControl<T extends string>({
   values,
   selected,
@@ -319,12 +732,41 @@ function SegmentedControl<T extends string>({
   labels: Record<T, string>;
 }) {
   return (
-    <View style={{ backgroundColor: colors.surface, borderColor: colors.line, borderRadius: radius.md, borderWidth: 1, flexDirection: 'row', overflow: 'hidden' }}>
+    <View
+      style={{
+        backgroundColor: colors.paper2,
+        borderRadius: radius.md,
+        flexDirection: 'row',
+        gap: 4,
+        padding: 4,
+      }}
+    >
       {values.map((value) => {
         const isSelected = selected === value;
         return (
-          <Pressable key={value} onPress={() => onSelect(value)} style={{ alignItems: 'center', backgroundColor: isSelected ? colors.green : colors.surface, flex: 1, minHeight: 48, justifyContent: 'center' }}>
-            <Text style={{ color: isSelected ? 'white' : colors.muted, fontSize: typography.small, fontWeight: '900' }}>{labels[value]}</Text>
+          <Pressable
+            key={value}
+            onPress={() => onSelect(value)}
+            style={{
+              alignItems: 'center',
+              backgroundColor: isSelected ? colors.surface : 'transparent',
+              borderColor: isSelected ? colors.line2 : 'transparent',
+              borderRadius: radius.sm,
+              borderWidth: 1,
+              flex: 1,
+              justifyContent: 'center',
+              minHeight: 44,
+            }}
+          >
+            <Text
+              style={{
+                color: isSelected ? colors.ink : colors.muted,
+                fontSize: typography.small,
+                fontWeight: isSelected ? '700' : '500',
+              }}
+            >
+              {labels[value]}
+            </Text>
           </Pressable>
         );
       })}
@@ -332,62 +774,92 @@ function SegmentedControl<T extends string>({
   );
 }
 
+/** Pill-shaped selection chip. */
 function Chip({ label, selected, onPress }: { label: string; selected: boolean; onPress: () => void }) {
   return (
     <Pressable
       onPress={onPress}
       style={{
         alignItems: 'center',
-        backgroundColor: selected ? colors.greenSoft : colors.surface,
-        borderColor: selected ? colors.green : colors.line,
+        backgroundColor: selected ? colors.ink : colors.surface,
+        borderColor: selected ? colors.ink : colors.line2,
         borderRadius: radius.pill,
         borderWidth: 1,
-        minHeight: 38,
-        paddingHorizontal: spacing.md,
         justifyContent: 'center',
+        minHeight: 36,
+        paddingHorizontal: spacing.md,
       }}
     >
-      <Text style={{ color: selected ? colors.green : colors.black, fontSize: typography.small, fontWeight: '900' }}>{label}</Text>
+      <Text
+        style={{
+          color: selected ? '#FFFFFF' : colors.ink2,
+          fontSize: typography.small,
+          fontWeight: '600',
+        }}
+      >
+        {label}
+      </Text>
     </Pressable>
   );
 }
 
+/** Check row used in notification / health / value steps. */
 function ToggleRow({ label, detail, checked }: { label: string; detail?: string; checked: boolean }) {
   return (
     <View style={{ alignItems: 'center', flexDirection: 'row', gap: spacing.md }}>
-      <View style={{ alignItems: 'center', backgroundColor: checked ? colors.greenSoft : colors.surfaceMuted, borderRadius: radius.pill, height: 28, justifyContent: 'center', width: 28 }}>
-        {checked ? <Check color={colors.green} size={17} strokeWidth={3} /> : null}
+      <View
+        style={{
+          alignItems: 'center',
+          backgroundColor: checked ? colors.accentWash : colors.paper2,
+          borderColor: checked ? colors.accentLine : colors.line2,
+          borderRadius: radius.pill,
+          borderWidth: 1,
+          height: 28,
+          justifyContent: 'center',
+          width: 28,
+        }}
+      >
+        {checked ? <Check color={colors.accent} size={15} strokeWidth={2.5} /> : null}
       </View>
       <View style={{ flex: 1 }}>
-        <Text style={{ color: colors.black, fontSize: typography.body, fontWeight: '900' }}>{label}</Text>
-        {detail ? <Text style={{ color: colors.muted, fontSize: typography.small, fontWeight: '800', marginTop: spacing.xs }}>{detail}</Text> : null}
+        <Text style={{ color: colors.ink, fontSize: typography.body, fontWeight: '600' }}>{label}</Text>
+        {detail ? <Text style={{ color: colors.muted, fontSize: typography.small, lineHeight: 18, marginTop: 2 }}>{detail}</Text> : null}
       </View>
     </View>
   );
 }
 
-function FoodMockup() {
+/** Macro chip used in the plan reveal step. */
+function MacroChip({ label }: { label: string }) {
   return (
-    <View style={{ alignSelf: 'center', marginTop: spacing.lg, width: '92%' }}>
-      <View style={{ backgroundColor: '#151515', borderRadius: 26, overflow: 'hidden', padding: spacing.md }}>
-        <View style={{ aspectRatio: 1.08, backgroundColor: '#F2EFE8', borderRadius: 22, overflow: 'hidden', padding: spacing.md }}>
-          <View style={{ backgroundColor: '#E7B56E', borderRadius: radius.pill, height: 98, left: '36%', position: 'absolute', top: '24%', width: 98 }} />
-          <View style={{ backgroundColor: '#F7F1D8', borderRadius: radius.pill, height: 110, left: '8%', position: 'absolute', top: '12%', width: 110 }} />
-          <View style={{ backgroundColor: colors.greenSoft, borderRadius: radius.pill, height: 116, position: 'absolute', right: '10%', top: '36%', width: 116 }} />
-          <View style={{ backgroundColor: '#382215', borderRadius: radius.pill, bottom: '10%', height: 74, left: '26%', position: 'absolute', width: 138 }} />
-        </View>
-      </View>
-      <View style={{ backgroundColor: colors.surface, borderColor: colors.line, borderRadius: radius.lg, borderWidth: 1, bottom: -10, padding: spacing.md, position: 'absolute', right: -4, width: 124 }}>
-        <Text style={{ color: colors.black, fontSize: typography.subheading, fontWeight: '900' }}>510 kcal</Text>
-        <Text style={{ color: colors.green, fontSize: typography.tiny, fontWeight: '900', marginTop: spacing.xs }}>38g protein</Text>
-        <Text style={{ color: colors.blue, fontSize: typography.tiny, fontWeight: '900' }}>46g carbs</Text>
-        <Text style={{ color: colors.amber, fontSize: typography.tiny, fontWeight: '900' }}>16g fat</Text>
-      </View>
+    <View
+      style={{
+        backgroundColor: colors.paper2,
+        borderColor: colors.line2,
+        borderRadius: radius.sm,
+        borderWidth: 1,
+        paddingHorizontal: spacing.md,
+        paddingVertical: 7,
+      }}
+    >
+      <Num style={{ color: colors.ink2, fontSize: typography.small, fontWeight: '600' }}>{label}</Num>
     </View>
   );
 }
+
+function FoodMockup({ compact = false }: { compact?: boolean }) {
+  return (
+    <View style={{ alignItems: 'center', alignSelf: 'center', marginTop: compact ? 0 : spacing.lg, width: '100%' }}>
+      <MealScanAsset height={compact ? 118 : 206} width={compact ? 162 : 280} />
+    </View>
+  );
+}
+
+// ─── Main screen ─────────────────────────────────────────────────────────────
 
 export function OnboardingScreen({ userId, authEmail, onEmailSignUp, onOAuthSignIn, onComplete, onStepCompleted, onOnboardingCompleted }: Props) {
+  const { lang } = useLang();
+  const t = STR[lang];
   const [stepIndex, setStepIndex] = useState(0);
   const [draft, setDraft] = useState<OnboardingProfileDraft>(emptyDraft('lose_fat'));
   const [friction, setFriction] = useState<TrackingFriction>('restaurant_meals');
@@ -487,7 +959,7 @@ export function OnboardingScreen({ userId, authEmail, onEmailSignUp, onOAuthSign
       }
 
       if (!onEmailSignUp) {
-        setAuthStatus('Connexion indisponible: configure Supabase pour activer le compte.');
+        setAuthStatus(t.authUnavailable);
         return;
       }
 
@@ -497,7 +969,7 @@ export function OnboardingScreen({ userId, authEmail, onEmailSignUp, onOAuthSign
         await onEmailSignUp(email, password);
         setStepIndex((current) => Math.min(current + 1, steps.length - 1));
       } catch (error) {
-        setAuthStatus(error instanceof Error ? error.message : 'Creation de compte impossible.');
+        setAuthStatus(error instanceof Error ? error.message : t.authCreateFailed);
       } finally {
         setAuthLoading(false);
       }
@@ -517,89 +989,63 @@ export function OnboardingScreen({ userId, authEmail, onEmailSignUp, onOAuthSign
     setStepIndex((current) => Math.min(current + 1, steps.length - 1));
   }
 
+  function continueLocally() {
+    if (step !== 'auth' || authLoading) {
+      return;
+    }
+
+    onStepCompleted?.(step);
+    setAuthStatus(null);
+    setStepIndex((current) => Math.min(current + 1, steps.length - 1));
+  }
+
   const loadingWidth = loadingProgress.interpolate({ inputRange: [0, 1], outputRange: ['18%', '92%'] });
   const primaryLabel =
     step === 'welcome'
-      ? 'Commencer'
+      ? t.btnGetStarted
       : step === 'value'
-        ? 'Voir mon plan'
+        ? t.btnSeePlan
         : step === 'plan'
-        ? 'Continuer'
+        ? t.btnContinue
         : step === 'auth'
           ? authLoading
-            ? 'Creation...'
+            ? t.btnCreating
             : authEmail
-              ? 'Continuer'
-              : 'Creer mon compte'
+              ? t.btnContinue
+              : t.btnCreateAccount
             : step === 'notifications'
-              ? 'Activer les rappels'
+              ? t.btnEnableReminders
               : step === 'health'
-                ? 'Connecter plus tard'
+                ? t.btnConnectLater
                 : step === 'camera'
-                  ? 'Autoriser la camera'
-                  : 'Suivant';
+                  ? t.btnAllowCamera
+                  : t.btnNext;
 
   return (
     <View style={{ backgroundColor: colors.background, flex: 1, height: '100%', overflow: 'hidden' }}>
       <ScrollView style={{ flex: 1 }} contentContainerStyle={{ gap: spacing.xxl, paddingBottom: 126 }}>
         <Header stepIndex={stepIndex} onBack={goBack} />
 
+        {/* ── Welcome ──────────────────────────────────────────────── */}
         {step === 'welcome' ? (
           <View style={{ gap: spacing.xl, padding: spacing.xl, paddingTop: spacing.xxl }}>
-            <SectionTitle centered title="Track macros from a photo" subtitle="Analyse IA, corrections rapides, suivi clair. Simple. Fast. Honest." />
+            <SectionTitle
+              eyebrow={t.welcomeEyebrow}
+              centered
+              title={t.welcomeTitle}
+              subtitle={t.welcomeSubtitle}
+            />
             <FoodMockup />
+            {/* Dot indicators */}
             <View style={{ alignItems: 'center', flexDirection: 'row', gap: spacing.sm, justifyContent: 'center' }}>
               {[0, 1, 2, 3].map((index) => (
-                <View key={index} style={{ backgroundColor: index === 0 ? colors.black : colors.line, borderRadius: radius.pill, height: 6, width: index === 0 ? 22 : 6 }} />
-              ))}
-            </View>
-          </View>
-        ) : null}
-
-        {step === 'value' ? (
-          <View style={{ gap: spacing.xl, padding: spacing.xl }}>
-            <SectionTitle centered title="From photo to macros" subtitle="1. Take a photo  2. Get your macros  3. Improve and reach your goals" />
-            <PrimaryCard>
-              <View style={{ alignItems: 'center', flexDirection: 'row', gap: spacing.lg }}>
-                <View style={{ flex: 1 }}>
-                  <FoodMockup />
-                </View>
-                <View style={{ flex: 1, gap: spacing.md }}>
-                  <Text style={{ color: colors.black, fontSize: typography.heading, fontWeight: '900' }}>{preview?.targets.calorieTarget ?? 540} kcal</Text>
-                  <ToggleRow checked label="Protein" detail={`${preview?.targets.proteinTargetG ?? 40}g`} />
-                  <ToggleRow checked label="Carbs" detail="55g" />
-                  <ToggleRow checked label="Fat" detail="16g" />
-                </View>
-              </View>
-            </PrimaryCard>
-            <View style={{ flexDirection: 'row', gap: spacing.md }}>
-              <PrimaryCard>
-                <ToggleRow checked label="Track" />
-              </PrimaryCard>
-              <PrimaryCard>
-                <ToggleRow checked label="Adjust" />
-              </PrimaryCard>
-              <PrimaryCard>
-                <ToggleRow checked label="Progress" />
-              </PrimaryCard>
-            </View>
-          </View>
-        ) : null}
-
-        {step === 'goal' ? (
-          <View style={{ gap: spacing.xl, padding: spacing.xl }}>
-            <SectionTitle centered title="Quel est ton objectif ?" subtitle="Cela personnalise ton plan." />
-            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: spacing.md, justifyContent: 'space-between' }}>
-              {goalOptions.map((option) => (
-                <TileOption
-                  key={option.value}
-                  detail={option.detail}
-                  icon={option.icon}
-                  label={option.label}
-                  selected={draft.goal === option.value}
-                  onPress={() => {
-                    setTargetWeight('');
-                    setDraft({ ...draft, goal: option.value });
+                <View
+                  key={index}
+                  style={{
+                    backgroundColor: index === 0 ? colors.ink : colors.line2,
+                    borderRadius: radius.pill,
+                    height: 5,
+                    width: index === 0 ? 20 : 5,
                   }}
                 />
               ))}
@@ -607,25 +1053,107 @@ export function OnboardingScreen({ userId, authEmail, onEmailSignUp, onOAuthSign
           </View>
         ) : null}
 
-        {step === 'friction' ? (
+        {/* ── Value prop ───────────────────────────────────────────── */}
+        {step === 'value' ? (
           <View style={{ gap: spacing.xl, padding: spacing.xl }}>
-            <SectionTitle centered title="Qu'est-ce qui rend le tracking difficile ?" subtitle="Selectionne le blocage principal." />
-            <View style={{ gap: spacing.md }}>
-              {frictionOptions.map((option) => (
-                <OptionCard key={option.value} icon={option.icon} selected={friction === option.value} title={option.title} onPress={() => setFriction(option.value)} />
+            <SectionTitle
+              eyebrow={t.valueEyebrow}
+              centered
+              title={t.valueTitle}
+              subtitle={t.valueSubtitle}
+            />
+            <Card style={{ padding: spacing.lg }}>
+              <View style={{ alignItems: 'center', flexDirection: 'row', gap: spacing.lg }}>
+                <View style={{ flex: 1 }}>
+                  <FoodMockup compact />
+                </View>
+                <View style={{ flex: 1, gap: spacing.md }}>
+                  <Num style={{ fontSize: typography.heading, fontWeight: '700' }}>
+                    {preview?.targets.calorieTarget ?? 540} kcal
+                  </Num>
+                  <ToggleRow checked label={t.valueProtein} detail={`${preview?.targets.proteinTargetG ?? 40}g`} />
+                  <ToggleRow checked label={t.valueCarbs} detail="55g" />
+                  <ToggleRow checked label={t.valueFat} detail="16g" />
+                </View>
+              </View>
+            </Card>
+            <View style={{ flexDirection: 'row', gap: spacing.md }}>
+              {([t.valueTrack, t.valueAdjust, t.valueProgress] as const).map((label) => (
+                <Card key={label} style={{ alignItems: 'center', flex: 1, gap: spacing.xs, padding: spacing.md }}>
+                  <Check color={colors.accent} size={16} strokeWidth={2.5} />
+                  <Text style={{ color: colors.ink, fontSize: typography.small, fontWeight: '600', textAlign: 'center' }}>{label}</Text>
+                </Card>
               ))}
             </View>
           </View>
         ) : null}
 
+        {/* ── Goal ─────────────────────────────────────────────────── */}
+        {step === 'goal' ? (
+          <View style={{ gap: spacing.xl, padding: spacing.xl }}>
+            <SectionTitle eyebrow={t.goalEyebrow} title={t.goalTitle} subtitle={t.goalSubtitle} />
+            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: spacing.md, justifyContent: 'space-between' }}>
+              {goalOptionsMeta.map((meta) => {
+                const labels: Record<UserGoal, { label: string; detail: string }> = {
+                  lose_fat: { label: t.goalLoseFatLabel, detail: t.goalLoseFatDetail },
+                  build_muscle: { label: t.goalBuildMuscleLabel, detail: t.goalBuildMuscleDetail },
+                  maintain: { label: t.goalMaintainLabel, detail: t.goalMaintainDetail },
+                  understand_eating: { label: t.goalUnderstandLabel, detail: t.goalUnderstandDetail },
+                };
+                const { label, detail } = labels[meta.value];
+                return (
+                  <TileOption
+                    key={meta.value}
+                    detail={detail}
+                    icon={meta.icon}
+                    label={label}
+                    selected={draft.goal === meta.value}
+                    onPress={() => {
+                      setTargetWeight('');
+                      setDraft({ ...draft, goal: meta.value });
+                    }}
+                  />
+                );
+              })}
+            </View>
+          </View>
+        ) : null}
+
+        {/* ── Friction ─────────────────────────────────────────────── */}
+        {step === 'friction' ? (
+          <View style={{ gap: spacing.xl, padding: spacing.xl }}>
+            <SectionTitle eyebrow={t.frictionEyebrow} title={t.frictionTitle} subtitle={t.frictionSubtitle} />
+            <View style={{ gap: spacing.md }}>
+              {frictionOptionsMeta.map((meta) => {
+                const titles: Record<TrackingFriction, string> = {
+                  restaurant_meals: t.frictionRestaurant,
+                  hidden_calories: t.frictionHiddenCalories,
+                  weighing_food: t.frictionWeighingFood,
+                  forgetting_meals: t.frictionForgetting,
+                };
+                return (
+                  <OptionRow
+                    key={meta.value}
+                    icon={meta.icon}
+                    selected={friction === meta.value}
+                    title={titles[meta.value]}
+                    onPress={() => setFriction(meta.value)}
+                  />
+                );
+              })}
+            </View>
+          </View>
+        ) : null}
+
+        {/* ── Body ─────────────────────────────────────────────────── */}
         {step === 'body' ? (
           <View style={{ gap: spacing.xl, padding: spacing.xl }}>
-            <SectionTitle centered title="Parle-nous de toi" subtitle="Ces donnees restent privees." />
-            <Field label="Age" placeholder="28" unit="ans" value={age} onChangeText={setAge} />
+            <SectionTitle eyebrow={t.bodyEyebrow} title={t.bodyTitle} subtitle={t.bodySubtitle} />
+            <Field label={t.bodyAge} placeholder={t.bodyAgePlaceholder} unit={t.bodyAgeUnit} value={age} onChangeText={setAge} />
             <View style={{ gap: spacing.sm }}>
-              <Text style={{ color: colors.black, fontSize: typography.tiny, fontWeight: '900', textTransform: 'uppercase' }}>Sexe biologique</Text>
+              <Eyebrow>{t.bodySex}</Eyebrow>
               <SegmentedControl
-                labels={{ female: 'Femme', male: 'Homme' }}
+                labels={{ female: t.bodySexFemale, male: t.bodySexMale }}
                 selected={draft.sex}
                 values={['female', 'male']}
                 onSelect={(sex) => setDraft({ ...draft, sex })}
@@ -634,20 +1162,22 @@ export function OnboardingScreen({ userId, authEmail, onEmailSignUp, onOAuthSign
           </View>
         ) : null}
 
+        {/* ── Height / Weight ───────────────────────────────────────── */}
         {step === 'heightWeight' ? (
           <View style={{ gap: spacing.xl, padding: spacing.xl }}>
-            <SectionTitle centered title="Ta taille et ton poids" subtitle="On ajuste les calories et les macros avec des estimations prudentes." />
-            <Field label="Taille" placeholder="175" unit="cm" value={height} onChangeText={setHeight} />
-            <Field label="Poids actuel" placeholder="70.0" unit="kg" value={weight} onChangeText={setWeight} />
+            <SectionTitle eyebrow={t.heightWeightEyebrow} title={t.heightWeightTitle} subtitle={t.heightWeightSubtitle} />
+            <Field label={t.heightLabel} placeholder={t.heightPlaceholder} unit="cm" value={height} onChangeText={setHeight} />
+            <Field label={t.weightLabel} placeholder={t.weightPlaceholder} unit="kg" value={weight} onChangeText={setWeight} />
           </View>
         ) : null}
 
+        {/* ── Target / Pace ─────────────────────────────────────────── */}
         {step === 'targetPace' ? (
           <View style={{ gap: spacing.xl, padding: spacing.xl }}>
-            <SectionTitle centered title="Ton objectif et ton rythme" subtitle="Un rythme realiste rend le suivi plus durable." />
-            <Field label="Poids cible" placeholder="62.0" unit="kg" value={targetWeight} onChangeText={setTargetWeight} />
+            <SectionTitle eyebrow={t.targetPaceEyebrow} title={t.targetPaceTitle} subtitle={t.targetPaceSubtitle} />
+            <Field label={t.targetWeightLabel} placeholder={t.targetWeightPlaceholder} unit="kg" value={targetWeight} onChangeText={setTargetWeight} />
             <View style={{ gap: spacing.sm }}>
-              <Text style={{ color: colors.black, fontSize: typography.tiny, fontWeight: '900', textTransform: 'uppercase' }}>Allure hebdomadaire</Text>
+              <Eyebrow>{t.weeklyPace}</Eyebrow>
               <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm }}>
                 {paceOptions.map((pace) => {
                   const selected = draft.weeklyPaceKg === pace;
@@ -655,184 +1185,334 @@ export function OnboardingScreen({ userId, authEmail, onEmailSignUp, onOAuthSign
                     <Pressable
                       key={pace}
                       onPress={() => setDraft({ ...draft, weeklyPaceKg: pace })}
-                      style={{ backgroundColor: selected ? colors.green : colors.surface, borderColor: selected ? colors.green : colors.line, borderRadius: radius.pill, borderWidth: 1, paddingHorizontal: spacing.md, paddingVertical: spacing.sm }}
+                      style={{
+                        backgroundColor: selected ? colors.ink : colors.surface,
+                        borderColor: selected ? colors.ink : colors.line2,
+                        borderRadius: radius.pill,
+                        borderWidth: 1,
+                        paddingHorizontal: spacing.md,
+                        paddingVertical: spacing.sm,
+                      }}
                     >
-                      <Text style={{ color: selected ? 'white' : colors.black, fontSize: typography.small, fontWeight: '900' }}>{pace} kg / sem.</Text>
+                      <Num style={{ color: selected ? '#FFFFFF' : colors.ink2, fontSize: typography.small }}>
+                        {t.paceUnit(pace)}
+                      </Num>
                     </Pressable>
                   );
                 })}
               </View>
             </View>
-            <PrimaryCard>
-              <ToggleRow checked label="Fourchette sure" detail="0,25 a 1 kg par semaine selon ton objectif." />
-            </PrimaryCard>
+            <Card style={{ gap: spacing.sm, padding: spacing.lg }}>
+              <ToggleRow checked label={t.safeRange} detail={t.safeRangeDetail} />
+            </Card>
           </View>
         ) : null}
 
+        {/* ── Activity ─────────────────────────────────────────────── */}
         {step === 'activity' ? (
           <View style={{ gap: spacing.xl, padding: spacing.xl }}>
-            <SectionTitle centered title="Quel est ton niveau d'activite ?" subtitle="Cela affine ton besoin calorique." />
+            <SectionTitle eyebrow={t.activityEyebrow} title={t.activityTitle} subtitle={t.activitySubtitle} />
             <View style={{ gap: spacing.md }}>
-              {activityOptions.map((option) => (
-                <OptionCard key={option.value} detail={option.detail} icon={option.icon} selected={draft.activityLevel === option.value} title={option.title} onPress={() => setDraft({ ...draft, activityLevel: option.value })} />
-              ))}
+              {activityOptionsMeta.map((meta) => {
+                const info: Record<OnboardingProfileDraft['activityLevel'], { title: string; detail: string }> = {
+                  low: { title: t.activitySedentaryTitle, detail: t.activitySedentaryDetail },
+                  moderate: { title: t.activityModerateTitle, detail: t.activityModerateDetail },
+                  high: { title: t.activityIntenseTitle, detail: t.activityIntenseDetail },
+                };
+                const { title, detail } = info[meta.value];
+                return (
+                  <OptionRow
+                    key={meta.value}
+                    detail={detail}
+                    icon={meta.icon}
+                    selected={draft.activityLevel === meta.value}
+                    title={title}
+                    onPress={() => setDraft({ ...draft, activityLevel: meta.value })}
+                  />
+                );
+              })}
             </View>
           </View>
         ) : null}
 
+        {/* ── Diet ─────────────────────────────────────────────────── */}
         {step === 'diet' ? (
           <View style={{ gap: spacing.xl, padding: spacing.xl }}>
-            <SectionTitle centered title="Regime et restrictions" subtitle="Cela aide a mieux comprendre tes repas." />
+            <SectionTitle eyebrow={t.dietEyebrow} title={t.dietTitle} subtitle={t.dietSubtitle} />
             <View style={{ gap: spacing.md }}>
-              <Text style={{ color: colors.black, fontSize: typography.tiny, fontWeight: '900', textTransform: 'uppercase' }}>Preference</Text>
+              <Eyebrow>{t.dietPreference}</Eyebrow>
               <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm }}>
-                {dietOptions.map((option) => <Chip key={option.id} label={option.label} selected={diet === option.id} onPress={() => setDiet(option.id)} />)}
+                {dietOptionIds.map((id) => {
+                  const dietLabels: Record<typeof dietOptionIds[number], string> = {
+                    omnivore: t.dietOmnivore,
+                    vegetarian: t.dietVegetarian,
+                    vegan: t.dietVegan,
+                    pescatarian: t.dietPescatarian,
+                  };
+                  return <Chip key={id} label={dietLabels[id]} selected={diet === id} onPress={() => setDiet(id)} />;
+                })}
               </View>
             </View>
             <View style={{ gap: spacing.md }}>
-              <Text style={{ color: colors.black, fontSize: typography.tiny, fontWeight: '900', textTransform: 'uppercase' }}>Allergies / restrictions</Text>
+              <Eyebrow>{t.dietAllergies}</Eyebrow>
               <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm }}>
-                {restrictionOptions.map((option) => <Chip key={option.id} label={option.label} selected={restrictions.includes(option.id)} onPress={() => toggleRestriction(option.id)} />)}
+                {restrictionOptionIds.map((id) => {
+                  const restrictionLabels: Record<typeof restrictionOptionIds[number], string> = {
+                    gluten: t.restrictionGluten,
+                    lactose: t.restrictionLactose,
+                    nuts: t.restrictionNuts,
+                    soy: t.restrictionSoy,
+                    halal: t.restrictionHalal,
+                    other: t.restrictionOther,
+                  };
+                  return <Chip key={id} label={restrictionLabels[id]} selected={restrictions.includes(id)} onPress={() => toggleRestriction(id)} />;
+                })}
               </View>
             </View>
           </View>
         ) : null}
 
+        {/* ── Plan loading ──────────────────────────────────────────── */}
         {step === 'planLoading' ? (
           <View style={{ alignItems: 'center', gap: spacing.xl, padding: spacing.xl, paddingTop: 96 }}>
-            <View style={{ alignItems: 'center', justifyContent: 'center' }}>
-              <View style={{ alignItems: 'center', borderColor: colors.greenSoft, borderRadius: radius.pill, borderWidth: 14, height: 164, justifyContent: 'center', width: 164 }}>
-                <Sparkles color={colors.green} size={42} strokeWidth={2.4} />
-                <Text style={{ color: colors.black, fontSize: typography.heading, fontWeight: '900', marginTop: spacing.sm }}>72%</Text>
-              </View>
+            {/* Seal ring */}
+            <View
+              style={{
+                alignItems: 'center',
+                borderColor: colors.accentWash,
+                borderRadius: radius.pill,
+                borderWidth: 16,
+                height: 160,
+                justifyContent: 'center',
+                width: 160,
+              }}
+            >
+              <Seal size={48} color={colors.accent} />
+              <Num style={{ fontSize: typography.heading, fontWeight: '700', marginTop: spacing.sm }}>72%</Num>
             </View>
-            <SectionTitle centered title="Construction de ton plan" subtitle="Objectifs calories, macros et premiers reperes arrivent." />
-            <View style={{ backgroundColor: colors.surfaceMuted, borderRadius: radius.pill, height: 10, overflow: 'hidden', width: '100%' }}>
-              <Animated.View style={{ backgroundColor: colors.green, borderRadius: radius.pill, height: 10, width: loadingWidth }} />
+            <SectionTitle centered eyebrow={t.planLoadingEyebrow} title={t.planLoadingTitle} subtitle={t.planLoadingSubtitle} />
+            <View style={{ backgroundColor: colors.paper3, borderRadius: radius.pill, height: 4, overflow: 'hidden', width: '100%' }}>
+              <Animated.View style={{ backgroundColor: colors.ink, borderRadius: radius.pill, height: 4, width: loadingWidth }} />
             </View>
           </View>
         ) : null}
 
+        {/* ── Plan reveal ───────────────────────────────────────────── */}
         {step === 'plan' ? (
           <View style={{ gap: spacing.xl, padding: spacing.xl }}>
-            <SectionTitle centered title="Ton plan personnalise" subtitle={personalizedPromise ?? 'Ton plan est pret.'} />
-            <PrimaryCard>
-              <View style={{ gap: spacing.lg }}>
-                <View>
-                  <Text style={{ color: colors.muted, fontSize: typography.tiny, fontWeight: '900', textTransform: 'uppercase' }}>Calories quotidiennes</Text>
-                  <Text style={{ color: colors.green, fontSize: typography.hero, fontWeight: '900' }}>{preview?.targets.calorieTarget ?? '--'} kcal</Text>
-                  <Text style={{ color: colors.muted, fontSize: typography.small, fontWeight: '900' }}>Cible de depart</Text>
-                </View>
-                <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm }}>
-                  <Chip label={`${preview?.targets.proteinTargetG ?? '--'}g Protein`} selected onPress={() => undefined} />
-                  <Chip label={`${preview?.targets.carbsTargetG ?? '--'}g Carbs`} selected onPress={() => undefined} />
-                  <Chip label={`${preview?.targets.fatTargetG ?? '--'}g Fat`} selected onPress={() => undefined} />
-                </View>
-                <ToggleRow checked label="Plan haute confiance" detail="Base sur tes reponses, ton poids et ton objectif." />
+            <SectionTitle eyebrow={t.planEyebrow} title={t.planTitle} subtitle={personalizedPromise ?? t.planDefaultSubtitle} />
+            <View style={{ alignItems: 'center' }}>
+              <MacroPlanAsset height={164} width={274} />
+            </View>
+
+            {/* Big calorie card */}
+            <Card style={{ gap: spacing.lg, padding: spacing.lg }}>
+              <View>
+                <Eyebrow>{t.planCaloriesPerDay}</Eyebrow>
+                <Num style={{ fontSize: typography.hero, fontWeight: '700', letterSpacing: -1.2, marginTop: 6 }}>
+                  {preview?.targets.calorieTarget ?? '--'}
+                  <Text style={{ color: colors.muted, fontSize: typography.heading, fontWeight: '400' }}> kcal</Text>
+                </Num>
+                <Text style={{ color: colors.muted, fontSize: typography.small, marginTop: 4 }}>{t.planStartingTarget}</Text>
               </View>
-            </PrimaryCard>
+
+              {/* Macro chips */}
+              <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm }}>
+                <MacroChip label={t.planProtein(preview?.targets.proteinTargetG ?? '--')} />
+                <MacroChip label={t.planCarbs(preview?.targets.carbsTargetG ?? '--')} />
+                <MacroChip label={t.planFat(preview?.targets.fatTargetG ?? '--')} />
+              </View>
+
+              <View style={{ backgroundColor: colors.line, height: 1 }} />
+
+              {/* MetaboProof note */}
+              <View
+                style={{
+                  backgroundColor: colors.accentWash,
+                  borderColor: colors.accentLine,
+                  borderRadius: radius.sm,
+                  borderWidth: 1,
+                  flexDirection: 'row',
+                  gap: spacing.md,
+                  padding: spacing.md,
+                }}
+              >
+                <Seal size={18} color={colors.accentInk} />
+                <View style={{ flex: 1 }}>
+                  <Eyebrow color={colors.accentInk}>MetaboProof</Eyebrow>
+                  <Text style={{ color: colors.accentInk, fontSize: typography.small, lineHeight: 18, marginTop: 3 }}>
+                    {t.metaboProofNote}
+                  </Text>
+                </View>
+              </View>
+            </Card>
           </View>
         ) : null}
 
+        {/* ── Auth ─────────────────────────────────────────────────── */}
         {step === 'auth' ? (
           <View style={{ gap: spacing.xl, padding: spacing.xl }}>
-            <SectionTitle centered title="Cree ton compte" subtitle="Sauvegarde tes progres et retrouve-les sur tous tes appareils." />
+            <SectionTitle eyebrow={t.authEyebrow} title={t.authTitle} subtitle={t.authSubtitle} />
             <View style={{ gap: spacing.md }}>
-              <OptionCard
+              <OptionRow
                 icon={Sparkles}
                 selected={false}
-                title="Continuer avec Apple"
+                title={t.authApple}
                 onPress={async () => {
                   setAuthStatus(null);
                   try {
                     await onOAuthSignIn?.('apple');
-                    setAuthStatus('Valide la connexion puis reviens dans MacroLens.');
+                    setAuthStatus(t.authApprove);
                   } catch (error) {
-                    setAuthStatus(error instanceof Error ? error.message : 'Connexion Apple indisponible.');
+                    setAuthStatus(error instanceof Error ? error.message : t.authAppleUnavailable);
                   }
                 }}
               />
-              <OptionCard
+              <OptionRow
                 icon={Target}
                 selected={false}
-                title="Continuer avec Google"
+                title={t.authGoogle}
                 onPress={async () => {
                   setAuthStatus(null);
                   try {
                     await onOAuthSignIn?.('google');
-                    setAuthStatus('Valide la connexion puis reviens dans MacroLens.');
+                    setAuthStatus(t.authApprove);
                   } catch (error) {
-                    setAuthStatus(error instanceof Error ? error.message : 'Connexion Google indisponible.');
+                    setAuthStatus(error instanceof Error ? error.message : t.authGoogleUnavailable);
                   }
                 }}
               />
-              <PrimaryCard>
+              <Card style={{ padding: spacing.lg }}>
                 <View style={{ gap: spacing.md }}>
                   <View style={{ alignItems: 'center', flexDirection: 'row', gap: spacing.sm }}>
-                    <Mail color={colors.black} size={18} strokeWidth={2.4} />
-                    <Text style={{ color: colors.black, fontSize: typography.body, fontWeight: '900' }}>Continuer avec Email</Text>
+                    <Mail color={colors.ink2} size={17} strokeWidth={2} />
+                    <Text style={{ color: colors.ink, fontSize: typography.body, fontWeight: '700' }}>{t.authEmail}</Text>
                   </View>
-                  <TextInput value={email} onChangeText={setEmail} autoCapitalize="none" keyboardType="email-address" placeholder="you@example.com" placeholderTextColor={colors.muted} style={{ borderColor: colors.line, borderRadius: radius.sm, borderWidth: 1, color: colors.black, minHeight: 46, paddingHorizontal: spacing.md }} />
-                  <TextInput value={password} onChangeText={setPassword} secureTextEntry placeholder="Mot de passe" placeholderTextColor={colors.muted} style={{ borderColor: colors.line, borderRadius: radius.sm, borderWidth: 1, color: colors.black, minHeight: 46, paddingHorizontal: spacing.md }} />
+                  <TextInput
+                    value={email}
+                    onChangeText={setEmail}
+                    autoCapitalize="none"
+                    keyboardType="email-address"
+                    placeholder="you@example.com"
+                    placeholderTextColor={colors.muted2}
+                    style={{
+                      borderColor: colors.line2,
+                      borderRadius: radius.sm,
+                      borderWidth: 1,
+                      color: colors.ink,
+                      minHeight: 46,
+                      paddingHorizontal: spacing.md,
+                    }}
+                  />
+                  <TextInput
+                    value={password}
+                    onChangeText={setPassword}
+                    secureTextEntry
+                    placeholder={t.authPassword}
+                    placeholderTextColor={colors.muted2}
+                    style={{
+                      borderColor: colors.line2,
+                      borderRadius: radius.sm,
+                      borderWidth: 1,
+                      color: colors.ink,
+                      minHeight: 46,
+                      paddingHorizontal: spacing.md,
+                    }}
+                  />
                 </View>
-              </PrimaryCard>
+              </Card>
+
               {authEmail ? (
-                <View style={{ backgroundColor: colors.greenSoft, borderColor: colors.green, borderRadius: radius.md, borderWidth: 1, padding: spacing.md }}>
-                  <Text style={{ color: colors.green, fontSize: typography.small, fontWeight: '900', lineHeight: 18 }}>Compte connecte: {authEmail}</Text>
+                <View
+                  style={{
+                    backgroundColor: colors.accentWash,
+                    borderColor: colors.accentLine,
+                    borderRadius: radius.md,
+                    borderWidth: 1,
+                    padding: spacing.md,
+                  }}
+                >
+                  <Text style={{ color: colors.accentInk, fontSize: typography.small, fontWeight: '600', lineHeight: 18 }}>
+                    {t.authConnected(authEmail)}
+                  </Text>
                 </View>
               ) : null}
+
               {authStatus ? (
-                <View style={{ backgroundColor: colors.surfaceMuted, borderColor: colors.line, borderRadius: radius.md, borderWidth: 1, padding: spacing.md }}>
-                  <Text style={{ color: colors.muted, fontSize: typography.small, fontWeight: '900', lineHeight: 18 }}>{authStatus}</Text>
+                <View
+                  style={{
+                    backgroundColor: colors.paper2,
+                    borderColor: colors.line2,
+                    borderRadius: radius.md,
+                    borderWidth: 1,
+                    padding: spacing.md,
+                  }}
+                >
+                  <Text style={{ color: colors.muted, fontSize: typography.small, lineHeight: 18 }}>{authStatus}</Text>
                 </View>
               ) : null}
-              <Text style={{ color: colors.muted, fontSize: typography.tiny, fontWeight: '800', lineHeight: 18, textAlign: 'center' }}>Tes donnees restent privees. MacroLens ne revend pas tes informations.</Text>
+
+              <Text style={{ color: colors.muted, fontSize: typography.tiny, lineHeight: 18, textAlign: 'center' }}>
+                {t.authPrivacy}
+              </Text>
             </View>
           </View>
         ) : null}
 
+        {/* ── Notifications ─────────────────────────────────────────── */}
         {step === 'notifications' ? (
           <View style={{ gap: spacing.xl, padding: spacing.xl }}>
-            <SectionTitle centered title="Reste sur la bonne trajectoire" subtitle="Des rappels discrets pour ne pas oublier un repas." />
-            <PrimaryCard>
-              <View style={{ gap: spacing.md }}>
-                <ToggleRow checked label="Time to log your lunch" detail="Let's keep your streak going." />
-                <ToggleRow checked label="Rappel diner" detail="Choisis plus tard les heures exactes." />
-              </View>
-            </PrimaryCard>
-            <Text style={{ color: colors.muted, fontSize: typography.tiny, textAlign: 'center' }}>Tu pourras changer cela dans les reglages.</Text>
+            <SectionTitle eyebrow={t.notificationsEyebrow} title={t.notificationsTitle} subtitle={t.notificationsSubtitle} />
+            <Card style={{ gap: spacing.md, padding: spacing.lg }}>
+              <ToggleRow checked label={t.notificationsLunch} detail={t.notificationsLunchDetail} />
+              <ToggleRow checked label={t.notificationsDinner} detail={t.notificationsDinnerDetail} />
+            </Card>
+            <Text style={{ color: colors.muted, fontSize: typography.tiny, textAlign: 'center' }}>
+              {t.notificationsSettings}
+            </Text>
           </View>
         ) : null}
 
+        {/* ── Health ───────────────────────────────────────────────── */}
         {step === 'health' ? (
           <View style={{ gap: spacing.xl, padding: spacing.xl }}>
-            <SectionTitle centered title="Synchronisation sante" subtitle="Plus tard, tu pourras connecter pas, poids et activite." />
-            <PrimaryCard>
-              <View style={{ gap: spacing.md }}>
-                <ToggleRow checked label="Pas" />
-                <ToggleRow checked label="Poids" />
-                <ToggleRow checked label="Activite" />
-              </View>
-            </PrimaryCard>
-            <View style={{ alignItems: 'center', backgroundColor: colors.black, borderRadius: radius.pill, flexDirection: 'row', gap: spacing.sm, justifyContent: 'center', minHeight: 52 }}>
-              <Heart color="#FF5B6E" fill="#FF5B6E" size={18} />
-              <Text style={{ color: 'white', fontSize: typography.body, fontWeight: '900' }}>Compatible Apple Health</Text>
+            <SectionTitle eyebrow={t.healthEyebrow} title={t.healthTitle} subtitle={t.healthSubtitle} />
+            <Card style={{ gap: spacing.md, padding: spacing.lg }}>
+              <ToggleRow checked label={t.healthSteps} />
+              <ToggleRow checked label={t.healthWeight} />
+              <ToggleRow checked label={t.healthActivity} />
+            </Card>
+            {/* Apple Health pill */}
+            <View
+              style={{
+                alignItems: 'center',
+                backgroundColor: colors.ink,
+                borderRadius: radius.pill,
+                flexDirection: 'row',
+                gap: spacing.sm,
+                justifyContent: 'center',
+                minHeight: 52,
+              }}
+            >
+              <Heart color="#FF5B6E" fill="#FF5B6E" size={17} />
+              <Text style={{ color: '#FFFFFF', fontSize: typography.body, fontWeight: '700' }}>{t.healthApple}</Text>
             </View>
           </View>
         ) : null}
 
+        {/* ── Camera ───────────────────────────────────────────────── */}
         {step === 'camera' ? (
           <View style={{ gap: spacing.xl, padding: spacing.xl }}>
-            <SectionTitle centered title="On a besoin de la camera" subtitle="Pour scanner repas, codes-barres et etiquettes dans l'app." />
-            <View style={{ alignItems: 'center', backgroundColor: colors.greenSoft, borderRadius: radius.lg, height: 132, justifyContent: 'center' }}>
-              <CameraIcon color={colors.green} size={64} strokeWidth={2.2} />
+            <SectionTitle eyebrow={t.cameraEyebrow} title={t.cameraTitle} subtitle={t.cameraSubtitle} />
+            <View style={{ alignItems: 'center' }}>
+              <ScannerPermissionAsset height={178} width={244} />
             </View>
-            <View style={{ gap: spacing.sm }}>
-              <ToggleRow checked label="Scan repas instantane" />
-              <ToggleRow checked label="Codes-barres et etiquettes" />
-              <ToggleRow checked label="Photos privees et securisees" />
-            </View>
-            {cameraPermission?.granted ? <ToggleRow checked label="Camera deja autorisee" /> : null}
+            <Card style={{ gap: spacing.md, padding: spacing.lg }}>
+              <ToggleRow checked label={t.cameraInstant} />
+              <ToggleRow checked label={t.cameraBarcodes} />
+              <ToggleRow checked label={t.cameraPrivate} />
+              {cameraPermission?.granted ? <ToggleRow checked label={t.cameraAlreadyAllowed} /> : null}
+            </Card>
           </View>
         ) : null}
       </ScrollView>
@@ -843,6 +1523,8 @@ export function OnboardingScreen({ userId, authEmail, onEmailSignUp, onOAuthSign
           onPress={continueFlow}
           disabled={!canContinue}
           icon={step === 'camera' ? <CameraIcon color="white" size={22} strokeWidth={2.6} /> : <ChevronRight color="white" size={24} strokeWidth={2.8} />}
+          secondaryLabel={step === 'auth' && !authEmail ? t.btnSaveLocally : undefined}
+          onSecondaryPress={step === 'auth' && !authEmail ? continueLocally : undefined}
         />
       ) : null}
     </View>

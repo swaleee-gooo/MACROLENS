@@ -1,12 +1,53 @@
 import { Pressable, ScrollView, Text, View } from 'react-native';
-import { ArrowLeft, Bell, CreditCard, Download, FileText, Heart, KeyRound, ShieldCheck, Target, User } from 'lucide-react-native';
+import { Bell, ChevronLeft, ChevronRight, CreditCard, Download, FileText, Heart, Scale, Target, User } from 'lucide-react-native';
+import { useLang } from '../i18n/LanguageContext';
+import { Card, Eyebrow, Num } from '../ui/primitives';
 import { colors, radius, spacing, typography } from '../ui/theme';
+
+const STR = {
+  en: {
+    settings: 'Settings',
+    language: 'Language',
+    account: 'Account',
+    profile: 'Edit profile',
+    macroTargets: 'Macro targets',
+    subscription: 'Subscription',
+    preferences: 'Preferences',
+    reminders: 'Meal reminders',
+    appleHealth: 'Apple Health',
+    calibration: 'Calibration',
+    data: 'Data',
+    exportDeletion: 'Data & privacy',
+    help: 'Help',
+    legalSupport: 'Legal & support',
+    syncableMeals: (count: number) => `${count} syncable ${count === 1 ? 'meal' : 'meals'}`,
+  },
+  fr: {
+    settings: 'Réglages',
+    language: 'Langue',
+    account: 'Compte',
+    profile: 'Modifier le profil',
+    macroTargets: 'Cibles & macros',
+    subscription: 'Abonnement',
+    preferences: 'Préférences',
+    reminders: 'Rappels',
+    appleHealth: 'Santé',
+    calibration: 'Calibration',
+    data: 'Données',
+    exportDeletion: 'Données & confidentialité',
+    help: 'Aide',
+    legalSupport: 'Légal & support',
+    syncableMeals: (count: number) => `${count} ${count === 1 ? 'repas' : 'repas'} synchronisable${count === 1 ? '' : 's'}`,
+  },
+};
 
 type Props = {
   analysisMode: 'mock' | 'remote';
   authEmail: string | null;
   isAuthenticated: boolean;
   mealCount: number;
+  showSubscription: boolean;
+  userName?: string;
   onBack: () => void;
   onOpenAuth: () => void;
   onOpenProfile: () => void;
@@ -14,130 +55,184 @@ type Props = {
   onOpenSubscription: () => void;
   onOpenReminders: () => void;
   onOpenHealth: () => void;
+  onOpenCalibration: () => void;
   onOpenData: () => void;
   onOpenLegal: () => void;
 };
 
-function RowButton({
+type RowIcon = 'profile' | 'targets' | 'subscription' | 'reminders' | 'export' | 'legal' | 'health' | 'calibration';
+
+function iconForKey(icon: RowIcon) {
+  if (icon === 'profile') return User;
+  if (icon === 'targets') return Target;
+  if (icon === 'subscription') return CreditCard;
+  if (icon === 'reminders') return Bell;
+  if (icon === 'export') return Download;
+  if (icon === 'legal') return FileText;
+  if (icon === 'calibration') return Scale;
+  return Heart;
+}
+
+function SettingsRow({
   label,
-  detail,
+  value,
   icon,
   onPress,
   danger = false,
+  isLast = false,
 }: {
   label: string;
-  detail: string;
-  icon: 'auth' | 'profile' | 'targets' | 'subscription' | 'reminders' | 'export' | 'legal' | 'health';
+  value?: string;
+  icon: RowIcon;
   onPress: () => void;
   danger?: boolean;
+  isLast?: boolean;
 }) {
-  const Icon =
-    icon === 'profile'
-      ? User
-      : icon === 'auth'
-        ? KeyRound
-        : icon === 'targets'
-          ? Target
-          : icon === 'subscription'
-            ? CreditCard
-            : icon === 'reminders'
-              ? Bell
-              : icon === 'export'
-                ? Download
-                : icon === 'legal'
-                  ? FileText
-                  : Heart;
+  const Icon = iconForKey(icon);
+  const iconBg = danger ? colors.dangerWash : colors.paper2;
+  const iconColor = danger ? colors.danger : colors.ink2;
 
   return (
     <Pressable
       onPress={onPress}
-      style={{
-        alignItems: 'center',
-        backgroundColor: colors.surface,
-        borderColor: danger ? '#F2B8B5' : colors.line,
-        borderRadius: radius.sm,
-        borderWidth: 1,
-        flexDirection: 'row',
-        gap: spacing.md,
-        padding: spacing.md,
-      }}
+      style={({ pressed }) => [
+        {
+          alignItems: 'center',
+          borderBottomColor: colors.line,
+          borderBottomWidth: isLast ? 0 : 1,
+          flexDirection: 'row',
+          gap: spacing.md,
+          opacity: pressed ? 0.7 : 1,
+          paddingHorizontal: spacing.md,
+          paddingVertical: 13,
+        },
+      ]}
     >
-      <Icon color={danger ? colors.red : colors.ink} size={20} strokeWidth={2.4} />
-      <View style={{ flex: 1, gap: spacing.xs }}>
-        <Text style={{ color: danger ? colors.red : colors.ink, fontSize: typography.body, fontWeight: '900' }}>{label}</Text>
-        <Text style={{ color: colors.muted, fontSize: typography.small, lineHeight: 18 }}>{detail}</Text>
+      <View style={{ alignItems: 'center', backgroundColor: iconBg, borderRadius: radius.sm, height: 34, justifyContent: 'center', width: 34 }}>
+        <Icon color={iconColor} size={17} strokeWidth={2} />
       </View>
+      <Text style={{ color: danger ? colors.danger : colors.ink, flex: 1, fontSize: typography.body, fontWeight: '500' }}>{label}</Text>
+      {value ? <Num style={{ color: colors.muted, fontSize: typography.small }}>{value}</Num> : null}
+      <ChevronRight color={colors.muted2} size={16} strokeWidth={2} />
     </Pressable>
   );
 }
 
+function SectionCard({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <View style={{ gap: spacing.sm }}>
+      <Eyebrow style={{ paddingHorizontal: 2 }}>{title}</Eyebrow>
+      <Card style={{ overflow: 'hidden' }}>{children}</Card>
+    </View>
+  );
+}
+
 export function SettingsScreen({
-  analysisMode,
+  analysisMode: _analysisMode,
   authEmail,
   isAuthenticated,
   mealCount,
+  showSubscription,
+  userName,
   onBack,
-  onOpenAuth,
+  onOpenAuth: _onOpenAuth,
   onOpenProfile,
   onOpenTargets,
   onOpenSubscription,
   onOpenReminders,
   onOpenHealth,
+  onOpenCalibration,
   onOpenData,
   onOpenLegal,
 }: Props) {
+  const { lang, setLang } = useLang();
+  const t = STR[lang];
+
+  // Initials for the profile avatar
+  const displayName = userName ?? (isAuthenticated && authEmail ? authEmail.split('@')[0] : '—');
+  const initials = displayName
+    .split(/[\s._-]+/)
+    .slice(0, 2)
+    .map((w: string) => w[0]?.toUpperCase() ?? '')
+    .join('');
+
   return (
-    <ScrollView style={{ backgroundColor: colors.background, flex: 1 }} contentContainerStyle={{ gap: spacing.xl, padding: spacing.xl, paddingBottom: spacing.xxxl }}>
-      <Pressable onPress={onBack} style={{ alignItems: 'center', flexDirection: 'row', gap: spacing.xs }}>
-        <ArrowLeft color={colors.black} size={24} strokeWidth={2.5} />
-        <Text style={{ color: colors.black, fontSize: typography.body, fontWeight: '900' }}>Retour</Text>
+    <ScrollView style={{ backgroundColor: colors.background, flex: 1 }} contentContainerStyle={{ gap: spacing.xl, padding: spacing.xl, paddingBottom: spacing.xxxl }} showsVerticalScrollIndicator={false}>
+
+      {/* Push header: back chevron + centered title */}
+      <View style={{ alignItems: 'center', flexDirection: 'row', justifyContent: 'space-between', marginBottom: 4, paddingTop: 4 }}>
+        <Pressable onPress={onBack} style={({ pressed }) => ({ alignItems: 'center', height: 30, justifyContent: 'center', marginLeft: -6, opacity: pressed ? 0.7 : 1, width: 30 })}>
+          <ChevronLeft color={colors.ink2} size={22} strokeWidth={2} />
+        </Pressable>
+        <Text style={{ color: colors.ink, fontFamily: undefined, fontSize: 16, fontWeight: '600', letterSpacing: -0.1 }}>{t.settings}</Text>
+        <View style={{ width: 30 }} />
+      </View>
+
+      {/* Profile header card */}
+      <Pressable onPress={onOpenProfile} style={({ pressed }) => ({ opacity: pressed ? 0.85 : 1 })}>
+        <Card style={{ alignItems: 'center', flexDirection: 'row', gap: 13, padding: 15 }}>
+          <View style={{ alignItems: 'center', backgroundColor: colors.ink, borderRadius: 13, height: 46, justifyContent: 'center', width: 46 }}>
+            <Text style={{ color: colors.surface, fontSize: 17, fontWeight: '600' }}>{initials || '—'}</Text>
+          </View>
+          <View style={{ flex: 1 }}>
+            <Text style={{ fontSize: 15, fontWeight: '600', color: colors.ink }}>{displayName}</Text>
+            {authEmail ? <Num style={{ color: colors.muted, fontSize: typography.small, marginTop: 2 }}>{authEmail}</Num> : null}
+          </View>
+          <ChevronRight color={colors.muted2} size={16} strokeWidth={2} />
+        </Card>
       </Pressable>
 
-      <View style={{ gap: spacing.xs }}>
-        <Text style={{ color: colors.ink, fontSize: typography.hero, fontWeight: '900' }}>Settings</Text>
-        <Text style={{ color: colors.muted, fontSize: typography.body, fontWeight: '800' }}>{mealCount} repas synchronisables</Text>
-      </View>
+      {/* Account section */}
+      <SectionCard title={t.account}>
+        <SettingsRow label={t.profile} icon="profile" onPress={onOpenProfile} />
+        {showSubscription ? (
+          <>
+            <SettingsRow label={t.macroTargets} icon="targets" onPress={onOpenTargets} />
+            <SettingsRow label={t.subscription} value="Pro" icon="subscription" onPress={onOpenSubscription} isLast />
+          </>
+        ) : (
+          <SettingsRow label={t.macroTargets} icon="targets" onPress={onOpenTargets} isLast />
+        )}
+      </SectionCard>
 
-      <View style={{ backgroundColor: colors.surface, borderColor: colors.line, borderRadius: radius.lg, borderWidth: 1, gap: spacing.sm, padding: spacing.lg }}>
-        <View style={{ alignItems: 'center', flexDirection: 'row', gap: spacing.sm }}>
-          <ShieldCheck color={analysisMode === 'remote' ? colors.green : colors.amber} size={20} strokeWidth={2.4} />
-          <Text style={{ color: colors.ink, fontSize: typography.body, fontWeight: '900' }}>
-            Analyse {analysisMode === 'remote' ? 'IA active' : 'demo'}
-          </Text>
+      {/* Preferences section */}
+      <SectionCard title={t.preferences}>
+        <SettingsRow label={t.reminders} icon="reminders" onPress={onOpenReminders} />
+        <SettingsRow label={t.appleHealth} icon="health" onPress={onOpenHealth} />
+        <SettingsRow label={t.calibration} icon="calibration" onPress={onOpenCalibration} isLast />
+      </SectionCard>
+
+      {/* Language */}
+      <View style={{ gap: spacing.sm }}>
+        <Eyebrow style={{ paddingHorizontal: 2 }}>{t.language}</Eyebrow>
+        <View style={{ backgroundColor: colors.paper2, borderColor: colors.line2, borderRadius: radius.md, borderWidth: 1, flexDirection: 'row', gap: 4, padding: 4 }}>
+          {(['en', 'fr'] as const).map((code) => {
+            const on = lang === code;
+            return (
+              <Pressable
+                key={code}
+                onPress={() => setLang(code)}
+                style={{ alignItems: 'center', backgroundColor: on ? colors.surface : 'transparent', borderRadius: 9, flex: 1, paddingVertical: 11 }}
+              >
+                <Text style={{ color: on ? colors.ink : colors.muted, fontSize: 13, fontWeight: '600' }}>{code === 'en' ? 'English' : 'Français'}</Text>
+              </Pressable>
+            );
+          })}
         </View>
-        <Text style={{ color: colors.muted, fontSize: typography.small, lineHeight: 18 }}>
-          En mode IA, les photos sont envoyees a l analyse distante pour produire les macros. Ne photographie pas de donnees sensibles.
-        </Text>
       </View>
 
-      <View style={{ gap: spacing.md }}>
-        <Text style={{ color: colors.black, fontSize: typography.subheading, fontWeight: '900' }}>Compte</Text>
-        <RowButton
-          label={isAuthenticated ? 'Compte connecte' : 'Se connecter'}
-          detail={isAuthenticated ? authEmail ?? 'Session Supabase active' : 'Email, Apple ou Google pour sync multi-device.'}
-          icon="auth"
-          onPress={onOpenAuth}
-        />
-        <RowButton label="Profil" detail="Mettre a jour objectif, taille, poids et activite." icon="profile" onPress={onOpenProfile} />
-        <RowButton label="Objectifs macros" detail="Calories, proteines, glucides, lipides et fibres cibles." icon="targets" onPress={onOpenTargets} />
-        <RowButton label="Abonnement" detail="Gerer MacroLens Pro, restaurer les achats et consulter la facturation." icon="subscription" onPress={onOpenSubscription} />
-      </View>
+      {/* Data section */}
+      <SectionCard title={t.data}>
+        <SettingsRow label={t.exportDeletion} icon="export" onPress={onOpenData} isLast />
+      </SectionCard>
 
-      <View style={{ gap: spacing.md }}>
-        <Text style={{ color: colors.black, fontSize: typography.subheading, fontWeight: '900' }}>Tracking</Text>
-        <RowButton label="Rappels repas" detail="Petit-dejeuner, dejeuner, diner et eau." icon="reminders" onPress={onOpenReminders} />
-        <RowButton label="Apple Health" detail="Pas, poids et activite pour enrichir le progress." icon="health" onPress={onOpenHealth} />
-      </View>
+      {/* Help section */}
+      <SectionCard title={t.help}>
+        <SettingsRow label={t.legalSupport} icon="legal" onPress={onOpenLegal} isLast />
+      </SectionCard>
 
-      <View style={{ gap: spacing.md }}>
-        <Text style={{ color: colors.black, fontSize: typography.subheading, fontWeight: '900' }}>Donnees</Text>
-        <RowButton label="Export et suppression" detail="Exporter, deconnecter ou supprimer ton compte." icon="export" onPress={onOpenData} />
-        <RowButton label="Legal et support" detail="Privacy Policy, Terms of Use et contact." icon="legal" onPress={onOpenLegal} />
-      </View>
-
-      <View style={{ backgroundColor: '#FFF7E8', borderColor: '#F1C27D', borderRadius: radius.md, borderWidth: 1, padding: spacing.md }}>
-        <Text style={{ color: colors.amber, fontSize: typography.small, fontWeight: '900', lineHeight: 18 }}>MacroLens n'est pas un dispositif medical. Les estimations nutritionnelles ne remplacent pas un avis medical ou dietetique.</Text>
-      </View>
+      {/* Version footer */}
+      <Eyebrow style={{ color: colors.muted2, paddingTop: spacing.sm, textAlign: 'center' }}>MacroLens · {t.syncableMeals(mealCount)}</Eyebrow>
     </ScrollView>
   );
 }

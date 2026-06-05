@@ -1,9 +1,52 @@
 import { useState } from 'react';
 import { Pressable, ScrollView, Text, TextInput, View } from 'react-native';
-import { ArrowLeft, Save, Target } from 'lucide-react-native';
+import { ChevronLeft, Edit2, Target } from 'lucide-react-native';
 import { calculateMacroTargets } from '../domain/macroTargets';
 import type { UserProfile } from '../domain/types';
+import { useLang } from '../i18n/LanguageContext';
+import { Card, Eyebrow, Num, PrimaryButton, Seal } from '../ui/primitives';
 import { colors, radius, spacing, typography } from '../ui/theme';
+
+const STR = {
+  en: {
+    title: 'Targets & macros',
+    autoCalc: 'Auto-calculated',
+    autoChip: 'Auto',
+    customise: 'Customise',
+    calories: 'Calories',
+    protein: 'Protein',
+    carbs: 'Carbs',
+    fat: 'Fat',
+    fiber: 'Fiber',
+    calorieOverride: 'Calorie override',
+    calorieOverridePlaceholder: 'Optional calorie override',
+    proteinOverride: 'Protein override',
+    proteinOverridePlaceholder: 'Optional protein override',
+    save: 'Save',
+    noProfileTitle: 'Macro targets',
+    noProfileBody: 'Create your profile to generate calorie and protein targets.',
+    createProfile: 'Create my profile',
+  },
+  fr: {
+    title: 'Cibles & macros',
+    autoCalc: 'Calculé automatiquement',
+    autoChip: 'Auto',
+    customise: 'Personnaliser',
+    calories: 'Calories',
+    protein: 'Protéines',
+    carbs: 'Glucides',
+    fat: 'Lipides',
+    fiber: 'Fibres',
+    calorieOverride: 'Calories personnalisées',
+    calorieOverridePlaceholder: 'Remplacement calorique (optionnel)',
+    proteinOverride: 'Protéines personnalisées',
+    proteinOverridePlaceholder: 'Remplacement protéines (optionnel)',
+    save: 'Enregistrer',
+    noProfileTitle: 'Cibles de macros',
+    noProfileBody: 'Créez votre profil pour générer des cibles de calories et de protéines.',
+    createProfile: 'Créer mon profil',
+  },
+};
 
 type Props = {
   profile: UserProfile | null;
@@ -21,32 +64,101 @@ function numberOrNull(value: string): number | null {
   return Number.isFinite(parsed) && parsed > 0 ? Math.round(parsed) : null;
 }
 
-function Stat({ label, value, color = colors.ink }: { label: string; value: string; color?: string }) {
+function MacroRow({
+  label,
+  value,
+  unit,
+  dotColor,
+  onEdit,
+  isLast = false,
+}: {
+  label: string;
+  value: string;
+  unit: string;
+  dotColor: string;
+  onEdit: () => void;
+  isLast?: boolean;
+}) {
   return (
-    <View style={{ backgroundColor: colors.surface, borderColor: colors.line, borderRadius: radius.sm, borderWidth: 1, minWidth: 132, padding: spacing.md }}>
-      <Text style={{ color: colors.muted, fontSize: typography.tiny, fontWeight: '800', textTransform: 'uppercase' }}>{label}</Text>
-      <Text style={{ color, fontSize: typography.heading, fontWeight: '900', marginTop: spacing.xs }}>{value}</Text>
+    <Pressable
+      onPress={onEdit}
+      style={({ pressed }) => ({
+        alignItems: 'center',
+        borderBottomColor: colors.line,
+        borderBottomWidth: isLast ? 0 : 1,
+        flexDirection: 'row' as const,
+        gap: 13,
+        opacity: pressed ? 0.7 : 1,
+        paddingHorizontal: 15,
+        paddingVertical: 13,
+      })}
+    >
+      <View style={{ backgroundColor: dotColor, borderRadius: 3, height: 10, width: 10 }} />
+      <Text style={{ color: colors.ink, flex: 1, fontSize: 14, fontWeight: '500' }}>{label}</Text>
+      <View style={{ alignItems: 'baseline', flexDirection: 'row', gap: 4 }}>
+        <Num style={{ color: colors.ink, fontSize: 16, fontWeight: '600' }}>{value}</Num>
+        <Num style={{ color: colors.muted, fontSize: 11 }}>{unit}</Num>
+      </View>
+      <Edit2 color={colors.muted2} size={15} strokeWidth={2} />
+    </Pressable>
+  );
+}
+
+function OverrideInput({ label, value, onChangeText, placeholder }: { label: string; value: string; onChangeText: (v: string) => void; placeholder: string }) {
+  return (
+    <View style={{ gap: spacing.sm }}>
+      <Eyebrow>{label}</Eyebrow>
+      <TextInput
+        value={value}
+        onChangeText={onChangeText}
+        keyboardType="numeric"
+        placeholder={placeholder}
+        placeholderTextColor={colors.muted2}
+        style={{
+          backgroundColor: colors.surface,
+          borderColor: colors.line,
+          borderRadius: radius.md,
+          borderWidth: 1,
+          color: colors.ink,
+          fontSize: typography.body,
+          fontWeight: '500',
+          paddingHorizontal: spacing.lg,
+          paddingVertical: spacing.md,
+        }}
+      />
     </View>
   );
 }
 
 export function TargetsScreen({ profile, onBack, onCreateProfile, onSave }: Props) {
+  const { lang } = useLang();
+  const t = STR[lang];
   const [calorieOverride, setCalorieOverride] = useState(profile?.targets.calorieOverride ? String(profile.targets.calorieOverride) : '');
   const [proteinOverride, setProteinOverride] = useState(profile?.targets.proteinOverrideG ? String(profile.targets.proteinOverrideG) : '');
 
   if (!profile) {
     return (
-      <View style={{ backgroundColor: colors.background, flex: 1, gap: spacing.xl, justifyContent: 'center', padding: spacing.xl }}>
-        <Target color={colors.green} size={48} strokeWidth={2} />
-        <View style={{ gap: spacing.sm }}>
-          <Text style={{ color: colors.ink, fontSize: typography.title, fontWeight: '900' }}>Objectifs macros</Text>
-          <Text style={{ color: colors.muted, fontSize: typography.body, lineHeight: 23 }}>
-            Cree ton profil pour generer des objectifs calories et proteines.
-          </Text>
+      <View style={{ backgroundColor: colors.background, flex: 1, padding: spacing.xl }}>
+        {/* Push header */}
+        <View style={{ alignItems: 'center', flexDirection: 'row', justifyContent: 'space-between', marginBottom: spacing.xl, paddingTop: 4 }}>
+          <Pressable onPress={onBack} style={({ pressed }) => ({ alignItems: 'center', height: 30, justifyContent: 'center', marginLeft: -6, opacity: pressed ? 0.7 : 1, width: 30 })}>
+            <ChevronLeft color={colors.ink2} size={22} strokeWidth={2} />
+          </Pressable>
+          <Text style={{ color: colors.ink, fontSize: 16, fontWeight: '600', letterSpacing: -0.1 }}>{t.title}</Text>
+          <View style={{ width: 30 }} />
         </View>
-        <Pressable onPress={onCreateProfile} style={{ alignItems: 'center', backgroundColor: colors.green, borderRadius: radius.md, padding: spacing.lg }}>
-          <Text style={{ color: 'white', fontSize: typography.body, fontWeight: '900' }}>Creer mon profil</Text>
-        </Pressable>
+        <View style={{ flex: 1, gap: spacing.xl, justifyContent: 'center' }}>
+          <View style={{ alignItems: 'center', backgroundColor: colors.accentWash, borderRadius: radius.lg, height: 72, justifyContent: 'center', width: 72 }}>
+            <Target color={colors.accentInk} size={36} strokeWidth={1.75} />
+          </View>
+          <View style={{ gap: spacing.sm }}>
+            <Text style={{ color: colors.ink, fontSize: typography.title, fontWeight: '800', letterSpacing: -0.5 }}>{t.noProfileTitle}</Text>
+            <Text style={{ color: colors.muted, fontSize: typography.body, lineHeight: 23 }}>
+              {t.noProfileBody}
+            </Text>
+          </View>
+          <PrimaryButton label={t.createProfile} onPress={onCreateProfile} variant="accent" />
+        </View>
       </View>
     );
   }
@@ -72,54 +184,66 @@ export function TargetsScreen({ profile, onBack, onCreateProfile, onSave }: Prop
     });
   }
 
+  const [customise, setCustomise] = useState(false);
+
   return (
-    <ScrollView style={{ backgroundColor: colors.background, flex: 1 }} contentContainerStyle={{ gap: spacing.xl, padding: spacing.xl }}>
-      <Pressable onPress={onBack} style={{ alignItems: 'center', flexDirection: 'row', gap: spacing.xs }}>
-        <ArrowLeft color={colors.blue} size={18} strokeWidth={2.5} />
-        <Text style={{ color: colors.blue, fontSize: typography.body, fontWeight: '800' }}>Retour</Text>
-      </Pressable>
+    <ScrollView style={{ backgroundColor: colors.background, flex: 1 }} contentContainerStyle={{ gap: spacing.xl, padding: spacing.xl, paddingBottom: spacing.xxxl }} showsVerticalScrollIndicator={false}>
 
-      <View style={{ gap: spacing.xs }}>
-        <Text style={{ color: colors.ink, fontSize: typography.title, fontWeight: '900' }}>Objectifs</Text>
-        <Text style={{ color: colors.muted, fontSize: typography.body, lineHeight: 23 }}>Ajuste seulement si tu as deja une cible personnelle.</Text>
+      {/* Push header: back chevron + centered title */}
+      <View style={{ alignItems: 'center', flexDirection: 'row', justifyContent: 'space-between', paddingTop: 4 }}>
+        <Pressable onPress={onBack} style={({ pressed }) => ({ alignItems: 'center', height: 30, justifyContent: 'center', marginLeft: -6, opacity: pressed ? 0.7 : 1, width: 30 })}>
+          <ChevronLeft color={colors.ink2} size={22} strokeWidth={2} />
+        </Pressable>
+        <Text style={{ color: colors.ink, fontSize: 16, fontWeight: '600', letterSpacing: -0.1 }}>{t.title}</Text>
+        <View style={{ width: 30 }} />
       </View>
 
-      <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: spacing.md }}>
-        <Stat label="Calories" value={`${nextTargets.calorieTarget} kcal`} color={colors.ink} />
-        <Stat label="Proteines" value={`${nextTargets.proteinTargetG} g`} color={colors.protein} />
-        <Stat label="Glucides" value={`${nextTargets.carbsTargetG} g`} color={colors.carbs} />
-        <Stat label="Lipides" value={`${nextTargets.fatTargetG} g`} color={colors.fat} />
-        <Stat label="Fibres" value={`${nextTargets.fiberTargetG} g`} color={colors.fiber} />
-      </View>
+      {/* Auto-calorie accent card */}
+      <Card style={{ backgroundColor: colors.accentWash, borderColor: colors.accentLine, padding: spacing.lg }}>
+        <View style={{ alignItems: 'flex-start', flexDirection: 'row', justifyContent: 'space-between' }}>
+          <View>
+            <Eyebrow style={{ color: colors.accentInk }}>{t.autoCalc}</Eyebrow>
+            <Num style={{ color: colors.accentInk, fontSize: 26, fontWeight: '600', marginTop: 5 }}>
+              {nextTargets.calorieTarget} <Text style={{ fontSize: 13 }}>kcal</Text>
+            </Num>
+          </View>
+          <View style={{ alignItems: 'center', backgroundColor: colors.accentWash, borderColor: colors.accentLine, borderRadius: 7, borderWidth: 1, flexDirection: 'row', gap: 5, paddingHorizontal: 9, paddingVertical: 5 }}>
+            <Seal size={12} color={colors.accentInk} />
+            <Text style={{ color: colors.accentInk, fontSize: 10, fontWeight: '500', letterSpacing: 0.8, textTransform: 'uppercase' }}>{t.autoChip}</Text>
+          </View>
+        </View>
+      </Card>
 
-      <TextInput
-        value={calorieOverride}
-        onChangeText={setCalorieOverride}
-        keyboardType="numeric"
-        placeholder="Override calories optionnel"
-        placeholderTextColor={colors.muted}
-        style={{ backgroundColor: colors.surface, borderColor: colors.line, borderRadius: radius.sm, borderWidth: 1, color: colors.ink, padding: spacing.md }}
-      />
-      <TextInput
-        value={proteinOverride}
-        onChangeText={setProteinOverride}
-        keyboardType="numeric"
-        placeholder="Override proteines optionnel"
-        placeholderTextColor={colors.muted}
-        style={{ backgroundColor: colors.surface, borderColor: colors.line, borderRadius: radius.sm, borderWidth: 1, color: colors.ink, padding: spacing.md }}
-      />
-
-      <Text style={{ color: colors.muted, fontSize: typography.small, lineHeight: 18 }}>
-        Les objectifs sont des estimations pour guider ton suivi, pas un avis medical.
-      </Text>
-
+      {/* Customise toggle row */}
       <Pressable
-        onPress={save}
-        style={{ alignItems: 'center', backgroundColor: colors.green, borderRadius: radius.md, flexDirection: 'row', gap: spacing.sm, justifyContent: 'center', padding: spacing.lg }}
+        onPress={() => setCustomise((v) => !v)}
+        style={{ alignItems: 'center', flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: 4 }}
       >
-        <Save color="white" size={20} strokeWidth={2.5} />
-        <Text style={{ color: 'white', fontSize: typography.body, fontWeight: '900' }}>Enregistrer</Text>
+        <Eyebrow>{t.customise}</Eyebrow>
+        <View style={{ backgroundColor: customise ? colors.accent : colors.line2, borderRadius: 999, height: 24, justifyContent: 'center', width: 40 }}>
+          <View style={{ backgroundColor: colors.surface, borderRadius: 10, height: 20, left: customise ? 18 : 2, position: 'absolute', top: 2, width: 20 }} />
+        </View>
       </Pressable>
+
+      {/* Macro rows */}
+      <Card style={{ overflow: 'hidden' }}>
+        <MacroRow label={t.calories} value={String(nextTargets.calorieTarget)} unit="kcal" dotColor={colors.ink} onEdit={() => undefined} />
+        <MacroRow label={t.protein} value={String(nextTargets.proteinTargetG)} unit="g" dotColor={colors.protein} onEdit={() => undefined} />
+        <MacroRow label={t.carbs} value={String(nextTargets.carbsTargetG)} unit="g" dotColor={colors.carbs} onEdit={() => undefined} />
+        <MacroRow label={t.fat} value={String(nextTargets.fatTargetG)} unit="g" dotColor={colors.fat} onEdit={() => undefined} />
+        <MacroRow label={t.fiber} value={String(nextTargets.fiberTargetG)} unit="g" dotColor={colors.fiber} onEdit={() => undefined} isLast />
+      </Card>
+
+      {/* Custom override inputs (shown when customise is on) */}
+      {customise ? (
+        <Card style={{ gap: spacing.lg, padding: spacing.lg }}>
+          <OverrideInput label={t.calorieOverride} value={calorieOverride} onChangeText={setCalorieOverride} placeholder={t.calorieOverridePlaceholder} />
+          <OverrideInput label={t.proteinOverride} value={proteinOverride} onChangeText={setProteinOverride} placeholder={t.proteinOverridePlaceholder} />
+        </Card>
+      ) : null}
+
+      {/* Save */}
+      <PrimaryButton label={t.save} onPress={save} variant="dark" />
     </ScrollView>
   );
 }

@@ -6,9 +6,14 @@ describe('resolveAppEnv', () => {
     expect(resolveAppEnv({})).toEqual({
       analysisMode: 'mock',
       entitlementMode: 'local_dev',
+      paywallEnabled: false,
       revenueCatAppleApiKey: '',
-      revenueCatMonthlyProductId: 'macrolens_pro_monthly',
-      revenueCatAnnualProductId: 'macrolens_pro_annual',
+      revenueCatMonthlyProductId: 'prod03d96b4e28',
+      revenueCatAnnualProductId: 'prod0ef75e0b34',
+      usdaFdcApiKey: '',
+      geminiApiKey: '',
+      openAiApiKey: '',
+      visionModelProvider: 'mock',
       supabaseUrl: null,
       supabaseAnonKey: null,
     });
@@ -24,9 +29,14 @@ describe('resolveAppEnv', () => {
     ).toEqual({
       analysisMode: 'remote',
       entitlementMode: 'local_dev',
+      paywallEnabled: false,
       revenueCatAppleApiKey: '',
-      revenueCatMonthlyProductId: 'macrolens_pro_monthly',
-      revenueCatAnnualProductId: 'macrolens_pro_annual',
+      revenueCatMonthlyProductId: 'prod03d96b4e28',
+      revenueCatAnnualProductId: 'prod0ef75e0b34',
+      usdaFdcApiKey: '',
+      geminiApiKey: '',
+      openAiApiKey: '',
+      visionModelProvider: 'mock',
       supabaseUrl: 'https://example.supabase.co',
       supabaseAnonKey: 'sb_publishable_123',
     });
@@ -49,6 +59,27 @@ describe('resolveAppEnv', () => {
       revenueCatAppleApiKey: 'appl_test_key',
       revenueCatMonthlyProductId: 'custom_monthly',
       revenueCatAnnualProductId: 'custom_annual',
+    });
+  });
+
+  it('keeps the paywall hidden unless explicitly enabled', () => {
+    expect(resolveAppEnv({ EXPO_PUBLIC_PAYWALL_ENABLED: 'true' }).paywallEnabled).toBe(true);
+    expect(resolveAppEnv({ EXPO_PUBLIC_PAYWALL_ENABLED: 'false' }).paywallEnabled).toBe(false);
+  });
+
+  it('parses MetaboProof resolver and model router keys', () => {
+    expect(
+      resolveAppEnv({
+        EXPO_PUBLIC_USDA_FDC_API_KEY: 'fdc_key',
+        EXPO_PUBLIC_GEMINI_API_KEY: 'gemini_key',
+        EXPO_PUBLIC_OPENAI_API_KEY: 'openai_key',
+        EXPO_PUBLIC_VISION_MODEL_PROVIDER: 'gemini',
+      }),
+    ).toMatchObject({
+      usdaFdcApiKey: 'fdc_key',
+      geminiApiKey: 'gemini_key',
+      openAiApiKey: 'openai_key',
+      visionModelProvider: 'gemini',
     });
   });
 });

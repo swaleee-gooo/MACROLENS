@@ -1,18 +1,29 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Alert, Linking, SafeAreaView, Share, Text, View } from 'react-native';
+import { Alert, Linking, Platform, SafeAreaView, Share, Text, View } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import Constants from 'expo-constants';
+import { useFonts } from 'expo-font';
+import { SpaceGrotesk_600SemiBold, SpaceGrotesk_700Bold } from '@expo-google-fonts/space-grotesk';
+import { IBMPlexMono_400Regular, IBMPlexMono_500Medium, IBMPlexMono_600SemiBold } from '@expo-google-fonts/ibm-plex-mono';
 import { StatusBar } from 'expo-status-bar';
 import * as ImagePicker from 'expo-image-picker';
+import { LanguageProvider } from './src/i18n/LanguageContext';
 import { createAnalyticsClient, createConsoleAnalyticsSink } from './src/analytics/analyticsClient';
 import { isNonFoodPhotoError } from './src/analysis/analysisErrors';
 import type { AnalysisResult } from './src/analysis/analysisSchema';
 import { createAnalysisService } from './src/analysis/analysisServiceFactory';
 import { createRemoteAnalysisService } from './src/analysis/remoteAnalysisService';
+import { createRecipeImportService } from './src/recipeImport/recipeImportServiceFactory';
+import { buildMealFromImportedRecipe } from './src/recipeImport/recipeNutrition';
+import { parseSharedRecipeUrl } from './src/recipeImport/shareIntent';
+import { detectRecipePlatform } from './src/recipeImport/recipeUrl';
+import { isUnsupportedRecipeUrlError, RECIPE_EXTRACTION_FAILED_MESSAGE } from './src/recipeImport/recipeImportErrors';
+import type { ImportedRecipe } from './src/recipeImport/recipeSchema';
 import { appEnv } from './src/config/env';
 import { BottomTabs, type AppTab } from './src/components/BottomTabs';
-import { applyMealCorrection, getMealCorrectionType, type MealCorrection } from './src/domain/corrections';
+import { getMealCorrectionType, type MealCorrection } from './src/domain/corrections';
+import { applyMealCorrectionWithLedger } from './src/domain/correctionPersistence';
 import { createManualMacroMeal } from './src/domain/manualMeal';
 import { cloneMealForRelog } from './src/domain/recurringMeals';
 import { calculateMealStreak } from './src/domain/streaks';
@@ -25,10 +36,12 @@ import { normalizeProductLookupOutcome } from './src/packagedFood/productLookupO
 import { createNutritionLabelOcrService } from './src/packagedFood/labelOcrService';
 import { createPackagedFoodMeal } from './src/packagedFood/packagedFoodMeal';
 import type { PackagedFoodItem } from './src/packagedFood/packagedFoodSchema';
+import { createMealProofMetadata } from './src/metaboproof/mealProof';
 import { createEntitlementRepository, type EntitlementState } from './src/storage/entitlementRepository';
 import { createAuthSessionRepository } from './src/storage/authSessionRepository';
-import { createSyncedMealRepository, createSyncedProfileRepository } from './src/storage/cloudSyncRepository';
+import { createSyncedMealRepository, createSyncedMetaboProofRepository, createSyncedProfileRepository } from './src/storage/cloudSyncRepository';
 import { createMealRepository } from './src/storage/mealRepository';
+import { createMetaboProofRepository } from './src/storage/metaboProofRepository';
 import { createOnboardingRepository, type OnboardingState } from './src/storage/onboardingRepository';
 import { createProductRepository } from './src/storage/productRepository';
 import { createProfileRepository } from './src/storage/profileRepository';
@@ -37,6 +50,8 @@ import { createMacroLensSupabaseClient, type MacroLensSession } from './src/supa
 import { colors, radius, spacing, typography } from './src/ui/theme';
 import { AnalyzingScreen } from './src/screens/AnalyzingScreen';
 import { AuthScreen } from './src/screens/AuthScreen';
+import { BenchmarkDevScreen } from './src/screens/BenchmarkDevScreen';
+import { CalibrationScreen } from './src/screens/CalibrationScreen';
 import { DataPrivacyScreen } from './src/screens/DataPrivacyScreen';
 import { EditProfileScreen } from './src/screens/EditProfileScreen';
 import { HealthSettingsScreen } from './src/screens/HealthSettingsScreen';
@@ -57,6 +72,9 @@ import { ScanErrorScreen } from './src/screens/ScanErrorScreen';
 import { ScanHubScreen } from './src/screens/ScanHubScreen';
 import { ScannerScreen } from './src/screens/ScannerScreen';
 import { SettingsScreen } from './src/screens/SettingsScreen';
+import { VerifiedRecipeScreen, type VerifiedRecipeInput } from './src/screens/VerifiedRecipeScreen';
+import { RecipeImportScreen } from './src/screens/RecipeImportScreen';
+import { RecipeReviewScreen } from './src/screens/RecipeReviewScreen';
 import { ReminderSettingsScreen } from './src/screens/ReminderSettingsScreen';
 import { SuccessProfileScreen } from './src/screens/SuccessProfileScreen';
 import { SubscriptionSettingsScreen } from './src/screens/SubscriptionSettingsScreen';
@@ -65,6 +83,10 @@ import { TodayScreen } from './src/screens/TodayScreen';
 import { WeighInScreen } from './src/screens/WeighInScreen';
 import { WeeklyReportScreen } from './src/screens/WeeklyReportScreen';
 import type { ScannerMode } from './src/scanner/scannerModes';
+import { createAppMealFromMetaboProofAnalysis } from './src/metaboproof/appMealAdapter';
+import { calibrateVisualItems } from './src/metaboproof/calibrationEngine';
+import { analyzeMealEvidence } from './src/metaboproof/proofEngine';
+import type { MealItem as MetaboProofMealItem, NutritionSource as MetaboProofNutritionSource } from './src/metaboproof/types';
 
 type ScreenState =
   | { name: 'loading' }
@@ -90,6 +112,11 @@ type ScreenState =
   | { name: 'savedMeals' }
   | { name: 'weighIn' }
   | { name: 'scanHub' }
+  | { name: 'verifiedRecipe' }
+  | { name: 'recipeImport'; initialUrl?: string; importing: boolean; errorMessage?: string }
+  | { name: 'recipeReview'; recipe: ImportedRecipe }
+  | { name: 'calibration' }
+  | { name: 'benchmarkDev' }
   | { name: 'scanError'; variant: 'non_food' | 'low_light' | 'label' }
   | { name: 'scanner'; initialMode: ScannerMode; productLookupError?: boolean; productLookupIssue?: 'not_found' | 'needs_label' }
   | { name: 'packagedProduct'; item: PackagedFoodItem; initialServingGrams: number; imageUri: string }
@@ -98,6 +125,25 @@ type ScreenState =
 const queryClient = new QueryClient();
 const analytics = createAnalyticsClient(createConsoleAnalyticsSink());
 const localUserId = 'local-user';
+const appContainerStyle = Platform.OS === 'web' ? { alignSelf: 'center' as const, flex: 1, maxWidth: 430, width: '100%' as const } : { flex: 1 };
+const calibratedChickenSource: MetaboProofNutritionSource = {
+  provider: 'USDA_FDC',
+  externalId: '171077',
+  name: 'Chicken breast cooked',
+  kcalPer100g: 165,
+  proteinPer100g: 31,
+  carbsPer100g: 0,
+  fatPer100g: 3.6,
+};
+const calibratedRiceSource: MetaboProofNutritionSource = {
+  provider: 'USDA_FDC',
+  externalId: '169756',
+  name: 'White rice cooked',
+  kcalPer100g: 130,
+  proteinPer100g: 2.7,
+  carbsPer100g: 28,
+  fatPer100g: 0.3,
+};
 
 function storedEntitlementFromCommercial(state: CommercialEntitlementState): EntitlementState {
   return {
@@ -109,11 +155,91 @@ function storedEntitlementFromCommercial(state: CommercialEntitlementState): Ent
   };
 }
 
+function errorMessage(error: unknown): string {
+  return error instanceof Error ? error.message : '';
+}
+
+function recipeImportErrorMessage(error: unknown): string {
+  if (error && typeof error === 'object' && 'userMessage' in error) {
+    const message = (error as { userMessage?: unknown }).userMessage;
+    if (typeof message === 'string' && message.length > 0) {
+      return message;
+    }
+  }
+
+  return RECIPE_EXTRACTION_FAILED_MESSAGE;
+}
+
+type RevenueCatLikeError = {
+  code?: unknown;
+  message?: unknown;
+  readableErrorCode?: unknown;
+  underlyingErrorMessage?: unknown;
+  userCancelled?: unknown;
+  userInfo?: {
+    readableErrorCode?: unknown;
+  };
+};
+
+function revenueCatErrorDetails(error: unknown): { code: string | null; details: string } {
+  const candidate = error && typeof error === 'object' ? (error as RevenueCatLikeError) : {};
+  const details = [
+    typeof candidate.code === 'string' ? `code=${candidate.code}` : null,
+    typeof candidate.userInfo?.readableErrorCode === 'string' ? `readable=${candidate.userInfo.readableErrorCode}` : null,
+    typeof candidate.readableErrorCode === 'string' ? `readable=${candidate.readableErrorCode}` : null,
+    typeof candidate.message === 'string' ? `message=${candidate.message}` : null,
+    typeof candidate.underlyingErrorMessage === 'string' ? `underlying=${candidate.underlyingErrorMessage}` : null,
+  ].filter(Boolean);
+
+  return {
+    code: typeof candidate.code === 'string' ? candidate.code : null,
+    details: details.length > 0 ? details.join('\n') : 'No RevenueCat error details were returned.',
+  };
+}
+
+function purchaseFailureAlert(error: unknown): [string, string] {
+  const message = errorMessage(error);
+  const diagnostic = revenueCatErrorDetails(error);
+
+  if (message === 'revenuecat_offering_missing') {
+    return ['Subscription setup issue', 'RevenueCat has no current offering. Set a default offering and attach the monthly and annual packages.'];
+  }
+
+  if (message.startsWith('revenuecat_package_missing_')) {
+    const plan = message.replace('revenuecat_package_missing_', '');
+    return ['Subscription setup issue', `RevenueCat could not find the ${plan} package in the current offering.`];
+  }
+
+  if (diagnostic.code === '1') {
+    return ['Purchase canceled', 'The App Store purchase was canceled before completion.'];
+  }
+
+  if (diagnostic.code === '5') {
+    return ['Product unavailable', `Apple says this product is not available for purchase.\n\n${diagnostic.details}`];
+  }
+
+  if (diagnostic.code === '17') {
+    return ['Apple purchase key issue', `RevenueCat could not validate the App Store in-app purchase key.\n\n${diagnostic.details}`];
+  }
+
+  if (diagnostic.code === '23') {
+    return ['RevenueCat configuration issue', diagnostic.details];
+  }
+
+  return ['Subscription unavailable', diagnostic.details];
+}
+
+function restoreFailureAlert(error: unknown): [string, string] {
+  return ['Restore unavailable', revenueCatErrorDetails(error).details];
+}
+
 function mealWithScanTrustMetadata(analysis: AnalysisResult): Meal {
   return {
     ...analysis.meal,
     uncertaintyReasons: analysis.uncertaintyReasons,
     correctionSuggestions: analysis.correctionSuggestions,
+    scanReview: analysis.scanReview,
+    proof: analysis.meal.proof ?? createMealProofMetadata(analysis.meal),
   };
 }
 
@@ -131,6 +257,7 @@ function MacroLensApp() {
   const [onboardingState, setOnboardingState] = useState<OnboardingState>({ isComplete: false });
   const [authSession, setAuthSession] = useState<MacroLensSession>(null);
   const localMealRepository = useMemo(() => createMealRepository(AsyncStorage), []);
+  const localMetaboProofRepository = useMemo(() => createMetaboProofRepository(AsyncStorage), []);
   const localProfileRepository = useMemo(() => createProfileRepository(AsyncStorage), []);
   const entitlementRepository = useMemo(() => createEntitlementRepository(AsyncStorage), []);
   const authSessionRepository = useMemo(() => createAuthSessionRepository(AsyncStorage), []);
@@ -157,6 +284,13 @@ function MacroLensApp() {
         : localProfileRepository,
     [localProfileRepository, supabaseClient],
   );
+  const metaboProofRepository = useMemo(
+    () =>
+      supabaseClient
+        ? createSyncedMetaboProofRepository(localMetaboProofRepository, supabaseClient as Parameters<typeof createSyncedMetaboProofRepository>[1])
+        : localMetaboProofRepository,
+    [localMetaboProofRepository, supabaseClient],
+  );
   const analysisService = useMemo(() => {
     if (!supabaseClient || !appEnv.supabaseUrl || !appEnv.supabaseAnonKey) {
       return createAnalysisService(appEnv);
@@ -172,6 +306,7 @@ function MacroLensApp() {
       ),
     });
   }, [supabaseClient]);
+  const recipeImportService = useMemo(() => createRecipeImportService(appEnv), []);
   const nutritionLabelOcrService = useMemo(() => {
     if (!supabaseClient || !appEnv.supabaseUrl || !appEnv.supabaseAnonKey) {
       return null;
@@ -195,7 +330,7 @@ function MacroLensApp() {
   const entitlementProvider = useMemo(
     () =>
       createEntitlementProvider({
-        entitlementMode: appEnv.entitlementMode,
+        entitlementMode: appEnv.paywallEnabled ? appEnv.entitlementMode : 'local_dev',
         revenueCatAppleApiKey: appEnv.revenueCatAppleApiKey,
         revenueCatMonthlyProductId: appEnv.revenueCatMonthlyProductId,
         revenueCatAnnualProductId: appEnv.revenueCatAnnualProductId,
@@ -235,7 +370,7 @@ function MacroLensApp() {
           return;
         }
 
-        if (!loadedEntitlement.isPremium) {
+        if (appEnv.paywallEnabled && !loadedEntitlement.isPremium) {
           analytics.track('paywall_viewed');
           setScreen({ name: 'paywall' });
           return;
@@ -273,6 +408,22 @@ function MacroLensApp() {
     return () => subscription.remove();
   }, [supabaseClient]);
 
+  useEffect(() => {
+    function handleSharedUrl(url: string | null) {
+      const shared = parseSharedRecipeUrl(url);
+      if (shared) {
+        importRecipeFromUrl(shared.url, 'share');
+      }
+    }
+
+    Linking.getInitialURL().then(handleSharedUrl).catch(() => undefined);
+    const subscription = Linking.addEventListener('url', (event) => handleSharedUrl(event.url));
+
+    return () => subscription.remove();
+    // importRecipeFromUrl is hoisted and stable for the lifetime of the screen.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   async function persistAuthSession(nextSession: MacroLensSession) {
     if (!nextSession || !supabaseClient) {
       return null;
@@ -284,7 +435,7 @@ function MacroLensApp() {
     if (!hydratedSession.user?.id) {
       const userResult = await supabaseClient.auth.getUser();
       if (userResult.error || !userResult.data.user) {
-        throw new Error('Session creee, mais utilisateur Supabase introuvable.');
+        throw new Error('Session created, but the Supabase user was not found.');
       }
       hydratedSession = { ...hydratedSession, user: userResult.data.user };
       supabaseClient.auth.setSession(hydratedSession);
@@ -304,16 +455,16 @@ function MacroLensApp() {
 
   async function signUpWithEmail(email: string, password: string) {
     if (!supabaseClient) {
-      throw new Error('Active Supabase remote pour creer un compte.');
+      throw new Error('Enable Supabase remote mode to create an account.');
     }
 
     const result = await supabaseClient.auth.signUpWithPassword({ email, password });
     if (result.error) {
-      throw new Error('Creation impossible. Verifie email, mot de passe ou configuration Supabase.');
+      throw new Error('Account creation failed. Check the email, password, or Supabase configuration.');
     }
 
     if (!result.data.session) {
-      throw new Error('Compte cree. Verifie ton email, puis connecte-toi.');
+      throw new Error('Account created. Check your email, then sign in.');
     }
 
     await persistAuthSession(result.data.session);
@@ -321,12 +472,12 @@ function MacroLensApp() {
 
   async function signInWithEmail(email: string, password: string) {
     if (!supabaseClient) {
-      throw new Error('Active Supabase remote pour te connecter.');
+      throw new Error('Enable Supabase remote mode to sign in.');
     }
 
     const result = await supabaseClient.auth.signInWithPassword({ email, password });
     if (result.error || !result.data.session) {
-      throw new Error('Connexion impossible. Verifie tes identifiants.');
+      throw new Error('Unable to sign in. Check your credentials.');
     }
 
     await persistAuthSession(result.data.session);
@@ -335,18 +486,18 @@ function MacroLensApp() {
 
   async function resetPassword(email: string) {
     if (!supabaseClient) {
-      throw new Error('Active Supabase remote pour reinitialiser le mot de passe.');
+      throw new Error('Enable Supabase remote mode to reset the password.');
     }
 
     const result = await supabaseClient.auth.resetPasswordForEmail(email, { redirectTo: authRedirectUri });
     if (result.error) {
-      throw new Error('Email de reinitialisation impossible a envoyer.');
+      throw new Error('Unable to send the reset email.');
     }
   }
 
   async function startOAuthSignIn(provider: 'apple' | 'google') {
     if (!supabaseClient) {
-      throw new Error('Active Supabase remote pour te connecter.');
+      throw new Error('Enable Supabase remote mode to sign in.');
     }
 
     await Linking.openURL(supabaseClient.auth.getOAuthUrl(provider, authRedirectUri));
@@ -379,8 +530,8 @@ function MacroLensApp() {
   }
 
   function captureMeal() {
-    analytics.track('scan_started', { source: 'hub' });
-    setScreen({ name: 'scanHub' });
+    analytics.track('scan_started', { source: 'camera' });
+    setScreen({ name: 'scanner', initialMode: 'meal' });
   }
 
   function openScanner(initialMode: ScannerMode) {
@@ -390,10 +541,9 @@ function MacroLensApp() {
 
   async function pickMealPhoto() {
     const result = await ImagePicker.launchImageLibraryAsync({
-      allowsEditing: true,
-      aspect: [1, 1],
+      allowsEditing: false,
       mediaTypes: ['images'],
-      quality: 0.75,
+      quality: 0.9,
     });
 
     if (result.canceled || result.assets.length === 0) {
@@ -409,8 +559,13 @@ function MacroLensApp() {
     await onboardingRepository.saveState({ isComplete: true, completedAt });
     setProfile(nextProfile);
     setOnboardingState({ isComplete: true, completedAt });
-    analytics.track('paywall_viewed');
-    setScreen({ name: 'paywall' });
+    if (appEnv.paywallEnabled) {
+      analytics.track('paywall_viewed');
+      setScreen({ name: 'paywall' });
+      return;
+    }
+
+    setScreen({ name: 'app', tab: 'home' });
   }
 
   async function applyPurchasedEntitlement(plan: PurchasePlan) {
@@ -429,9 +584,9 @@ function MacroLensApp() {
       analytics.track('paywall_cta_tapped', { plan });
       const nextEntitlement = await applyPurchasedEntitlement(plan);
       analytics.track('purchase_completed', { plan, source: nextEntitlement.source });
-    } catch {
+    } catch (error) {
       analytics.track('purchase_failed', { plan });
-      Alert.alert('Abonnement indisponible', 'Reessaie dans quelques instants.');
+      Alert.alert(...purchaseFailureAlert(error));
     }
   }
 
@@ -440,7 +595,7 @@ function MacroLensApp() {
       const nextEntitlement = await applyPurchasedEntitlement('annual');
       analytics.track('purchase_completed', { plan: 'annual', source: nextEntitlement.source });
     } catch {
-      Alert.alert('Abonnement indisponible', 'Reessaie dans quelques instants.');
+      Alert.alert('Subscription unavailable', 'Try again in a moment.');
     }
   }
 
@@ -455,9 +610,9 @@ function MacroLensApp() {
         return;
       }
 
-      Alert.alert('Aucun achat trouve', 'Aucun abonnement actif n a ete trouve pour ce compte App Store.');
-    } catch {
-      Alert.alert('Restauration impossible', 'La restauration sera testee dans une development build avec RevenueCat.');
+      Alert.alert('No purchase found', 'No active subscription was found for this App Store account.');
+    } catch (error) {
+      Alert.alert(...restoreFailureAlert(error));
     }
   }
 
@@ -505,6 +660,7 @@ function MacroLensApp() {
   async function clearLocalAccountData() {
     await Promise.all([
       localMealRepository.clearMeals(),
+      localMetaboProofRepository.clearAll(),
       localProfileRepository.clearProfile(),
       onboardingRepository.clearState(),
       entitlementRepository.clearEntitlement(),
@@ -531,6 +687,7 @@ function MacroLensApp() {
     try {
       if (authSession?.user?.id) {
         await repository.clearMeals();
+        await metaboProofRepository.clearAll();
         await profileRepository.clearProfile();
         if (supabaseClient) {
           await supabaseClient.functions.invoke('delete-account', { method: 'POST' });
@@ -542,7 +699,7 @@ function MacroLensApp() {
       await clearLocalAccountData();
       setScreen({ name: 'onboarding' });
     } catch {
-      Alert.alert('Suppression incomplete', 'Les donnees locales ont ete conservees pour eviter une perte silencieuse. Reessaie dans quelques instants.');
+      Alert.alert('Deletion incomplete', 'Local data was kept to avoid silent data loss. Try again in a moment.');
     }
   }
 
@@ -579,7 +736,7 @@ function MacroLensApp() {
     analytics.track('label_scan_completed', { source: 'label_photo' });
 
     if (!nutritionLabelOcrService) {
-      Alert.alert('OCR indisponible', "Passe l'app en mode remote pour lire automatiquement les etiquettes nutritionnelles.");
+      Alert.alert('OCR unavailable', 'Switch the app to remote mode to read nutrition labels automatically.');
       setScreen({ name: 'manualMeal' });
       return;
     }
@@ -607,13 +764,107 @@ function MacroLensApp() {
     await saveMeal(meal);
   }
 
+  function saveVerifiedRecipe(input: VerifiedRecipeInput) {
+    const mealId = `recipe-${Date.now()}`;
+    const items: MetaboProofMealItem[] = input.ingredients.map((ingredient, index) => ({
+      id: `${mealId}-ingredient-${index + 1}`,
+      label: ingredient.name,
+      grams: ingredient.grams,
+      confidence: 1,
+      evidenceLevel: 'VERIFIED_RECIPE_WEIGHT',
+      source: {
+        provider: 'USER_CUSTOM',
+        externalId: `recipe:${ingredient.name.toLowerCase().replace(/\s+/g, '-')}`,
+        name: ingredient.name,
+        kcalPer100g: ingredient.kcalPer100g,
+        proteinPer100g: ingredient.proteinPer100g,
+        carbsPer100g: ingredient.carbsPer100g,
+        fatPer100g: ingredient.fatPer100g,
+      },
+    }));
+    const analysis = analyzeMealEvidence({ id: mealId, items });
+    const meal = createAppMealFromMetaboProofAnalysis({
+      userId: activeUserId,
+      mealName: input.name,
+      imageUri: 'recipe://verified',
+      analysis,
+    });
+    setScreen({ name: 'result', meal, isSaved: false });
+  }
+
+  function openRecipeImport(initialUrl?: string) {
+    setScreen({ name: 'recipeImport', initialUrl, importing: false });
+  }
+
+  async function importRecipeFromUrl(url: string, source: 'share' | 'paste') {
+    const platform = detectRecipePlatform(url);
+    analytics.track('recipe_import_started', { source, platform });
+    setScreen({ name: 'recipeImport', initialUrl: url, importing: true });
+
+    try {
+      const recipe = await recipeImportService.extractRecipeFromUrl({ url, userId: activeUserId });
+      analytics.track('recipe_import_completed', { platform: recipe.sourcePlatform, ingredientCount: recipe.ingredients.length });
+      setScreen({ name: 'recipeReview', recipe });
+    } catch (error) {
+      analytics.track('recipe_import_failed', {
+        platform,
+        reason: isUnsupportedRecipeUrlError(error) ? 'unsupported_url' : 'extraction_failed',
+      });
+      setScreen({ name: 'recipeImport', initialUrl: url, importing: false, errorMessage: recipeImportErrorMessage(error) });
+    }
+  }
+
+  function saveImportedRecipe(recipe: ImportedRecipe) {
+    const meal = buildMealFromImportedRecipe({
+      recipe,
+      userId: activeUserId,
+      mealId: `recipe-${Date.now()}`,
+      capturedAt: new Date().toISOString(),
+    });
+    setScreen({ name: 'result', meal, isSaved: false });
+  }
+
+  function createCalibratedMeal(portionFactor: number) {
+    const mealId = `calibrated-${Date.now()}`;
+    const baseItems: MetaboProofMealItem[] = [
+      {
+        id: `${mealId}-chicken`,
+        label: 'Grilled chicken',
+        estimatedGrams: 140,
+        confidence: 0.74,
+        source: calibratedChickenSource,
+        evidenceLevel: 'ESTIMATED_VISUAL_ONLY',
+      },
+      {
+        id: `${mealId}-rice`,
+        label: 'White rice',
+        estimatedGrams: 170,
+        confidence: 0.7,
+        source: calibratedRiceSource,
+        evidenceLevel: 'ESTIMATED_VISUAL_ONLY',
+      },
+    ];
+    const analysis = analyzeMealEvidence({ id: mealId, items: calibrateVisualItems(baseItems, portionFactor) });
+    const meal = createAppMealFromMetaboProofAnalysis({
+      userId: activeUserId,
+      mealName: 'Calibrated chicken rice',
+      imageUri: 'calibration://portion-factor',
+      analysis,
+    });
+    setScreen({ name: 'result', meal, isSaved: false });
+  }
+
   function openWeeklyReport() {
     analytics.track('weekly_report_viewed');
     setScreen({ name: 'weeklyReport' });
   }
 
-  function applyCorrectionAndTrack(meal: Meal, correction: MealCorrection) {
-    const correctedMeal = applyMealCorrection(meal, correction);
+  async function applyCorrectionAndTrack(meal: Meal, correction: MealCorrection) {
+    const correctedMeal = await applyMealCorrectionWithLedger({
+      meal,
+      correction,
+      repository: metaboProofRepository,
+    });
     analytics.track('correction_applied', {
       correctionType: getMealCorrectionType(correction),
       caloriesEstimate: correctedMeal.caloriesEstimate,
@@ -640,7 +891,6 @@ function MacroLensApp() {
           meals={meals}
           profile={profile}
           onEditProfile={() => setScreen({ name: 'editProfile' })}
-          onOpenSavedMeals={() => setScreen({ name: 'savedMeals' })}
           onOpenSettings={() => setScreen({ name: 'settings' })}
         />
       ) : (
@@ -651,6 +901,8 @@ function MacroLensApp() {
           onOpenSettings={() => setScreen({ name: 'settings' })}
           onOpenMeal={(meal) => setScreen({ name: 'result', meal, isSaved: true })}
           onRelogMeal={relogMeal}
+          onStartScan={captureMeal}
+          onOpenSavedMeals={() => setScreen({ name: 'savedMeals' })}
         />
       );
 
@@ -687,6 +939,10 @@ function MacroLensApp() {
   }
 
   if (screen.name === 'paywall') {
+    if (!appEnv.paywallEnabled) {
+      return renderAppShell('home');
+    }
+
     return (
       <PaywallScreen
         onPurchase={purchasePlan}
@@ -698,7 +954,7 @@ function MacroLensApp() {
   }
 
   if (screen.name === 'premiumUnlocked') {
-    return <PremiumUnlockedScreen onStartScan={() => setScreen({ name: 'scanHub' })} />;
+    return <PremiumUnlockedScreen onStartScan={() => setScreen({ name: 'scanner', initialMode: 'meal' })} />;
   }
 
   if (screen.name === 'app') {
@@ -775,8 +1031,10 @@ function MacroLensApp() {
         onOpenProfile={() => setScreen({ name: 'editProfile' })}
         onOpenTargets={() => setScreen({ name: 'targets' })}
         onOpenSubscription={() => setScreen({ name: 'subscriptionSettings' })}
+        showSubscription={appEnv.paywallEnabled}
         onOpenReminders={() => setScreen({ name: 'reminderSettings' })}
         onOpenHealth={() => setScreen({ name: 'healthSettings' })}
+        onOpenCalibration={() => setScreen({ name: 'calibration' })}
         onOpenData={() => setScreen({ name: 'dataPrivacy' })}
         onOpenLegal={() => setScreen({ name: 'legalSupport' })}
       />
@@ -784,7 +1042,11 @@ function MacroLensApp() {
   }
 
   if (screen.name === 'subscriptionSettings') {
-    return <SubscriptionSettingsScreen entitlement={entitlement} onBack={() => setScreen({ name: 'settings' })} onRestore={restorePurchases} />;
+    if (!appEnv.paywallEnabled) {
+      return renderAppShell('profile');
+    }
+
+    return <SubscriptionSettingsScreen entitlement={entitlement} onBack={() => setScreen({ name: 'settings' })} onPurchase={purchasePlan} onRestore={restorePurchases} />;
   }
 
   if (screen.name === 'reminderSettings') {
@@ -831,8 +1093,46 @@ function MacroLensApp() {
         onOpenLibrary={pickMealPhoto}
         onOpenFoodSearch={() => setScreen({ name: 'foodSearch' })}
         onOpenManualMeal={() => setScreen({ name: 'manualMeal' })}
+        onOpenVerifiedRecipe={() => setScreen({ name: 'verifiedRecipe' })}
+        onOpenRecipeImport={() => openRecipeImport()}
+        onOpenCalibration={() => setScreen({ name: 'calibration' })}
+        onOpenBenchmark={() => setScreen({ name: 'benchmarkDev' })}
       />
     );
+  }
+
+  if (screen.name === 'verifiedRecipe') {
+    return <VerifiedRecipeScreen onBack={() => setScreen({ name: 'scanner', initialMode: 'meal' })} onSaveRecipe={saveVerifiedRecipe} />;
+  }
+
+  if (screen.name === 'recipeImport') {
+    return (
+      <RecipeImportScreen
+        initialUrl={screen.initialUrl}
+        importing={screen.importing}
+        errorMessage={screen.errorMessage ?? null}
+        onBack={() => setScreen({ name: 'scanner', initialMode: 'meal' })}
+        onSubmit={(url) => importRecipeFromUrl(url, 'paste')}
+      />
+    );
+  }
+
+  if (screen.name === 'recipeReview') {
+    return (
+      <RecipeReviewScreen
+        recipe={screen.recipe}
+        onBack={() => openRecipeImport(screen.recipe.sourceUrl)}
+        onSave={saveImportedRecipe}
+      />
+    );
+  }
+
+  if (screen.name === 'calibration') {
+    return <CalibrationScreen onBack={() => setScreen({ name: 'settings' })} onCreateCalibratedMeal={createCalibratedMeal} />;
+  }
+
+  if (screen.name === 'benchmarkDev') {
+    return <BenchmarkDevScreen onBack={() => setScreen({ name: 'scanHub' })} />;
   }
 
   if (screen.name === 'scanError') {
@@ -849,7 +1149,7 @@ function MacroLensApp() {
   if (screen.name === 'foodSearch') {
     return (
       <FoodSearchScreen
-        onBack={() => setScreen({ name: 'scanHub' })}
+        onBack={() => setScreen({ name: 'scanner', initialMode: 'meal' })}
         onManualEntry={() => setScreen({ name: 'manualMeal' })}
         onSelectFood={saveManualMeal}
       />
@@ -872,7 +1172,7 @@ function MacroLensApp() {
   }
 
   if (screen.name === 'manualMeal') {
-    return <ManualMealScreen onBack={() => setScreen({ name: 'app', tab: 'home' })} onSave={saveManualMeal} />;
+    return <ManualMealScreen onBack={() => setScreen({ name: 'scanner', initialMode: 'meal' })} onSave={saveManualMeal} />;
   }
 
   if (screen.name === 'scanner') {
@@ -888,6 +1188,9 @@ function MacroLensApp() {
         onManualBarcode={handleBarcodeDetected}
         onManualMeal={() => setScreen({ name: 'manualMeal' })}
         onOpenLibrary={pickMealPhoto}
+        onOpenFoodSearch={() => setScreen({ name: 'foodSearch' })}
+        onOpenVerifiedRecipe={() => setScreen({ name: 'verifiedRecipe' })}
+        onOpenRecipeImport={() => openRecipeImport()}
       />
     );
   }
@@ -916,11 +1219,31 @@ function MacroLensApp() {
 }
 
 export default function App() {
+  const [fontsLoaded] = useFonts({
+    SpaceGrotesk_600SemiBold,
+    SpaceGrotesk_700Bold,
+    IBMPlexMono_400Regular,
+    IBMPlexMono_500Medium,
+    IBMPlexMono_600SemiBold,
+  });
+
+  if (!fontsLoaded) {
+    return (
+      <SafeAreaView style={{ backgroundColor: colors.background, flex: 1 }}>
+        <StatusBar style="dark" />
+      </SafeAreaView>
+    );
+  }
+
   return (
     <QueryClientProvider client={queryClient}>
       <SafeAreaView style={{ backgroundColor: colors.background, flex: 1 }}>
         <StatusBar style="dark" />
-        <MacroLensApp />
+        <View style={appContainerStyle}>
+          <LanguageProvider>
+            <MacroLensApp />
+          </LanguageProvider>
+        </View>
       </SafeAreaView>
     </QueryClientProvider>
   );

@@ -1,5 +1,6 @@
 import { recalculateMeal } from './nutrition';
 import type { FoodItem, Meal } from './types';
+import { createMealProofMetadata } from '../metaboproof/mealProof';
 
 type ManualMacroMealInput = {
   userId: string;
@@ -31,7 +32,7 @@ export function createManualMacroMeal(input: ManualMacroMealInput): Meal {
     sourceFoodId: null,
   };
 
-  return recalculateMeal({
+  const meal = recalculateMeal({
     id: mealId,
     userId: input.userId,
     imageUri: 'manual://custom',
@@ -45,8 +46,13 @@ export function createManualMacroMeal(input: ManualMacroMealInput): Meal {
     fatG: 0,
     fiberG: 0,
     confidence: 'low',
-    notes: 'Repas ajoute manuellement.',
+    notes: 'Meal added manually.',
     source: 'estimated',
     items: [item],
   });
+
+  return {
+    ...meal,
+    proof: createMealProofMetadata(meal),
+  };
 }

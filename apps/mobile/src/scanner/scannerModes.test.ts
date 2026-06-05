@@ -16,8 +16,8 @@ describe('scannerModes', () => {
   it('uses product wording for barcode mode instead of meal wording', () => {
     const barcodeConfig = getScannerModeConfig('barcode');
 
-    expect(barcodeConfig.title).toBe('Code-barres');
-    expect(barcodeConfig.instruction).toContain('produit');
+    expect(barcodeConfig.title).toBe('Barcode');
+    expect(barcodeConfig.instruction).toContain('product');
     expect(barcodeConfig.frameVariant).toBe('barcode');
   });
 

@@ -1,0 +1,26 @@
+- generic [ref=e239] [box=0,0,394,852]:
+  - generic [ref=e240] [box=24,24,346,42]:
+    - generic [ref=e242] [cursor=pointer] [box=35,25,21,39]: <
+    - generic [ref=e243] [box=156,36,82,18]: MACROLENS
+  - generic [ref=e244] [box=24,110,346,57]:
+    - generic [ref=e245] [box=46,110,303,30]: What would you like to log?
+    - generic [ref=e246] [box=78,148,237,19]: Photo, product, label, or quick entry.
+  - generic [ref=e247] [box=24,199,346,248]:
+    - generic [ref=e248] [cursor=pointer] [box=24,199,162,118]:
+      - img [ref=e249] [box=91,229,28,28]
+      - generic [ref=e252] [box=68,269,73,18]: Meal Photo
+    - generic [ref=e253] [cursor=pointer] [box=207,199,162,118]:
+      - img [ref=e254] [box=274,229,28,28]
+      - generic [ref=e255] [box=262,269,52,18]: Barcode
+    - generic [ref=e256] [cursor=pointer] [box=24,329,162,118]:
+      - img [ref=e257] [box=91,359,28,28]
+      - generic [ref=e262] [box=57,399,97,18]: Nutrition Label
+    - generic [ref=e263] [cursor=pointer] [box=207,329,162,118]:
+      - img [ref=e264] [box=274,359,28,28]
+      - generic [ref=e268] [box=266,399,45,18]: Gallery
+  - generic [ref=e269] [cursor=pointer] [box=24,459,346,52]:
+    - img [ref=e270] [box=113,476,18,18]
+    - generic [ref=e272] [box=143,476,137,18]: Search food database
+  - generic [ref=e273] [cursor=pointer] [box=24,523,346,58]:
+    - img [ref=e274] [box=137,543,18,18]
+    - generic [ref=e276] [box=163,541,93,22]: Manual add

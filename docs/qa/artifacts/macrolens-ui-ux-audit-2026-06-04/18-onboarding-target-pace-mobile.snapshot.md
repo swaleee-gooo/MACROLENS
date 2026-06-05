@@ -1,0 +1,33 @@
+- generic [ref=e4] [box=0,0,394,852]:
+  - generic [ref=e6] [box=0,0,378,767]:
+    - generic [ref=e7] [box=0,0,378,110]:
+      - generic [ref=e8] [box=24,16,330,44]:
+        - generic [ref=e10] [cursor=pointer] [box=36,18,21,39]: <
+        - generic [ref=e11] [box=145,29,88,18]: MACROLENS
+      - generic [ref=e103] [box=24,76,330,18]:
+        - generic [ref=e104] [box=24,78,69,14]: Step 5 of 13
+        - generic [ref=e105] [box=327,76,28,18]: 47%
+    - generic [ref=e217] [box=0,142,378,499]:
+      - generic [ref=e218] [box=24,166,330,96]:
+        - generic [ref=e219] [box=24,166,330,40]: Your target and pace
+        - generic [ref=e220] [box=24,214,330,48]: A realistic pace makes tracking more sustainable.
+      - generic [ref=e221] [box=24,286,330,88]:
+        - generic [ref=e222] [box=24,286,330,14]: Target weight
+        - generic [ref=e223] [box=24,308,330,66]:
+          - textbox "62.0" [ref=e224] [box=41,309,277,64]: "65.3"
+          - generic [ref=e225] [box=318,330,20,22]: kg
+      - generic [ref=e226] [box=24,398,330,101]:
+        - generic [ref=e227] [box=24,398,330,14]: Weekly pace
+        - generic [ref=e228] [box=24,420,330,78]:
+          - generic [ref=e230] [cursor=pointer] [box=37,429,94,18]: 0.25 kg / week
+          - generic [ref=e232] [cursor=pointer] [box=164,429,86,18]: 0.5 kg / week
+          - generic [ref=e234] [cursor=pointer] [box=37,472,94,18]: 0.75 kg / week
+          - generic [ref=e236] [cursor=pointer] [box=164,472,73,18]: 1 kg / week
+      - generic [ref=e238] [box=41,539,297,61]:
+        - img [ref=e240] [box=46,561,17,17]
+        - generic [ref=e242] [box=81,539,257,61]:
+          - generic [ref=e243] [box=81,539,257,22]: Safe range
+          - generic [ref=e244] [box=81,565,257,35]: 0.25 to 1 kg per week depending on your goal.
+  - generic [active] [ref=e34] [cursor=pointer] [box=24,764,346,64]:
+    - generic [ref=e35] [box=157,784,43,24]: Next
+    - img [ref=e36] [box=212,784,24,24]

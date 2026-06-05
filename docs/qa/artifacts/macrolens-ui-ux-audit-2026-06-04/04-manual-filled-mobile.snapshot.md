@@ -1,0 +1,29 @@
+- generic [ref=e278] [box=0,0,394,822]:
+  - generic [ref=e279] [cursor=pointer] [box=24,24,346,24]:
+    - img [ref=e280] [box=24,24,24,24]
+    - generic [ref=e282] [box=52,25,37,22]: Back
+  - generic [ref=e283] [box=24,72,346,86]:
+    - generic [ref=e284] [box=156,72,82,18]: MACROLENS
+    - generic [ref=e285] [box=92,106,209,30]: Add meal manually
+    - generic [ref=e286] [box=78,139,238,19]: Enter the nutrition info for this meal.
+  - generic [ref=e287] [box=24,182,346,66]:
+    - generic [ref=e288] [box=24,182,346,18]: Meal name
+    - 'textbox "Example: salmon poke bowl" [ref=e289] [box=24,204,346,44]': Salmon poke bowl
+  - generic [ref=e290] [box=24,272,346,66]:
+    - generic [ref=e291] [box=24,272,346,18]: Calories
+    - textbox "927" [ref=e292] [box=24,293,346,44]: "720"
+  - generic [ref=e293] [box=24,361,346,66]:
+    - generic [ref=e294] [box=24,361,346,18]: Protein (g)
+    - textbox "38.6" [ref=e295] [box=24,383,346,44]: "42"
+  - generic [ref=e296] [box=24,451,346,66]:
+    - generic [ref=e297] [box=24,451,346,18]: Carbs (g)
+    - textbox "90" [ref=e298] [box=24,473,346,44]: "68"
+  - generic [ref=e299] [box=24,541,346,66]:
+    - generic [ref=e300] [box=24,541,346,18]: Fat (g)
+    - textbox "35" [ref=e301] [box=24,562,346,44]: "24"
+  - generic [ref=e302] [box=24,630,346,66]:
+    - generic [ref=e303] [box=24,630,346,18]: Fiber (g)
+    - textbox "8" [active] [ref=e304] [box=24,652,346,44]
+  - generic [ref=e310] [cursor=pointer] [box=24,720,346,58]:
+    - img [ref=e305] [box=143,739,20,20]
+    - generic [ref=e309] [box=171,738,79,22]: Save meal

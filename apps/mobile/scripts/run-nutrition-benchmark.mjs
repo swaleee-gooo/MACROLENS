@@ -5,6 +5,7 @@ import { validateBenchmarkCasesForRelease } from './benchmark-case-validation.mj
 import { scoreNutritionCase, scoreNutritionError, summarizeNutritionBenchmark } from './nutrition-benchmark-core.mjs';
 
 const DEFAULT_CASE_FILE = 'scripts/nutrition-benchmark-cases.json';
+const TRANSIENT_HTTP_STATUSES = new Set([408, 429, 500, 502, 503, 504, 546]);
 
 function loadEnvFile(path) {
   if (!existsSync(path)) {
@@ -39,6 +40,7 @@ function parseArgs(argv) {
     releaseGate: runArgs.includes('--release-gate'),
     delayMs: delayArg ? Number(delayArg) : 750,
     limit: limitArg ? Number(limitArg) : null,
+    retries: Number(argValue(runArgs, '--retries') ?? '2'),
   };
 }
 
@@ -96,7 +98,21 @@ async function invokeAnalyzeMeal({ supabaseUrl, supabaseAnonKey, accessToken }, 
   return { ok: true, body };
 }
 
-async function runNutritionBenchmark(invoker, { cases, delayMs }) {
+function isTransientFailure(result) {
+  return !result.ok && TRANSIENT_HTTP_STATUSES.has(result.status);
+}
+
+async function invokeAnalyzeMealWithRetry(invoker, benchmarkCase, { retries, retryDelayMs }) {
+  let lastResult = await invokeAnalyzeMeal(invoker, benchmarkCase);
+  for (let attempt = 1; attempt <= retries && isTransientFailure(lastResult); attempt += 1) {
+    await wait(retryDelayMs * attempt);
+    lastResult = await invokeAnalyzeMeal(invoker, benchmarkCase);
+  }
+
+  return lastResult;
+}
+
+async function runNutritionBenchmark(invoker, { cases, delayMs, retries }) {
   const scores = [];
 
   for (const benchmarkCase of cases) {
@@ -104,7 +120,7 @@ async function runNutritionBenchmark(invoker, { cases, delayMs }) {
       await wait(delayMs);
     }
 
-    const result = await invokeAnalyzeMeal(invoker, benchmarkCase);
+    const result = await invokeAnalyzeMealWithRetry(invoker, benchmarkCase, { retries, retryDelayMs: Math.max(delayMs, 500) });
     if (!result.ok) {
       scores.push(scoreNutritionError(benchmarkCase, result));
       continue;
@@ -117,8 +133,11 @@ async function runNutritionBenchmark(invoker, { cases, delayMs }) {
 }
 
 async function main() {
-  const { caseFile, resultsFile, releaseGate, delayMs, limit } = parseArgs(process.argv);
+  const { caseFile, resultsFile, releaseGate, delayMs, limit, retries } = parseArgs(process.argv);
   assertPositiveInteger(delayMs, 'delay_ms');
+  if (!Number.isInteger(retries) || retries < 0) {
+    throw new Error('retries_must_be_non_negative_integer');
+  }
   if (limit !== null) {
     assertPositiveInteger(limit, 'limit');
   }
@@ -177,6 +196,7 @@ async function main() {
     {
     cases: selectedCases,
     delayMs,
+    retries,
     },
   );
   const summary = summarizeNutritionBenchmark(scores);

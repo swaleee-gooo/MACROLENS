@@ -1,8 +1,8 @@
 import type { MacroTargets, Meal } from '../domain/types';
 import { buildDailySummary } from './dashboardViewModel';
 
-const weekdayLabels = ['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam'];
-const monthLabels = ['jan', 'fev', 'mars', 'avr', 'mai', 'juin', 'juil', 'aout', 'sep', 'oct', 'nov', 'dec'];
+const weekdayLabels = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+const monthLabels = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
 function progress(value: number, target: number): number {
   if (target <= 0) {
@@ -20,11 +20,11 @@ function shiftIsoDate(isoDate: string, days: number): string {
 
 function formatSelectedDay(isoDate: string, todayIsoDate: string): string {
   if (isoDate === todayIsoDate) {
-    return "Aujourd'hui";
+    return 'Today';
   }
 
   if (isoDate === shiftIsoDate(todayIsoDate, -1)) {
-    return 'Hier';
+    return 'Yesterday';
   }
 
   const date = new Date(`${isoDate}T12:00:00.000Z`);

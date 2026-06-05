@@ -12,9 +12,9 @@ describe('buildWeeklyReport', () => {
       targetProteinG: 150,
     });
 
-    expect(report.title).toBe('Semaine solide');
-    expect(report.summary).toBe('4 jours logges, 2100 kcal en moyenne, 142g de proteines.');
-    expect(report.nextStep).toBe('Garde le rythme et vise encore 8g de proteines en moyenne.');
+    expect(report.title).toBe('Solid week');
+    expect(report.summary).toBe('4 days logged, 2100 kcal on average, 142g of protein.');
+    expect(report.nextStep).toBe('Keep the rhythm and aim for 8g more protein on average.');
   });
 });
 
@@ -61,6 +61,6 @@ describe('buildWeeklyReportFromMeals', () => {
       todayIsoDate: '2026-05-25',
     });
 
-    expect(report.summary).toBe('2 jours logges, 2100 kcal en moyenne, 140g de proteines.');
+    expect(report.summary).toBe('2 days logged, 2100 kcal on average, 140g of protein.');
   });
 });

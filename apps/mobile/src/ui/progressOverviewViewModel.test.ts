@@ -22,11 +22,11 @@ describe('buildProgressOverview', () => {
   it('formats remaining targets as neutral tracking metrics', () => {
     const overview = buildProgressOverview(summary());
 
-    expect(overview.title).toBe('Suivi du jour');
+    expect(overview.title).toBe('Today tracking');
     expect(overview.metrics).toEqual([
-      { label: 'Calories restantes', value: '600 kcal' },
-      { label: 'Proteines restantes', value: '45 g' },
-      { label: 'Repas logges', value: '2' },
+      { label: 'Calories left', value: '600 kcal' },
+      { label: 'Protein left', value: '45 g' },
+      { label: 'Meals logged', value: '2' },
     ]);
   });
 
@@ -40,9 +40,9 @@ describe('buildProgressOverview', () => {
     );
 
     expect(overview.metrics).toEqual([
-      { label: 'Calories restantes', value: '0 kcal' },
-      { label: 'Proteines restantes', value: '0 g' },
-      { label: 'Repas logges', value: '4' },
+      { label: 'Calories left', value: '0 kcal' },
+      { label: 'Protein left', value: '0 g' },
+      { label: 'Meals logged', value: '4' },
     ]);
   });
 
@@ -50,9 +50,9 @@ describe('buildProgressOverview', () => {
     const overview = buildProgressOverview(summary({ calorieTarget: null, proteinTargetG: null }));
 
     expect(overview.metrics).toEqual([
-      { label: 'Calories suivies', value: '1600 kcal' },
-      { label: 'Proteines suivies', value: '95 g' },
-      { label: 'Repas logges', value: '2' },
+      { label: 'Tracked calories', value: '1600 kcal' },
+      { label: 'Tracked protein', value: '95 g' },
+      { label: 'Meals logged', value: '2' },
     ]);
   });
 });

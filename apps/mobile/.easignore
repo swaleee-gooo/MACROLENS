@@ -1,0 +1,8 @@
+node_modules/
+.expo/
+.eas-debug/
+dist/
+web-build/
+expo-web.*.log
+*.tsbuildinfo
+macrolens-dashboard-*.png

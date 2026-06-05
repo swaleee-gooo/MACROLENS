@@ -1,10 +1,12 @@
 import { useMemo, useState } from 'react';
 import { Image, Pressable, ScrollView, Text, View } from 'react-native';
-import { CalendarDays, Flame, Package, Utensils } from 'lucide-react-native';
+import { CalendarDays } from 'lucide-react-native';
 import { BrandHeader } from '../components/BrandHeader';
-import { PremiumCard } from '../components/PremiumCard';
+import { ManualMealAsset, ProductLabelAsset } from '../components/BrandAssets';
+import { useLang } from '../i18n/LanguageContext';
 import type { Meal } from '../domain/types';
 import { buildTimelineSections } from '../ui/timelineSectionsViewModel';
+import { Card, Eyebrow, Num, ProofChip } from '../ui/primitives';
 import { colors, radius, spacing, typography } from '../ui/theme';
 
 type Props = {
@@ -14,47 +16,181 @@ type Props = {
 
 type HistoryMode = 'timeline' | 'calendar';
 
-function confidenceLabel(confidence: Meal['confidence']): { label: string; background: string; color: string } {
-  if (confidence === 'high') {
-    return { label: 'ELEVEE', background: colors.greenSoft, color: colors.green };
-  }
-  if (confidence === 'medium') {
-    return { label: 'MOYENNE', background: colors.amberSoft, color: colors.black };
-  }
-  return { label: 'FAIBLE', background: colors.redSoft, color: colors.red };
+const STR = {
+  en: {
+    mealLog: 'Meal log',
+    history: 'History',
+    historySubtitle: 'Your consistency and reliability over time.',
+    timeline: 'Timeline',
+    calendar: 'Calendar',
+    noMealsLogged: 'No meals logged',
+    noMealsBody: 'Your meals will appear here after the first scan.',
+    meals: 'meals',
+    noMealsDay: 'No meals on this day.',
+    calories: 'Calories',
+    protein: 'Protein',
+    mealsLabel: 'Meals',
+    manual: 'Manual',
+    barcode: 'Barcode',
+    verified: 'Verified',
+    estimated: 'Estimated',
+    protein_unit: 'g protein',
+    thisWeek: 'This week',
+    verified_pct: (pct: number) => `${pct}% verified`,
+    avgKcal: 'avg kcal/d',
+    avgProt: 'avg prot',
+    daysLogged: 'days logged',
+    weekLabels: ['M', 'T', 'W', 'T', 'F', 'S', 'S'],
+    monthLabels: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'],
+  },
+  fr: {
+    mealLog: 'Journal',
+    history: 'Suivi',
+    historySubtitle: 'Ta régularité et ta fiabilité dans le temps.',
+    timeline: 'Chronologie',
+    calendar: 'Calendrier',
+    noMealsLogged: 'Aucun repas enregistré',
+    noMealsBody: 'Vos repas apparaîtront ici après le premier scan.',
+    meals: 'repas',
+    noMealsDay: 'Aucun repas ce jour-là.',
+    calories: 'Calories',
+    protein: 'Protéines',
+    mealsLabel: 'Repas',
+    manual: 'Manuel',
+    barcode: 'Code-barres',
+    verified: 'Vérifié',
+    estimated: 'Estimé',
+    protein_unit: 'g protéines',
+    thisWeek: 'Cette semaine',
+    verified_pct: (pct: number) => `${pct}% vérifié`,
+    avgKcal: 'kcal moy/j',
+    avgProt: 'prot moy',
+    daysLogged: 'jours loggés',
+    weekLabels: ['L', 'M', 'M', 'J', 'V', 'S', 'D'],
+    monthLabels: ['Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'],
+  },
+};
+
+type WeekBar = { dayLabel: string; heightPct: number; isVerified: boolean; hasData: boolean };
+
+function buildWeekBars(meals: Meal[], todayIsoDate: string, weekLabels: string[]): WeekBar[] {
+  const todayDate = new Date(`${todayIsoDate}T12:00:00.000Z`);
+  const todayDow = todayDate.getUTCDay(); // 0=Sun
+  // build array Mon-Sun aligned with weekLabels
+  const bars: WeekBar[] = weekLabels.map((dayLabel, i) => {
+    // i=0 → Mon(1), i=6 → Sun(0)
+    const targetDow = i === 6 ? 0 : i + 1;
+    const diff = ((targetDow - todayDow + 7) % 7) - 7;
+    const barDate = new Date(todayDate);
+    barDate.setUTCDate(todayDate.getUTCDate() + (diff === 0 ? 0 : diff));
+    const isoDate = barDate.toISOString().slice(0, 10);
+    const dayMeals = meals.filter((m) => m.capturedAt.slice(0, 10) === isoDate);
+    if (dayMeals.length === 0) return { dayLabel, heightPct: 0, isVerified: false, hasData: false };
+    const totalKcal = dayMeals.reduce((s, m) => s + m.caloriesEstimate, 0);
+    const verifiedCount = dayMeals.filter((m) => m.confidence === 'high' || m.imageUri.startsWith('product://') || m.imageUri.startsWith('barcode://')).length;
+    const isVerified = verifiedCount >= dayMeals.length / 2;
+    return { dayLabel, heightPct: Math.min(1, totalKcal / 2500), isVerified, hasData: true };
+  });
+  return bars;
 }
 
-function TimelineMealCard({ meal, onOpenMeal }: { meal: Meal; onOpenMeal: (meal: Meal) => void }) {
-  const isManual = meal.imageUri.startsWith('manual://');
-  const isProduct = meal.imageUri.startsWith('product://') || meal.imageUri.startsWith('barcode://');
-  const badge = confidenceLabel(meal.confidence);
+function WeeklySummaryCard({ meals, todayIsoDate }: { meals: Meal[]; todayIsoDate: string }) {
+  const { lang } = useLang();
+  const t = STR[lang];
+  const bars = useMemo(() => buildWeekBars(meals, todayIsoDate, t.weekLabels), [meals, todayIsoDate, t.weekLabels]);
+  const weekMeals = useMemo(() => {
+    const dates = new Set(bars.map((_, i) => {
+      const todayDate = new Date(`${todayIsoDate}T12:00:00.000Z`);
+      const todayDow = todayDate.getUTCDay();
+      const targetDow = i === 6 ? 0 : i + 1;
+      const diff = ((targetDow - todayDow + 7) % 7) - 7;
+      const barDate = new Date(todayDate);
+      barDate.setUTCDate(todayDate.getUTCDate() + (diff === 0 ? 0 : diff));
+      return barDate.toISOString().slice(0, 10);
+    }));
+    return meals.filter((m) => dates.has(m.capturedAt.slice(0, 10)));
+  }, [meals, todayIsoDate, bars]);
+  const daysWithData = bars.filter((b) => b.hasData).length;
+  const totalKcal = weekMeals.reduce((s, m) => s + m.caloriesEstimate, 0);
+  const totalProt = weekMeals.reduce((s, m) => s + m.proteinG, 0);
+  const divisor = Math.max(1, daysWithData);
+  const avgKcal = Math.round(totalKcal / divisor);
+  const avgProt = Math.round(totalProt / divisor);
+  const verifiedCount = weekMeals.filter((m) => m.confidence === 'high' || m.imageUri.startsWith('product://') || m.imageUri.startsWith('barcode://')).length;
+  const verifiedPct = weekMeals.length > 0 ? Math.round((verifiedCount / weekMeals.length) * 100) : 0;
+  const maxPct = Math.max(...bars.map((b) => b.heightPct), 0.01);
 
   return (
-    <Pressable onPress={() => onOpenMeal(meal)}>
-      <PremiumCard style={{ alignItems: 'center', flexDirection: 'row', gap: spacing.md }}>
-        {isManual || isProduct ? (
-          <View style={{ alignItems: 'center', backgroundColor: colors.surfaceMuted, borderRadius: radius.sm, height: 74, justifyContent: 'center', width: 74 }}>
-            {isProduct ? <Package color={colors.green} size={28} strokeWidth={2.4} /> : <Utensils color={colors.muted} size={28} strokeWidth={2.4} />}
-          </View>
-        ) : (
-          <Image source={{ uri: meal.imageUri }} style={{ backgroundColor: colors.surfaceMuted, borderRadius: radius.sm, height: 74, width: 74 }} />
-        )}
-        <View style={{ flex: 1, gap: spacing.xs }}>
-          <Text style={{ color: colors.black, fontSize: typography.subheading, fontWeight: '900' }}>{meal.mealName}</Text>
-          <Text style={{ color: colors.black, fontSize: typography.body, fontWeight: '900' }}>
-            <Flame color={colors.black} size={16} strokeWidth={2.4} /> {meal.caloriesEstimate} kcal  <Text style={{ color: colors.green }}>{meal.proteinG}g Prot</Text>
-          </Text>
+    <Card style={{ padding: spacing.lg }}>
+      <View style={{ alignItems: 'center', flexDirection: 'row', justifyContent: 'space-between', marginBottom: spacing.lg }}>
+        <Eyebrow>{t.thisWeek}</Eyebrow>
+        <ProofChip level="verified" label={t.verified_pct(verifiedPct)} />
+      </View>
+      <View style={{ alignItems: 'flex-end', flexDirection: 'row', gap: 0, height: 72, justifyContent: 'space-between' }}>
+        {bars.map((bar, i) => {
+          const fillColor = bar.hasData ? (bar.isVerified ? colors.accent : colors.warn) : colors.paper3;
+          const rawH = bar.hasData ? (bar.heightPct / maxPct) * 56 : 4;
+          const barH = Math.max(4, Math.round(rawH));
+          return (
+            <View key={i} style={{ alignItems: 'center', flex: 1, gap: 8, justifyContent: 'flex-end' }}>
+              <View style={{ backgroundColor: fillColor, borderRadius: 6, height: barH, width: 11 }} />
+              <Eyebrow style={{ fontSize: 9 }}>{bar.dayLabel}</Eyebrow>
+            </View>
+          );
+        })}
+      </View>
+      <View style={{ borderTopColor: colors.line, borderTopWidth: 1, flexDirection: 'row', justifyContent: 'space-between', marginTop: spacing.md, paddingTop: spacing.md }}>
+        <View>
+          <Num style={{ fontSize: typography.subheading, fontWeight: '600' }}>{avgKcal}</Num>
+          <Eyebrow style={{ marginTop: 2 }}>{t.avgKcal}</Eyebrow>
         </View>
-        <View style={{ backgroundColor: badge.background, borderRadius: radius.sm, paddingHorizontal: spacing.sm, paddingVertical: spacing.xs }}>
-          <Text style={{ color: badge.color, fontSize: typography.tiny, fontWeight: '900' }}>{badge.label}</Text>
+        <View>
+          <Num style={{ fontSize: typography.subheading, fontWeight: '600' }}>{avgProt}g</Num>
+          <Eyebrow style={{ marginTop: 2 }}>{t.avgProt}</Eyebrow>
         </View>
-      </PremiumCard>
-    </Pressable>
+        <View>
+          <Num style={{ fontSize: typography.subheading, fontWeight: '600' }}>{daysWithData}</Num>
+          <Eyebrow style={{ marginTop: 2 }}>{t.daysLogged}</Eyebrow>
+        </View>
+      </View>
+    </Card>
   );
 }
 
-const monthLabels = ['Janvier', 'Fevrier', 'Mars', 'Avril', 'Mai', 'Juin', 'Juillet', 'Aout', 'Septembre', 'Octobre', 'Novembre', 'Decembre'];
-const weekLabels = ['L', 'M', 'M', 'J', 'V', 'S', 'D'];
+function TimelineMealCard({ meal, onOpenMeal }: { meal: Meal; onOpenMeal: (meal: Meal) => void }) {
+  const { lang } = useLang();
+  const t = STR[lang];
+  const isManual = meal.imageUri.startsWith('manual://');
+  const isProduct = meal.imageUri.startsWith('product://') || meal.imageUri.startsWith('barcode://');
+  const verified = isProduct || meal.confidence === 'high';
+
+  return (
+    <Pressable onPress={() => onOpenMeal(meal)}>
+      <Card style={{ alignItems: 'center', flexDirection: 'row', gap: spacing.md, padding: spacing.md }}>
+        {isManual || isProduct ? (
+          <View style={{ alignItems: 'center', backgroundColor: colors.paper2, borderRadius: radius.md, height: 66, justifyContent: 'center', width: 66 }}>
+            {isProduct ? <ProductLabelAsset height={64} width={66} /> : <ManualMealAsset height={64} width={66} />}
+          </View>
+        ) : (
+          <Image source={{ uri: meal.imageUri }} style={{ backgroundColor: colors.paper2, borderRadius: radius.md, height: 66, width: 66 }} />
+        )}
+        <View style={{ flex: 1, gap: spacing.xs, minWidth: 0 }}>
+          <Text numberOfLines={2} style={{ color: colors.ink, fontSize: typography.body, fontWeight: '600', lineHeight: 20 }}>
+            {meal.mealName}
+          </Text>
+          <Num numberOfLines={1} style={{ color: colors.muted, fontSize: typography.small }}>
+            {meal.caloriesEstimate} kcal · {meal.proteinG} {t.protein_unit}
+          </Num>
+          <ProofChip
+            level={verified ? 'verified' : 'estimated'}
+            label={isManual ? t.manual : isProduct ? t.barcode : verified ? t.verified : t.estimated}
+            style={{ alignSelf: 'flex-start' }}
+          />
+        </View>
+      </Card>
+    </Pressable>
+  );
+}
 
 function isoDateAtNoon(isoDate: string): Date {
   return new Date(`${isoDate}T12:00:00.000Z`);
@@ -80,15 +216,9 @@ function buildMonthDays(anchorIsoDate: string) {
   });
 }
 
-function CalendarHistory({
-  meals,
-  todayIsoDate,
-  onOpenMeal,
-}: {
-  meals: Meal[];
-  todayIsoDate: string;
-  onOpenMeal: (meal: Meal) => void;
-}) {
+function CalendarHistory({ meals, todayIsoDate, onOpenMeal }: { meals: Meal[]; todayIsoDate: string; onOpenMeal: (meal: Meal) => void }) {
+  const { lang } = useLang();
+  const t = STR[lang];
   const [selectedIsoDate, setSelectedIsoDate] = useState(todayIsoDate);
   const monthDays = useMemo(() => buildMonthDays(selectedIsoDate), [selectedIsoDate]);
   const selectedDate = isoDateAtNoon(selectedIsoDate);
@@ -106,14 +236,16 @@ function CalendarHistory({
 
   return (
     <View style={{ gap: spacing.lg }}>
-      <PremiumCard style={{ gap: spacing.md }}>
+      <Card style={{ gap: spacing.md, padding: spacing.lg }}>
         <View style={{ alignItems: 'center', flexDirection: 'row', justifyContent: 'space-between' }}>
-          <Text style={{ color: colors.black, fontSize: typography.subheading, fontWeight: '900' }}>{monthLabels[selectedDate.getUTCMonth()]} {selectedDate.getUTCFullYear()}</Text>
-          <CalendarDays color={colors.muted} size={20} strokeWidth={2.4} />
+          <Text style={{ color: colors.ink, fontSize: typography.subheading, fontWeight: '700', letterSpacing: -0.3 }}>
+            {t.monthLabels[selectedDate.getUTCMonth()]} {selectedDate.getUTCFullYear()}
+          </Text>
+          <CalendarDays color={colors.muted} size={20} strokeWidth={2} />
         </View>
         <View style={{ flexDirection: 'row' }}>
-          {weekLabels.map((label) => (
-            <Text key={label} style={{ color: colors.muted, flex: 1, fontSize: typography.tiny, fontWeight: '900', textAlign: 'center' }}>{label}</Text>
+          {t.weekLabels.map((label, i) => (
+            <Eyebrow key={`wl-${i}`} style={{ flex: 1, textAlign: 'center' }}>{label}</Eyebrow>
           ))}
         </View>
         <View style={{ flexDirection: 'row', flexWrap: 'wrap', rowGap: spacing.sm }}>
@@ -122,36 +254,26 @@ function CalendarHistory({
             const hasMeal = mealsByDate.has(day.isoDate);
             return (
               <Pressable key={day.isoDate} onPress={() => setSelectedIsoDate(day.isoDate)} style={{ alignItems: 'center', flexBasis: `${100 / 7}%`, gap: spacing.xs }}>
-                <View style={{ alignItems: 'center', backgroundColor: selected ? colors.green : 'transparent', borderRadius: radius.pill, height: 34, justifyContent: 'center', width: 34 }}>
-                  <Text style={{ color: selected ? 'white' : day.inMonth ? colors.black : colors.muted, fontSize: typography.small, fontWeight: '900' }}>{day.day}</Text>
+                <View style={{ alignItems: 'center', backgroundColor: selected ? colors.ink : 'transparent', borderRadius: radius.sm, height: 34, justifyContent: 'center', width: 34 }}>
+                  <Num style={{ color: selected ? '#FFFFFF' : day.inMonth ? colors.ink : colors.muted, fontSize: typography.small, fontWeight: '600' }}>{day.day}</Num>
                 </View>
-                <View style={{ backgroundColor: hasMeal ? colors.green : 'transparent', borderRadius: radius.pill, height: 5, width: 5 }} />
+                <View style={{ backgroundColor: hasMeal ? colors.accent : 'transparent', borderRadius: radius.pill, height: 4, width: 4 }} />
               </Pressable>
             );
           })}
         </View>
-      </PremiumCard>
+      </Card>
 
-      <PremiumCard style={{ gap: spacing.md }}>
-        <View style={{ flexDirection: 'row', gap: spacing.md }}>
-          <View style={{ flex: 1 }}>
-            <Text style={{ color: colors.muted, fontSize: typography.tiny, fontWeight: '900', textTransform: 'uppercase' }}>Calories</Text>
-            <Text style={{ color: colors.black, fontSize: typography.heading, fontWeight: '900' }}>{dayCalories}</Text>
-          </View>
-          <View style={{ flex: 1 }}>
-            <Text style={{ color: colors.muted, fontSize: typography.tiny, fontWeight: '900', textTransform: 'uppercase' }}>Proteines</Text>
-            <Text style={{ color: colors.green, fontSize: typography.heading, fontWeight: '900' }}>{dayProtein}g</Text>
-          </View>
-          <View style={{ flex: 1 }}>
-            <Text style={{ color: colors.muted, fontSize: typography.tiny, fontWeight: '900', textTransform: 'uppercase' }}>Repas</Text>
-            <Text style={{ color: colors.black, fontSize: typography.heading, fontWeight: '900' }}>{dayMeals.length}</Text>
-          </View>
-        </View>
-      </PremiumCard>
+      <View style={{ flexDirection: 'row', gap: spacing.sm }}>
+        <HistoryStat label={t.calories} value={`${dayCalories}`} />
+        <HistoryStat label={t.protein} value={`${dayProtein}g`} />
+        <HistoryStat label={t.mealsLabel} value={`${dayMeals.length}`} />
+      </View>
+
       {dayMeals.length === 0 ? (
-        <PremiumCard>
-          <Text style={{ color: colors.muted, fontSize: typography.small, fontWeight: '800' }}>Aucun repas ce jour-la.</Text>
-        </PremiumCard>
+        <Card style={{ padding: spacing.lg }}>
+          <Text style={{ color: colors.muted, fontSize: typography.small }}>{t.noMealsDay}</Text>
+        </Card>
       ) : (
         dayMeals.map((meal) => <TimelineMealCard key={meal.id} meal={meal} onOpenMeal={onOpenMeal} />)
       )}
@@ -159,23 +281,48 @@ function CalendarHistory({
   );
 }
 
+function HistoryStat({ label, value, accent = colors.ink }: { label: string; value: string; accent?: string }) {
+  return (
+    <Card style={{ flex: 1, gap: spacing.xs, padding: spacing.md }}>
+      <Eyebrow>{label}</Eyebrow>
+      <Num numberOfLines={1} style={{ color: accent, fontSize: typography.subheading, fontWeight: '600' }}>{value}</Num>
+    </Card>
+  );
+}
+
 export function PremiumTimelineScreen({ meals, onOpenMeal }: Props) {
+  const { lang } = useLang();
+  const t = STR[lang];
   const today = new Date().toISOString().slice(0, 10);
   const sections = buildTimelineSections(meals, today);
   const [mode, setMode] = useState<HistoryMode>('timeline');
 
   return (
-    <ScrollView style={{ backgroundColor: colors.background, flex: 1 }} contentContainerStyle={{ gap: spacing.xl, paddingBottom: spacing.xxl }}>
+    <ScrollView style={{ backgroundColor: colors.background, flex: 1 }} contentContainerStyle={{ gap: spacing.lg, paddingBottom: 112 }} showsVerticalScrollIndicator={false}>
       <BrandHeader />
-      <View style={{ gap: spacing.sm, paddingHorizontal: spacing.xl }}>
-        <Text style={{ color: colors.black, fontSize: typography.hero, fontWeight: '900' }}>History</Text>
-        <Text style={{ color: colors.muted, fontSize: typography.body, fontWeight: '800' }}>Revois chaque jour, chaque repas et chaque macro.</Text>
+      <View style={{ gap: 4, paddingHorizontal: spacing.xl }}>
+        <Eyebrow>{t.mealLog}</Eyebrow>
+        <Text style={{ color: colors.ink, fontSize: typography.title, fontWeight: '700', letterSpacing: -0.5, marginTop: 4 }}>{t.history}</Text>
+        <Text style={{ color: colors.muted, fontSize: typography.body, lineHeight: 22 }}>{t.historySubtitle}</Text>
       </View>
-      <View style={{ gap: spacing.xl, paddingHorizontal: spacing.xl }}>
-        <View style={{ backgroundColor: colors.surfaceMuted, borderRadius: radius.pill, flexDirection: 'row', padding: spacing.xs }}>
+      <View style={{ gap: spacing.lg, paddingHorizontal: spacing.xl }}>
+        <View style={{ backgroundColor: colors.paper3, borderRadius: radius.md, flexDirection: 'row', padding: spacing.xs }}>
           {(['timeline', 'calendar'] as const).map((item) => (
-            <Pressable key={item} onPress={() => setMode(item)} style={{ alignItems: 'center', backgroundColor: mode === item ? colors.black : 'transparent', borderRadius: radius.pill, flex: 1, minHeight: 38, justifyContent: 'center' }}>
-              <Text style={{ color: mode === item ? 'white' : colors.black, fontSize: typography.small, fontWeight: '900' }}>{item === 'timeline' ? 'Timeline' : 'Calendar'}</Text>
+            <Pressable
+              key={item}
+              onPress={() => setMode(item)}
+              style={{
+                alignItems: 'center',
+                backgroundColor: mode === item ? colors.ink : 'transparent',
+                borderRadius: radius.sm,
+                flex: 1,
+                minHeight: 38,
+                justifyContent: 'center',
+              }}
+            >
+              <Text style={{ color: mode === item ? '#FFFFFF' : colors.ink, fontSize: typography.small, fontWeight: '600' }}>
+                {item === 'timeline' ? t.timeline : t.calendar}
+              </Text>
             </Pressable>
           ))}
         </View>
@@ -183,21 +330,27 @@ export function PremiumTimelineScreen({ meals, onOpenMeal }: Props) {
         {mode === 'calendar' ? <CalendarHistory meals={meals} todayIsoDate={today} onOpenMeal={onOpenMeal} /> : null}
 
         {mode === 'timeline' ? (
-          sections.length === 0 ? (
-            <PremiumCard style={{ gap: spacing.xs }}>
-              <Text style={{ color: colors.black, fontSize: typography.body, fontWeight: '900' }}>Aucun repas enregistre</Text>
-              <Text style={{ color: colors.muted, fontSize: typography.small, fontWeight: '800' }}>Tes repas apparaitront ici apres le premier scan.</Text>
-            </PremiumCard>
-          ) : (
-            sections.map((section) => (
-              <View key={section.title} style={{ gap: spacing.md }}>
-                <Text style={{ borderBottomColor: colors.line, borderBottomWidth: 1, color: colors.black, fontSize: typography.title, fontWeight: '900', paddingBottom: spacing.sm }}>{section.title}</Text>
-                {section.meals.map((meal) => (
-                  <TimelineMealCard key={meal.id} meal={meal} onOpenMeal={onOpenMeal} />
-                ))}
-              </View>
-            ))
-          )
+          <>
+            <WeeklySummaryCard meals={meals} todayIsoDate={today} />
+            {sections.length === 0 ? (
+              <Card style={{ gap: 4, padding: spacing.lg }}>
+                <Text style={{ color: colors.ink, fontSize: typography.body, fontWeight: '600' }}>{t.noMealsLogged}</Text>
+                <Text style={{ color: colors.muted, fontSize: typography.small, lineHeight: 19 }}>{t.noMealsBody}</Text>
+              </Card>
+            ) : (
+              sections.map((section) => (
+                <View key={section.title} style={{ gap: spacing.md }}>
+                  <View style={{ alignItems: 'center', borderBottomColor: colors.line, borderBottomWidth: 1, flexDirection: 'row', justifyContent: 'space-between', paddingBottom: spacing.sm }}>
+                    <Text style={{ color: colors.ink, fontSize: typography.heading, fontWeight: '700', letterSpacing: -0.3 }}>{section.title}</Text>
+                    <Num style={{ color: colors.muted, fontSize: typography.small }}>{section.meals.length} {t.meals}</Num>
+                  </View>
+                  {section.meals.map((meal) => (
+                    <TimelineMealCard key={meal.id} meal={meal} onOpenMeal={onOpenMeal} />
+                  ))}
+                </View>
+              ))
+            )}
+          </>
         ) : null}
       </View>
     </ScrollView>

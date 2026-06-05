@@ -27,7 +27,7 @@ describe('buildTimelineSections', () => {
   it('groups meals by today and yesterday', () => {
     const sections = buildTimelineSections([meal('today', '2026-05-24T10:00:00.000Z'), meal('yesterday', '2026-05-23T10:00:00.000Z')], '2026-05-24');
 
-    expect(sections.map((section) => section.title)).toEqual(["Aujourd'hui", 'Hier']);
+    expect(sections.map((section) => section.title)).toEqual(['Today', 'Yesterday']);
     expect(sections[0].meals[0].id).toBe('today');
   });
 });

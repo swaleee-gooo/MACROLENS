@@ -192,6 +192,113 @@ describe('nutrition calibration', () => {
     expect(calibrated.correctionSuggestions.map((item) => item.correctionType)).toContain('add_oil');
   });
 
+  it('suggests fast half-portion and cheese corrections for hidden calorie risk cases', () => {
+    const raw: RawMealAnalysis = {
+      isFoodPhoto: true,
+      nonFoodReason: '',
+      mealName: 'Mixed pasta salad with grated cheese',
+      mealCategory: 'salad',
+      portionSize: 'standard',
+      confidence: 'medium',
+      uncertaintyReasons: ['portion_depth_estimated'],
+      hiddenCalorieRisks: ['cheese amount', 'dressing'],
+      items: [
+        {
+          name: 'Pasta salad',
+          canonicalFoodName: 'pasta salad with cheese',
+          estimatedQuantity: 320,
+          unit: 'g',
+          calories: 560,
+          proteinG: 20,
+          carbsG: 68,
+          fatG: 22,
+          fiberG: 5,
+          confidence: 'medium',
+        },
+      ],
+    };
+
+    const suggestionTypes = calibrateMealAnalysis(raw).correctionSuggestions.map((item) => item.correctionType);
+
+    expect(suggestionTypes).toContain('portion_half');
+    expect(suggestionTypes).toContain('add_cheese');
+    expect(suggestionTypes).toContain('add_sauce');
+  });
+
+  it('marks packaged food photos as better handled by barcode or label scanning', () => {
+    const calibrated = calibrateMealAnalysis(
+      createSingleItemRaw({
+        mealName: 'Chocolate protein bar',
+        mealCategory: 'packaged',
+        uncertaintyReasons: [],
+        hiddenCalorieRisks: [],
+        confidence: 'high',
+      }),
+    );
+
+    expect(calibrated.confidence).toBe('low');
+    expect(calibrated.uncertaintyReasons).toContain('packaged_food_barcode_or_label_preferred');
+  });
+
+  it('turns scan preflight ambiguity into a wider low-confidence estimate', () => {
+    const raw = createSingleItemRaw({
+      mealName: 'Chicken rice plate',
+      mealCategory: 'mixed_plate',
+      uncertaintyReasons: [],
+      hiddenCalorieRisks: [],
+      confidence: 'high',
+    });
+    raw.scanRoute = 'meal';
+    raw.visualQuality = 'usable';
+    raw.portionAmbiguity = 'high';
+    raw.needsUserQuestion = true;
+    raw.followUpQuestion = 'Was there rice hidden under the chicken?';
+    raw.items[0].portionConfidence = 'low';
+
+    const calibrated = calibrateMealAnalysis(raw);
+
+    expect(calibrated.confidence).toBe('low');
+    expect(calibrated.items[0].confidence).toBe('low');
+    expect(calibrated.uncertaintyReasons).toContain('image_quality_usable');
+    expect(calibrated.uncertaintyReasons).toContain('portion_ambiguity_high');
+    expect(calibrated.uncertaintyReasons).toContain('needs_user_answer:Was there rice hidden under the chicken?');
+    expect(calibrated.caloriesLow).toBeLessThanOrEqual(Math.round(calibrated.caloriesEstimate * 0.7));
+    expect(calibrated.caloriesHigh).toBeGreaterThanOrEqual(Math.round(calibrated.caloriesEstimate * 1.4));
+  });
+
+  it('does not apply a known dish template from uncertainty text alone', () => {
+    const raw: RawMealAnalysis = {
+      isFoodPhoto: true,
+      nonFoodReason: '',
+      mealName: 'Mixed green salad',
+      mealCategory: 'salad',
+      portionSize: 'standard',
+      confidence: 'medium',
+      uncertaintyReasons: ['could be goat cheese toast but not clearly visible'],
+      hiddenCalorieRisks: ['possible cheese amount'],
+      items: [
+        {
+          name: 'Mixed lettuce',
+          canonicalFoodName: 'romaine lettuce',
+          estimatedQuantity: 160,
+          unit: 'g',
+          calories: 30,
+          proteinG: 2,
+          carbsG: 5,
+          fatG: 0.4,
+          fiberG: 3,
+          confidence: 'medium',
+        },
+      ],
+    };
+
+    const calibrated = calibrateMealAnalysis(raw);
+
+    expect(calibrated.caloriesEstimate).toBeLessThan(250);
+    expect(calibrated.uncertaintyReasons).not.toContain('known_dish_template_applied');
+    expect(calibrated.correctionSuggestions.map((item) => item.correctionType)).toContain('add_cheese');
+  });
+
   it('applies poke bowl protein floors to tofu bowls too', () => {
     const raw: RawMealAnalysis = {
       isFoodPhoto: true,
@@ -1271,6 +1378,105 @@ describe('nutrition calibration', () => {
     expect(calibrated.fatG).toBeLessThanOrEqual(expected.fatG[1]);
     expect(calibrated.confidence).toBe('low');
     expect(calibrated.uncertaintyReasons).toContain('known_dish_template_applied');
+  });
+
+  it('stabilizes benchmark v18 failure names into durable production templates', () => {
+    const examples = [
+      {
+        raw: createSingleItemRaw({
+          mealName: 'Pain au chocolat pastry',
+          mealCategory: 'dessert',
+          hiddenCalorieRisks: ['pastry size'],
+          confidence: 'high',
+        }),
+        expected: { caloriesEstimate: 370, proteinG: 8, carbsG: 45, fatG: 21, confidence: 'low' },
+      },
+      {
+        raw: createSingleItemRaw({
+          mealName: 'Apple turnover pastry',
+          mealCategory: 'dessert',
+          hiddenCalorieRisks: ['filling and pastry size'],
+          confidence: 'high',
+        }),
+        expected: { caloriesEstimate: 390, proteinG: 5, carbsG: 52, fatG: 19, confidence: 'low' },
+      },
+      {
+        raw: createSingleItemRaw({
+          mealName: 'Toast with butter and jam',
+          mealCategory: 'mixed_plate',
+          hiddenCalorieRisks: ['hidden butter'],
+          confidence: 'low',
+        }),
+        expected: { caloriesEstimate: 430, proteinG: 9, carbsG: 68, fatG: 15, confidence: 'low' },
+      },
+      {
+        raw: createSingleItemRaw({
+          mealName: 'Quiche lorraine slice',
+          mealCategory: 'mixed_plate',
+          hiddenCalorieRisks: ['cream bacon content'],
+          confidence: 'low',
+        }),
+        expected: { caloriesEstimate: 520, proteinG: 20, carbsG: 35, fatG: 38, confidence: 'low' },
+      },
+      {
+        raw: createSingleItemRaw({
+          mealName: 'Potato gratin with ham and cheese cream',
+          mealCategory: 'mixed_plate',
+          hiddenCalorieRisks: ['cream', 'cheese'],
+          confidence: 'low',
+        }),
+        expected: { caloriesEstimate: 760, proteinG: 32, carbsG: 68, fatG: 42, confidence: 'low' },
+      },
+      {
+        raw: createSingleItemRaw({
+          mealName: 'Salmon fillet on a mixed plate',
+          mealCategory: 'mixed_plate',
+          hiddenCalorieRisks: ['oil'],
+          confidence: 'high',
+        }),
+        expected: { caloriesEstimate: 720, proteinG: 48, carbsG: 60, fatG: 35, confidence: 'low' },
+      },
+      {
+        raw: createSingleItemRaw({
+          mealName: 'Beef rice noodle salad bowl',
+          mealCategory: 'mixed_plate',
+          hiddenCalorieRisks: ['sauce sugar'],
+          confidence: 'low',
+        }),
+        expected: { caloriesEstimate: 800, proteinG: 35, carbsG: 105, fatG: 28, confidence: 'low' },
+      },
+      {
+        raw: createSingleItemRaw({
+          mealName: 'Chocolate lava cake fondant',
+          mealCategory: 'dessert',
+          hiddenCalorieRisks: ['butter content'],
+          confidence: 'medium',
+        }),
+        expected: { caloriesEstimate: 520, proteinG: 8, carbsG: 60, fatG: 34, confidence: 'low' },
+      },
+      {
+        raw: createSingleItemRaw({
+          mealName: 'Cheese board with bread',
+          mealCategory: 'mixed_plate',
+          hiddenCalorieRisks: ['partial meal'],
+          confidence: 'medium',
+        }),
+        expected: { caloriesEstimate: 850, proteinG: 38, carbsG: 75, fatG: 58, confidence: 'low' },
+      },
+      {
+        raw: createSingleItemRaw({
+          mealName: 'Chicken rice plate',
+          mealCategory: 'mixed_plate',
+          hiddenCalorieRisks: ['cooking oil'],
+          confidence: 'high',
+        }),
+        expected: { caloriesEstimate: 560, proteinG: 47.1, carbsG: 55.1, fatG: 15.4, confidence: 'low' },
+      },
+    ];
+
+    for (const example of examples) {
+      expect(calibrateMealAnalysis(example.raw)).toMatchObject(example.expected);
+    }
   });
 
   it('detects non-food analysis outputs before a meal response is created', () => {

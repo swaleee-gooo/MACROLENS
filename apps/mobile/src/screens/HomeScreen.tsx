@@ -73,26 +73,26 @@ export function HomeScreen({
     <ScrollView style={{ backgroundColor: colors.background, flex: 1 }} contentContainerStyle={{ gap: spacing.xl, padding: spacing.xl }}>
       <View style={{ gap: spacing.xs }}>
         <Text style={{ color: colors.ink, fontSize: typography.title, fontWeight: '900' }}>MacroLens</Text>
-        <Text style={{ color: colors.muted, fontSize: typography.body }}>Photo, macros, confiance.</Text>
+        <Text style={{ color: colors.muted, fontSize: typography.body }}>Photo, macros, confidence.</Text>
       </View>
 
       <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: spacing.md }}>
         <MetricPill label="Calories" value={`${summary.calories}${summary.calorieTarget ? ` / ${summary.calorieTarget}` : ''}`} />
-        <MetricPill label="Proteines" value={`${summary.proteinG} g${summary.proteinTargetG ? ` / ${summary.proteinTargetG} g` : ''}`} accent={colors.protein} />
-        <MetricPill label="Glucides" value={`${summary.carbsG} g`} accent={colors.carbs} />
-        <MetricPill label="Lipides" value={`${summary.fatG} g`} accent={colors.fat} />
+        <MetricPill label="Protein" value={`${summary.proteinG} g${summary.proteinTargetG ? ` / ${summary.proteinTargetG} g` : ''}`} accent={colors.protein} />
+        <MetricPill label="Carbs" value={`${summary.carbsG} g`} accent={colors.carbs} />
+        <MetricPill label="Fat" value={`${summary.fatG} g`} accent={colors.fat} />
       </View>
 
       {summary.calorieProgress !== null && summary.proteinProgress !== null ? (
         <Text style={{ color: colors.muted, fontSize: typography.small, lineHeight: 18 }}>
-          Progression du jour: {summary.calorieProgress}% calories, {summary.proteinProgress}% proteines.
+          Today progress: {summary.calorieProgress}% calories, {summary.proteinProgress}% protein.
         </Text>
       ) : null}
 
       <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm }}>
         <NavButton label="Today" icon="today" onPress={onOpenToday} />
-        <NavButton label={targets ? 'Objectifs' : 'Profil'} icon="targets" onPress={onOpenProfile} />
-        <NavButton label="Parametres" icon="settings" onPress={onOpenSettings} />
+        <NavButton label={targets ? 'Targets' : 'Profile'} icon="targets" onPress={onOpenProfile} />
+        <NavButton label="Settings" icon="settings" onPress={onOpenSettings} />
       </View>
 
       <View style={{ gap: spacing.md }}>
@@ -109,7 +109,7 @@ export function HomeScreen({
           }}
         >
           <Camera color="white" size={20} strokeWidth={2.5} />
-          <Text style={{ color: 'white', fontSize: typography.body, fontWeight: '900' }}>Scanner un repas</Text>
+          <Text style={{ color: 'white', fontSize: typography.body, fontWeight: '900' }}>Scan a meal</Text>
         </Pressable>
         <View style={{ flexDirection: 'row', gap: spacing.md }}>
           <Pressable
@@ -128,7 +128,7 @@ export function HomeScreen({
             }}
           >
             <ImagePlus color={colors.blue} size={18} strokeWidth={2.4} />
-            <Text style={{ color: colors.ink, fontSize: typography.small, fontWeight: '800' }}>Galerie</Text>
+            <Text style={{ color: colors.ink, fontSize: typography.small, fontWeight: '800' }}>Gallery</Text>
           </Pressable>
           <Pressable
             onPress={onQuickAdd}
@@ -153,13 +153,13 @@ export function HomeScreen({
 
       <View style={{ gap: spacing.md }}>
         <View style={{ alignItems: 'center', flexDirection: 'row', justifyContent: 'space-between' }}>
-          <Text style={{ color: colors.ink, fontSize: typography.heading, fontWeight: '900' }}>Recents</Text>
+          <Text style={{ color: colors.ink, fontSize: typography.heading, fontWeight: '900' }}>Recent</Text>
           <Pressable onPress={onOpenTimeline}>
-            <Text style={{ color: colors.blue, fontSize: typography.small, fontWeight: '800' }}>Voir tout</Text>
+            <Text style={{ color: colors.blue, fontSize: typography.small, fontWeight: '800' }}>View all</Text>
           </Pressable>
         </View>
         {recentMeals.length === 0 ? (
-          <Text style={{ color: colors.muted, fontSize: typography.body }}>Ton premier scan apparaitra ici.</Text>
+          <Text style={{ color: colors.muted, fontSize: typography.body }}>Your first scan will appear here.</Text>
         ) : (
           recentMeals.map((meal) => <MealCard key={meal.id} meal={meal} onPress={onOpenMeal} />)
         )}

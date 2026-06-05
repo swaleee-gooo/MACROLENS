@@ -1,10 +1,53 @@
 import { useMemo, useState } from 'react';
 import { Pressable, ScrollView, Text, TextInput, View } from 'react-native';
-import { ArrowLeft, ChevronDown } from 'lucide-react-native';
+import { ChevronDown, ChevronLeft } from 'lucide-react-native';
 import { StickyFooterButton } from '../components/StickyFooterButton';
 import { calculateMacroTargets } from '../domain/macroTargets';
 import type { MacroTargets, UserGoal, UserProfile } from '../domain/types';
+import { useLang } from '../i18n/LanguageContext';
+import { Eyebrow } from '../ui/primitives';
 import { colors, radius, spacing, typography } from '../ui/theme';
+
+const STR = {
+  en: {
+    title: 'Edit profile',
+    goal: 'Goal',
+    goalLose: 'Loss',
+    goalGain: 'Muscle',
+    goalMaintain: 'Maintain',
+    sex: 'Sex',
+    male: 'Male',
+    female: 'Female',
+    other: 'Other',
+    currentWeightKg: 'Weight (kg)',
+    targetWeightKg: 'Target (kg)',
+    heightCm: 'Height (cm)',
+    age: 'Age',
+    activityLevel: 'Activity level',
+    intense: 'Intense',
+    active: 'Active (3-5x/week)',
+    saveChanges: 'Save changes',
+  },
+  fr: {
+    title: 'Modifier le profil',
+    goal: 'Objectif',
+    goalLose: 'Perte',
+    goalGain: 'Muscle',
+    goalMaintain: 'Maintien',
+    sex: 'Sexe',
+    male: 'Homme',
+    female: 'Femme',
+    other: 'Autre',
+    currentWeightKg: 'Poids (kg)',
+    targetWeightKg: 'Cible (kg)',
+    heightCm: 'Taille (cm)',
+    age: 'Âge',
+    activityLevel: "Niveau d'activité",
+    intense: 'Intensif',
+    active: 'Actif (3-5x/semaine)',
+    saveChanges: 'Enregistrer',
+  },
+};
 
 type Props = {
   profile: UserProfile | null;
@@ -28,23 +71,97 @@ function parseNumber(value: string): number {
   return Number.isFinite(parsed) && parsed > 0 ? parsed : 0;
 }
 
-function BoxInput({ label, value, onChangeText, placeholder }: { label: string; value: string; onChangeText: (value: string) => void; placeholder: string }) {
+function SegmentedControl<T extends string>({
+  label,
+  options,
+  value,
+  onChange,
+}: {
+  label: string;
+  options: { key: T; label: string }[];
+  value: T;
+  onChange: (v: T) => void;
+}) {
+  return (
+    <View style={{ gap: spacing.sm }}>
+      <Eyebrow>{label}</Eyebrow>
+      <View style={{ backgroundColor: colors.paper2, borderColor: colors.line2, borderRadius: 11, borderWidth: 1, flexDirection: 'row', gap: 2, padding: 3 }}>
+        {options.map((opt) => {
+          const on = opt.key === value;
+          return (
+            <Pressable
+              key={opt.key}
+              onPress={() => onChange(opt.key)}
+              style={{ alignItems: 'center', backgroundColor: on ? colors.surface : 'transparent', borderRadius: 8, flex: 1, paddingVertical: 9 }}
+            >
+              <Text style={{ color: on ? colors.ink : colors.muted, fontSize: 10.5, fontWeight: '500', letterSpacing: 0.5, textTransform: 'uppercase' }}>
+                {opt.label}
+              </Text>
+            </Pressable>
+          );
+        })}
+      </View>
+    </View>
+  );
+}
+
+function FieldInput({ label, value, onChangeText, placeholder }: { label: string; value: string; onChangeText: (value: string) => void; placeholder: string }) {
   return (
     <View style={{ flex: 1, gap: spacing.sm }}>
-      <Text style={{ color: colors.muted, fontSize: typography.small, fontWeight: '900', textTransform: 'uppercase' }}>{label}</Text>
+      <Eyebrow>{label}</Eyebrow>
       <TextInput
         value={value}
         onChangeText={onChangeText}
         keyboardType="numeric"
         placeholder={placeholder}
-        placeholderTextColor={colors.muted}
-        style={{ backgroundColor: colors.surface, borderColor: colors.line, borderRadius: radius.sm, borderWidth: 1, color: colors.black, fontSize: typography.subheading, fontWeight: '900', minHeight: 66, padding: spacing.lg }}
+        placeholderTextColor={colors.muted2}
+        style={{
+          backgroundColor: colors.surface,
+          borderColor: colors.line,
+          borderRadius: radius.md,
+          borderWidth: 1,
+          color: colors.ink,
+          fontSize: typography.subheading,
+          fontWeight: '700',
+          minHeight: 60,
+          paddingHorizontal: spacing.lg,
+          paddingVertical: spacing.md,
+        }}
       />
     </View>
   );
 }
 
+function SelectRow({ label, value, onPress }: { label: string; value: string; onPress: () => void }) {
+  return (
+    <View style={{ gap: spacing.sm }}>
+      <Eyebrow>{label}</Eyebrow>
+      <Pressable
+        onPress={onPress}
+        style={({ pressed }) => ({
+          alignItems: 'center',
+          backgroundColor: colors.surface,
+          borderColor: colors.line,
+          borderRadius: radius.md,
+          borderWidth: 1,
+          flexDirection: 'row' as const,
+          justifyContent: 'space-between' as const,
+          minHeight: 60,
+          opacity: pressed ? 0.7 : 1,
+          paddingHorizontal: spacing.lg,
+          paddingVertical: spacing.md,
+        })}
+      >
+        <Text style={{ color: colors.ink, fontSize: typography.body, fontWeight: '600' }}>{value}</Text>
+        <ChevronDown color={colors.muted} size={20} strokeWidth={2} />
+      </Pressable>
+    </View>
+  );
+}
+
 export function EditProfileScreen({ profile, userId, onBack, onSave }: Props) {
+  const { lang } = useLang();
+  const t = STR[lang];
   const [goal, setGoal] = useState<UserGoal>(profile?.goal ?? 'maintain');
   const [weight, setWeight] = useState(profile?.weightKg ? String(profile.weightKg) : '');
   const [targetWeight, setTargetWeight] = useState(profile?.targetWeightKg ? String(profile.targetWeightKg) : '');
@@ -95,48 +212,65 @@ export function EditProfileScreen({ profile, userId, onBack, onSave }: Props) {
 
   return (
     <View style={{ backgroundColor: colors.background, flex: 1 }}>
-      <ScrollView contentContainerStyle={{ gap: spacing.xl, padding: spacing.xl }}>
-        <Pressable onPress={onBack} style={{ alignItems: 'center', flexDirection: 'row', gap: spacing.sm }}>
-          <ArrowLeft color={colors.black} size={28} strokeWidth={2.6} />
-          <Text style={{ color: colors.black, fontSize: typography.heading, fontWeight: '900' }}>MACROLENS</Text>
-        </Pressable>
-        <Text style={{ color: colors.black, fontSize: typography.hero, fontWeight: '900' }}>Modifier le profil</Text>
+      <ScrollView contentContainerStyle={{ gap: spacing.xl, padding: spacing.xl, paddingBottom: spacing.xxxl }} showsVerticalScrollIndicator={false}>
 
-        <View style={{ gap: spacing.sm }}>
-          <Text style={{ color: colors.muted, fontSize: typography.small, fontWeight: '900', textTransform: 'uppercase' }}>Objectif principal</Text>
-          <Pressable onPress={() => setGoal(goal === 'maintain' ? 'lose_fat' : 'maintain')} style={{ alignItems: 'center', backgroundColor: colors.surface, borderColor: colors.line, borderRadius: radius.sm, borderWidth: 1, flexDirection: 'row', justifyContent: 'space-between', minHeight: 66, padding: spacing.lg }}>
-            <Text style={{ color: colors.black, fontSize: typography.subheading, fontWeight: '900' }}>{goal === 'maintain' ? 'Maintien' : 'Perdre du poids'}</Text>
-            <ChevronDown color={colors.muted} size={22} strokeWidth={2.4} />
+        {/* Push header: back chevron + centered title */}
+        <View style={{ alignItems: 'center', flexDirection: 'row', justifyContent: 'space-between', paddingTop: 4 }}>
+          <Pressable onPress={onBack} style={({ pressed }) => ({ alignItems: 'center', height: 30, justifyContent: 'center', marginLeft: -6, opacity: pressed ? 0.7 : 1, width: 30 })}>
+            <ChevronLeft color={colors.ink2} size={22} strokeWidth={2} />
           </Pressable>
+          <Text style={{ color: colors.ink, fontSize: 16, fontWeight: '600', letterSpacing: -0.1 }}>{t.title}</Text>
+          <View style={{ width: 30 }} />
         </View>
 
-        <View style={{ flexDirection: 'row', gap: spacing.lg }}>
-          <BoxInput label="Poids actuel (kg)" value={weight} onChangeText={setWeight} placeholder="72.5" />
-          <BoxInput label="Poids cible (kg)" value={targetWeight} onChangeText={setTargetWeight} placeholder="62.0" />
+        {/* Goal segmented control */}
+        <SegmentedControl
+          label={t.goal}
+          options={[
+            { key: 'lose_fat' as UserGoal, label: t.goalLose },
+            { key: 'build_muscle' as UserGoal, label: t.goalGain },
+            { key: 'maintain' as UserGoal, label: t.goalMaintain },
+          ]}
+          value={goal}
+          onChange={setGoal}
+        />
+
+        {/* Sex segmented control */}
+        <SegmentedControl
+          label={t.sex}
+          options={[
+            { key: 'male' as UserProfile['sex'], label: t.male },
+            { key: 'female' as UserProfile['sex'], label: t.female },
+            { key: 'prefer_not_to_say' as UserProfile['sex'], label: t.other },
+          ]}
+          value={sex}
+          onChange={setSex}
+        />
+
+        {/* 2×2 field grid */}
+        <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 11 }}>
+          <View style={{ flex: 1, minWidth: 120 }}>
+            <FieldInput label={t.age} value={profile?.ageRange === '18-24' ? '22' : '28'} onChangeText={() => undefined} placeholder="28" />
+          </View>
+          <View style={{ flex: 1, minWidth: 120 }}>
+            <FieldInput label={t.heightCm} value={height} onChangeText={setHeight} placeholder="178" />
+          </View>
+          <View style={{ flex: 1, minWidth: 120 }}>
+            <FieldInput label={t.currentWeightKg} value={weight} onChangeText={setWeight} placeholder="72.5" />
+          </View>
+          <View style={{ flex: 1, minWidth: 120 }}>
+            <FieldInput label={t.targetWeightKg} value={targetWeight} onChangeText={setTargetWeight} placeholder="62.0" />
+          </View>
         </View>
 
-        <View style={{ flexDirection: 'row', gap: spacing.lg }}>
-          <BoxInput label="Taille (cm)" value={height} onChangeText={setHeight} placeholder="178" />
-          <BoxInput label="Age" value={profile?.ageRange === '18-24' ? '22' : '28'} onChangeText={() => undefined} placeholder="28" />
-        </View>
-
-        <View style={{ gap: spacing.sm }}>
-          <Text style={{ color: colors.muted, fontSize: typography.small, fontWeight: '900', textTransform: 'uppercase' }}>Sexe</Text>
-          <Pressable onPress={() => setSex(sex === 'female' ? 'male' : 'female')} style={{ alignItems: 'center', backgroundColor: colors.surface, borderColor: colors.line, borderRadius: radius.sm, borderWidth: 1, flexDirection: 'row', justifyContent: 'space-between', minHeight: 66, padding: spacing.lg }}>
-            <Text style={{ color: colors.black, fontSize: typography.subheading, fontWeight: '900' }}>{sex === 'female' ? 'Femme' : 'Homme'}</Text>
-            <ChevronDown color={colors.muted} size={22} strokeWidth={2.4} />
-          </Pressable>
-        </View>
-
-        <View style={{ gap: spacing.sm }}>
-          <Text style={{ color: colors.muted, fontSize: typography.small, fontWeight: '900', textTransform: 'uppercase' }}>Niveau d'activite</Text>
-          <Pressable onPress={() => setActivityLevel(activityLevel === 'moderate' ? 'high' : 'moderate')} style={{ alignItems: 'center', backgroundColor: colors.surface, borderColor: colors.line, borderRadius: radius.sm, borderWidth: 1, flexDirection: 'row', justifyContent: 'space-between', minHeight: 66, padding: spacing.lg }}>
-            <Text style={{ color: colors.black, fontSize: typography.subheading, fontWeight: '900' }}>{activityLevel === 'high' ? 'Intense' : 'Actif (3-5 fois/semaine)'}</Text>
-            <ChevronDown color={colors.muted} size={22} strokeWidth={2.4} />
-          </Pressable>
-        </View>
+        {/* Activity level picker */}
+        <SelectRow
+          label={t.activityLevel}
+          value={activityLevel === 'high' ? t.intense : t.active}
+          onPress={() => setActivityLevel(activityLevel === 'moderate' ? 'high' : 'moderate')}
+        />
       </ScrollView>
-      <StickyFooterButton label="Enregistrer les modifications" onPress={save} disabled={!canSave} />
+      <StickyFooterButton label={t.saveChanges} onPress={save} disabled={!canSave} />
     </View>
   );
 }

@@ -66,8 +66,8 @@ describe('buildDayReviewViewModel', () => {
   });
 
   it('formats today, yesterday and older day labels', () => {
-    expect(buildDayReviewViewModel([], '2026-05-25', '2026-05-25', targets).subtitle).toBe("Aujourd'hui");
-    expect(buildDayReviewViewModel([], '2026-05-24', '2026-05-25', targets).subtitle).toBe('Hier');
-    expect(buildDayReviewViewModel([], '2026-05-22', '2026-05-25', targets).subtitle).toBe('Ven 22 mai');
+    expect(buildDayReviewViewModel([], '2026-05-25', '2026-05-25', targets).subtitle).toBe('Today');
+    expect(buildDayReviewViewModel([], '2026-05-24', '2026-05-25', targets).subtitle).toBe('Yesterday');
+    expect(buildDayReviewViewModel([], '2026-05-22', '2026-05-25', targets).subtitle).toBe('Fri 22 May');
   });
 });

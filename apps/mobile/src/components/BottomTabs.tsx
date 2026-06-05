@@ -1,6 +1,7 @@
 import { Pressable, Text, View } from 'react-native';
-import { BarChart3, Camera, Home, TrendingUp, User } from 'lucide-react-native';
-import { colors, radius, spacing, typography } from '../ui/theme';
+import { BarChart3, Home, ScanLine, TrendingUp, User } from 'lucide-react-native';
+import { useLang } from '../i18n/LanguageContext';
+import { colors, fonts } from '../ui/theme';
 
 export type AppTab = 'home' | 'today' | 'timeline' | 'profile';
 
@@ -10,52 +11,70 @@ type Props = {
   onScanPress: () => void;
 };
 
-const tabs: { tab: AppTab; label: string; icon: typeof Home }[] = [
-  { tab: 'home', label: 'Home', icon: Home },
-  { tab: 'today', label: 'Progress', icon: TrendingUp },
-  { tab: 'timeline', label: 'History', icon: BarChart3 },
-  { tab: 'profile', label: 'Profil', icon: User },
+const TAB_ICONS: { tab: AppTab; icon: typeof Home }[] = [
+  { tab: 'home', icon: Home },
+  { tab: 'timeline', icon: BarChart3 },
+  { tab: 'today', icon: TrendingUp },
+  { tab: 'profile', icon: User },
 ];
 
+const STR = {
+  en: { home: 'Home', timeline: 'History', today: 'Progress', profile: 'Profile' },
+  fr: { home: 'Accueil', timeline: 'Historique', today: 'Progrès', profile: 'Profil' },
+};
+
 function TabButton({ active, icon: Icon, label, onPress }: { active: boolean; icon: typeof Home; label: string; onPress: () => void }) {
+  const color = active ? colors.ink : colors.muted2;
+
   return (
-    <Pressable onPress={onPress} style={{ alignItems: 'center', flex: 1, gap: spacing.xs, justifyContent: 'center' }}>
-      <Icon color={active ? colors.green : colors.muted} size={22} strokeWidth={active ? 2.8 : 2.2} />
-      <Text style={{ color: active ? colors.green : colors.muted, fontSize: 11, fontWeight: '900' }}>{label}</Text>
+    <Pressable onPress={onPress} style={{ alignItems: 'center', flex: 1, gap: 5, height: 74, justifyContent: 'center' }}>
+      <Icon color={color} size={22} strokeWidth={active ? 2.4 : 2} />
+      <Text style={{ color, fontFamily: fonts.mono, fontSize: 9, fontWeight: '500', letterSpacing: 0.5, textTransform: 'uppercase' }}>{label}</Text>
     </Pressable>
   );
 }
 
 export function BottomTabs({ activeTab, onChangeTab, onScanPress }: Props) {
+  const { lang } = useLang();
+  const t = STR[lang];
+  const tabs = TAB_ICONS.map(({ tab, icon }) => ({ tab, icon, label: t[tab] }));
+
   return (
-    <View style={{ backgroundColor: colors.surface, borderColor: colors.line, borderTopWidth: 1, flexDirection: 'row', minHeight: 76, paddingBottom: spacing.md, paddingTop: spacing.sm }}>
-      {tabs.slice(0, 2).map(({ tab, label, icon }) => (
-        <TabButton key={tab} active={activeTab === tab} icon={icon} label={label} onPress={() => onChangeTab(tab)} />
-      ))}
-
-      <View style={{ alignItems: 'center', flex: 1, justifyContent: 'center' }}>
-        <Pressable
-          accessibilityLabel="Scanner"
-          onPress={onScanPress}
-          style={{
-            alignItems: 'center',
-            backgroundColor: colors.green,
-            borderColor: colors.surface,
-            borderRadius: radius.pill,
-            borderWidth: 4,
-            height: 64,
-            justifyContent: 'center',
-            marginTop: -26,
-            width: 64,
-          }}
-        >
-          <Camera color="white" size={25} strokeWidth={2.6} />
-        </Pressable>
+    <View style={{ alignSelf: 'center', backgroundColor: colors.surface, borderColor: colors.line, borderTopWidth: 1, height: 80, maxWidth: 430, position: 'relative', width: '100%' }}>
+      <View style={{ flexDirection: 'row', height: 74, paddingHorizontal: 8 }}>
+        {tabs.slice(0, 2).map(({ tab, label, icon }) => (
+          <TabButton key={tab} active={activeTab === tab} icon={icon} label={label} onPress={() => onChangeTab(tab)} />
+        ))}
+        <View style={{ width: 76 }} />
+        {tabs.slice(2).map(({ tab, label, icon }) => (
+          <TabButton key={tab} active={activeTab === tab} icon={icon} label={label} onPress={() => onChangeTab(tab)} />
+        ))}
       </View>
-
-      {tabs.slice(2).map(({ tab, label, icon }) => (
-        <TabButton key={tab} active={activeTab === tab} icon={icon} label={label} onPress={() => onChangeTab(tab)} />
-      ))}
+      <Pressable
+        accessibilityLabel="Scan"
+        onPress={onScanPress}
+        style={{
+          alignItems: 'center',
+          backgroundColor: colors.ink,
+          borderColor: colors.surface,
+          borderRadius: 31,
+          borderWidth: 4,
+          elevation: 7,
+          height: 62,
+          justifyContent: 'center',
+          left: '50%',
+          marginLeft: -31,
+          position: 'absolute',
+          shadowColor: '#142016',
+          shadowOffset: { width: 0, height: 8 },
+          shadowOpacity: 0.22,
+          shadowRadius: 18,
+          top: -22,
+          width: 62,
+        }}
+      >
+        <ScanLine color="#FFFFFF" size={25} strokeWidth={2.2} />
+      </Pressable>
     </View>
   );
 }

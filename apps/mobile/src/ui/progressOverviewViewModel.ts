@@ -23,15 +23,15 @@ export function buildProgressOverview(summary: DailySummary): ProgressOverview {
   const proteinRemaining = remaining(summary.proteinG, summary.proteinTargetG);
 
   return {
-    title: 'Suivi du jour',
+    title: 'Today tracking',
     metrics: [
       caloriesRemaining === null
-        ? { label: 'Calories suivies', value: `${summary.calories} kcal` }
-        : { label: 'Calories restantes', value: `${caloriesRemaining} kcal` },
+        ? { label: 'Tracked calories', value: `${summary.calories} kcal` }
+        : { label: 'Calories left', value: `${caloriesRemaining} kcal` },
       proteinRemaining === null
-        ? { label: 'Proteines suivies', value: `${summary.proteinG} g` }
-        : { label: 'Proteines restantes', value: `${proteinRemaining} g` },
-      { label: 'Repas logges', value: `${summary.mealCount}` },
+        ? { label: 'Tracked protein', value: `${summary.proteinG} g` }
+        : { label: 'Protein left', value: `${proteinRemaining} g` },
+      { label: 'Meals logged', value: `${summary.mealCount}` },
     ],
   };
 }

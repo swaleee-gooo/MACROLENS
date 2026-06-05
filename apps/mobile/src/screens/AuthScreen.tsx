@@ -58,10 +58,10 @@ export function AuthScreen({ defaultMode = 'login', onBack, onEmailLogin, onEmai
         await onEmailSignup(email, password);
       } else {
         await onResetPassword(email);
-        setStatus('Email de reinitialisation envoye.');
+        setStatus('Reset email sent.');
       }
     } catch (error) {
-      setStatus(error instanceof Error ? error.message : 'Connexion impossible pour le moment.');
+      setStatus(error instanceof Error ? error.message : 'Unable to connect right now.');
     } finally {
       setIsLoading(false);
     }
@@ -72,33 +72,33 @@ export function AuthScreen({ defaultMode = 'login', onBack, onEmailLogin, onEmai
     setStatus(null);
     try {
       await onOAuth(provider);
-      setStatus('Valide la connexion puis reviens dans MacroLens.');
+      setStatus('Approve the sign-in, then return to MacroLens.');
     } catch (error) {
-      setStatus(error instanceof Error ? error.message : 'Connexion externe indisponible.');
+      setStatus(error instanceof Error ? error.message : 'External sign-in is unavailable.');
     } finally {
       setIsLoading(false);
     }
   }
 
-  const title = mode === 'login' ? 'Connexion' : mode === 'signup' ? 'Creer ton compte' : 'Reset password';
-  const cta = mode === 'login' ? 'Se connecter' : mode === 'signup' ? 'Creer le compte' : 'Envoyer le lien';
+  const title = mode === 'login' ? 'Sign in' : mode === 'signup' ? 'Create your account' : 'Reset password';
+  const cta = mode === 'login' ? 'Sign in' : mode === 'signup' ? 'Create account' : 'Send link';
 
   return (
     <ScrollView style={{ backgroundColor: colors.background, flex: 1 }} contentContainerStyle={{ gap: spacing.xl, padding: spacing.xl, paddingBottom: spacing.xxxl }}>
       <Pressable onPress={onBack} style={{ alignItems: 'center', flexDirection: 'row', gap: spacing.xs }}>
         <ArrowLeft color={colors.black} size={24} strokeWidth={2.5} />
-        <Text style={{ color: colors.black, fontSize: typography.body, fontWeight: '900' }}>Retour</Text>
+        <Text style={{ color: colors.black, fontSize: typography.body, fontWeight: '900' }}>Back</Text>
       </Pressable>
 
       <View style={{ gap: spacing.sm }}>
         <Text style={{ color: colors.ink, fontSize: typography.hero, fontWeight: '900' }}>{title}</Text>
-        <Text style={{ color: colors.muted, fontSize: typography.body, fontWeight: '800', lineHeight: 24 }}>Synchronise tes repas, ton profil et tes progres sur tous tes appareils.</Text>
+        <Text style={{ color: colors.muted, fontSize: typography.body, fontWeight: '800', lineHeight: 24 }}>Sync your meals, profile, and progress across all your devices.</Text>
       </View>
 
       {mode !== 'reset' ? (
         <View style={{ gap: spacing.md }}>
-          <ProviderButton icon={Sparkles} label="Continuer avec Apple" onPress={() => startOAuth('apple')} />
-          <ProviderButton icon={Target} label="Continuer avec Google" onPress={() => startOAuth('google')} />
+          <ProviderButton icon={Sparkles} label="Continue with Apple" onPress={() => startOAuth('apple')} />
+          <ProviderButton icon={Target} label="Continue with Google" onPress={() => startOAuth('google')} />
         </View>
       ) : null}
 
@@ -119,7 +119,7 @@ export function AuthScreen({ defaultMode = 'login', onBack, onEmailLogin, onEmai
         {mode !== 'reset' ? (
           <TextInput
             onChangeText={setPassword}
-            placeholder="Mot de passe"
+            placeholder="Password"
             placeholderTextColor={colors.muted}
             secureTextEntry
             style={{ borderColor: colors.line, borderRadius: radius.sm, borderWidth: 1, color: colors.black, minHeight: 48, paddingHorizontal: spacing.md }}
@@ -128,7 +128,7 @@ export function AuthScreen({ defaultMode = 'login', onBack, onEmailLogin, onEmai
         ) : null}
         <View style={{ flexDirection: 'row', gap: spacing.sm }}>
           <ShieldCheck color={colors.green} size={16} strokeWidth={2.4} />
-          <Text style={{ color: colors.muted, flex: 1, fontSize: typography.small, fontWeight: '800', lineHeight: 18 }}>Donnees privees, RLS Supabase actif, aucune revente de donnees.</Text>
+          <Text style={{ color: colors.muted, flex: 1, fontSize: typography.small, fontWeight: '800', lineHeight: 18 }}>Private data, active Supabase RLS, no data resale.</Text>
         </View>
       </View>
 
@@ -152,13 +152,13 @@ export function AuthScreen({ defaultMode = 'login', onBack, onEmailLogin, onEmai
         }}
       >
         <KeyRound color="white" size={19} strokeWidth={2.5} />
-        <Text style={{ color: 'white', fontSize: typography.body, fontWeight: '900' }}>{isLoading ? 'Chargement...' : cta}</Text>
+        <Text style={{ color: 'white', fontSize: typography.body, fontWeight: '900' }}>{isLoading ? 'Loading...' : cta}</Text>
       </Pressable>
 
       <View style={{ alignItems: 'center', gap: spacing.sm }}>
-        {mode !== 'login' ? <Pressable onPress={() => setMode('login')}><Text style={{ color: colors.black, fontSize: typography.small, fontWeight: '900' }}>J ai deja un compte</Text></Pressable> : null}
-        {mode !== 'signup' ? <Pressable onPress={() => setMode('signup')}><Text style={{ color: colors.green, fontSize: typography.small, fontWeight: '900' }}>Creer un compte</Text></Pressable> : null}
-        {mode !== 'reset' ? <Pressable onPress={() => setMode('reset')}><Text style={{ color: colors.muted, fontSize: typography.small, fontWeight: '900' }}>Mot de passe oublie</Text></Pressable> : null}
+        {mode !== 'login' ? <Pressable onPress={() => setMode('login')}><Text style={{ color: colors.black, fontSize: typography.small, fontWeight: '900' }}>I already have an account</Text></Pressable> : null}
+        {mode !== 'signup' ? <Pressable onPress={() => setMode('signup')}><Text style={{ color: colors.green, fontSize: typography.small, fontWeight: '900' }}>Create an account</Text></Pressable> : null}
+        {mode !== 'reset' ? <Pressable onPress={() => setMode('reset')}><Text style={{ color: colors.muted, fontSize: typography.small, fontWeight: '900' }}>Forgot password</Text></Pressable> : null}
       </View>
     </ScrollView>
   );

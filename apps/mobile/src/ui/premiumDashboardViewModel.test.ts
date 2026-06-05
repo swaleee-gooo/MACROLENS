@@ -61,8 +61,8 @@ describe('buildPremiumDashboardViewModel', () => {
     expect(vm.calories.progress).toBe(77);
     expect(vm.protein.progress).toBe(80);
     expect(vm.streakDays).toBe(2);
-    expect(vm.streakCalendar.days.length).toBeGreaterThan(7);
+    expect(vm.streakCalendar.days.length).toBe(7);
     expect(vm.goalProgress?.points).toHaveLength(7);
-    expect(vm.nextBadge.label).toBe('Chef Etoile');
+    expect(vm.nextBadge.label).toBe('Star Chef');
   });
 });

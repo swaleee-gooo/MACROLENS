@@ -3,8 +3,8 @@ import { selectPackageForPlan } from './revenueCatEntitlementProvider';
 
 describe('selectPackageForPlan', () => {
   it('selects packages by configured product identifier first', () => {
-    const monthlyPackage = { identifier: '$rc_monthly', packageType: 'MONTHLY', product: { identifier: 'macrolens_pro_monthly' } };
-    const annualPackage = { identifier: '$rc_annual', packageType: 'ANNUAL', product: { identifier: 'macrolens_pro_annual' } };
+    const monthlyPackage = { identifier: '$rc_monthly', packageType: 'MONTHLY', product: { identifier: 'prod03d96b4e28' } };
+    const annualPackage = { identifier: '$rc_annual', packageType: 'ANNUAL', product: { identifier: 'prod0ef75e0b34' } };
 
     expect(selectPackageForPlan([annualPackage, monthlyPackage], 'monthly')).toBe(monthlyPackage);
     expect(selectPackageForPlan([monthlyPackage, annualPackage], 'annual')).toBe(annualPackage);

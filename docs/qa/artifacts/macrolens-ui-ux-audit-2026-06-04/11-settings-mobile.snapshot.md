@@ -1,0 +1,54 @@
+- generic [ref=e1104] [box=0,0,378,1137]:
+  - generic [ref=e1105] [cursor=pointer] [box=24,24,330,24]:
+    - img [ref=e1106] [box=24,24,24,24]
+    - generic [ref=e1108] [box=52,25,37,22]: Back
+  - generic [ref=e1109] [box=24,72,330,82]:
+    - generic [ref=e1110] [box=24,72,330,56]: Settings
+    - generic [ref=e1111] [box=24,132,330,22]: 1 syncable meals
+  - generic [ref=e1112] [box=24,178,330,99]:
+    - generic [ref=e1113] [box=41,194,297,22]:
+      - img [ref=e1114] [box=41,195,20,20]
+      - generic [ref=e1117] [box=69,194,139,22]: Analysis AI active
+    - generic [ref=e1118] [box=41,224,297,36]: In AI mode, photos are sent to remote analysis to produce macros. Do not photograph sensitive data.
+  - generic [ref=e1119] [box=24,301,330,268]:
+    - generic [ref=e1120] [box=24,301,330,24]: Account
+    - generic [ref=e1121] [cursor=pointer] [box=24,337,330,69]:
+      - img [ref=e1122] [box=37,361,20,20]
+      - generic [ref=e1125] [box=69,350,273,44]:
+        - generic [ref=e1126] [box=69,350,273,22]: Sign in
+        - generic [ref=e1127] [box=69,375,273,18]: Email, Apple, or Google for multi-device sync.
+    - generic [ref=e1128] [cursor=pointer] [box=24,418,330,69]:
+      - img [ref=e1129] [box=37,443,20,20]
+      - generic [ref=e1132] [box=69,431,273,44]:
+        - generic [ref=e1133] [box=69,431,273,22]: Profile
+        - generic [ref=e1134] [box=69,456,273,18]: Update goal, height, weight, and activity.
+    - generic [ref=e1135] [cursor=pointer] [box=24,499,330,69]:
+      - img [ref=e1136] [box=37,524,20,20]
+      - generic [ref=e1140] [box=69,512,273,44]:
+        - generic [ref=e1141] [box=69,512,273,22]: Macro targets
+        - generic [ref=e1142] [box=69,538,273,18]: Target calories, protein, carbs, fat, and fiber.
+  - generic [ref=e1143] [box=24,592,330,186]:
+    - generic [ref=e1144] [box=24,592,330,24]: Tracking
+    - generic [ref=e1145] [cursor=pointer] [box=24,628,330,69]:
+      - img [ref=e1146] [box=37,653,20,20]
+      - generic [ref=e1149] [box=69,641,273,44]:
+        - generic [ref=e1150] [box=69,641,273,22]: Meal reminders
+        - generic [ref=e1151] [box=69,667,273,18]: Breakfast, lunch, dinner, and water.
+    - generic [ref=e1152] [cursor=pointer] [box=24,710,330,69]:
+      - img [ref=e1153] [box=37,734,20,20]
+      - generic [ref=e1155] [box=69,722,273,44]:
+        - generic [ref=e1156] [box=69,722,273,22]: Apple Health
+        - generic [ref=e1157] [box=69,748,273,18]: Steps, weight, and activity to enrich progress.
+  - generic [ref=e1158] [box=24,803,330,186]:
+    - generic [ref=e1159] [box=24,803,330,24]: Data
+    - generic [ref=e1160] [cursor=pointer] [box=24,839,330,69]:
+      - img [ref=e1161] [box=37,863,20,20]
+      - generic [ref=e1164] [box=69,852,273,44]:
+        - generic [ref=e1165] [box=69,852,273,22]: Export and deletion
+        - generic [ref=e1166] [box=69,877,273,18]: Export, sign out, or delete your account.
+    - generic [ref=e1167] [cursor=pointer] [box=24,920,330,69]:
+      - img [ref=e1168] [box=37,945,20,20]
+      - generic [ref=e1171] [box=69,933,273,44]:
+        - generic [ref=e1172] [box=69,933,273,22]: Legal and support
+        - generic [ref=e1173] [box=69,958,273,18]: Privacy Policy, Terms of Use, and contact.
+  - generic [ref=e1175] [box=37,1026,305,54]: MacroLens is not a medical device. Nutrition estimates do not replace medical or dietetic advice.

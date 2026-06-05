@@ -22,7 +22,7 @@ export type GoalProgress = {
 };
 
 const kcalPerKg = 7700;
-const monthLabels = ['jan', 'fev', 'mar', 'avr', 'mai', 'jun', 'jul', 'aou', 'sep', 'oct', 'nov', 'dec'];
+const monthLabels = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
 function isoDateAtNoon(isoDate: string): Date {
   return new Date(`${isoDate}T12:00:00.000Z`);
@@ -95,13 +95,13 @@ export function buildGoalProgress(meals: Meal[], profile: UserProfile, todayIsoD
 
   const currentWeightKg = points.at(-1)?.weightKg ?? profile.weightKg;
   const progressPercent = progressToTarget(profile.weightKg, currentWeightKg, targetWeightKg);
-  const targetLabel = targetWeightKg === null ? 'objectif actif' : `${progressPercent}% du goal done`;
+  const targetLabel = targetWeightKg === null ? 'active target' : `${progressPercent}% of goal done`;
   const insight =
     loggedDays === 0
-      ? 'Log tes repas pour faire bouger la courbe.'
+      ? 'Log meals to move the curve.'
       : progressPercent >= 80
-        ? 'Super regularite. La courbe avance vers ton objectif.'
-        : 'Continue a scanner. La regularite fait progresser le goal.';
+        ? 'Great consistency. The curve is moving toward your goal.'
+        : 'Keep scanning. Consistency moves the goal forward.';
 
   return {
     rangeDays: safeRangeDays,

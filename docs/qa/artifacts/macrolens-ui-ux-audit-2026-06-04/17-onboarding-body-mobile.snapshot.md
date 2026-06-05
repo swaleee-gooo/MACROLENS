@@ -1,0 +1,27 @@
+- generic [ref=e4] [box=0,0,394,852]:
+  - generic [ref=e6] [box=0,0,394,596]:
+    - generic [ref=e7] [box=0,0,394,110]:
+      - generic [ref=e8] [box=24,16,346,44]:
+        - generic [ref=e10] [cursor=pointer] [box=36,18,21,39]: <
+        - generic [ref=e11] [box=153,29,88,18]: MACROLENS
+      - generic [ref=e103] [box=24,76,346,18]:
+        - generic [ref=e104] [box=24,78,69,14]: Step 3 of 13
+        - generic [ref=e105] [box=342,76,27,18]: 33%
+    - generic [ref=e187] [box=0,142,394,328]:
+      - generic [ref=e188] [box=24,166,346,72]:
+        - generic [ref=e189] [box=61,166,271,40]: Tell us about you
+        - generic [ref=e190] [box=106,214,183,24]: This data stays private.
+      - generic [ref=e191] [box=24,262,346,88]:
+        - generic [ref=e192] [box=24,262,346,14]: Age
+        - generic [ref=e193] [box=24,284,346,66]:
+          - textbox "28" [ref=e194] [box=41,285,270,64]
+          - generic [ref=e195] [box=311,306,42,22]: years
+      - generic [ref=e196] [box=24,374,346,72]:
+        - generic [ref=e197] [box=24,374,346,14]: Biological sex
+        - generic [ref=e198] [box=24,396,346,50]:
+          - generic [ref=e200] [cursor=pointer] [box=88,412,45,18]: Female
+          - generic [ref=e202] [cursor=pointer] [box=267,412,31,18]: Male
+  - generic [ref=e33] [box=0,739,394,113]:
+    - generic [active] [box=24,764,346,64]:
+      - generic [ref=e35] [box=157,784,43,24]: Next
+      - img [ref=e36] [box=212,784,24,24]

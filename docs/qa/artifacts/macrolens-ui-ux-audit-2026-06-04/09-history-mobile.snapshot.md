@@ -1,0 +1,40 @@
+- generic [ref=e461] [box=0,0,394,852]:
+  - generic [ref=e960] [box=0,0,394,486]:
+    - generic [ref=e961] [box=0,0,394,80]:
+      - generic [ref=e962] [box=24,17,246,46]:
+        - img [ref=e963] [box=24,28,24,24]
+        - generic [ref=e965] [box=56,17,214,46]: MACROLENS
+      - img [ref=e967] [box=335,29,22,22]
+    - generic [ref=e970] [box=0,104,394,86]:
+      - generic [ref=e971] [box=24,104,346,56]: History
+      - generic [ref=e972] [box=24,168,346,22]: Review every day, meal, and macro.
+    - generic [ref=e973] [box=0,214,394,241]:
+      - generic [ref=e974] [box=24,214,346,46]:
+        - generic [ref=e976] [cursor=pointer] [box=85,228,55,18]: Timeline
+        - generic [ref=e978] [cursor=pointer] [box=253,228,56,18]: Calendar
+      - generic [ref=e979] [box=24,284,346,171]:
+        - generic [ref=e980] [box=24,284,346,51]: Today
+        - generic [ref=e982] [cursor=pointer] [box=24,347,346,108]:
+          - img [ref=e984] [box=64,387,28,28]
+          - generic [ref=e987] [box=127,365,172,71]:
+            - generic [ref=e988] [box=127,365,172,24]: Salmon poke bowl
+            - generic [ref=e989] [box=127,393,172,43]:
+              - img [ref=e990] [box=127,395,16,16]
+              - text: 720 kcal
+              - generic [ref=e992] [box=127,393,128,43]: 42g protein
+          - generic [ref=e994] [box=319,393,26,14]: LOW
+  - generic [ref=e709] [box=0,776,394,76]:
+    - generic [ref=e710] [cursor=pointer] [box=0,785,79,55]:
+      - img [ref=e711] [box=28,792,22,22]
+      - generic [ref=e714] [box=23,818,32,14]: Home
+    - generic [ref=e715] [cursor=pointer] [box=79,785,79,55]:
+      - img [ref=e716] [box=107,792,22,22]
+      - generic [ref=e719] [box=94,818,48,14]: Progress
+    - generic "Scan" [ref=e721] [cursor=pointer] [box=165,767,64,64]:
+      - img [ref=e722] [box=184,787,25,25]
+    - generic [active] [ref=e725] [cursor=pointer] [box=236,785,79,55]:
+      - img [ref=e726] [box=265,792,22,22]
+      - generic [ref=e728] [box=255,818,40,14]: History
+    - generic [ref=e729] [cursor=pointer] [box=315,785,79,55]:
+      - img [ref=e730] [box=343,792,22,22]
+      - generic [ref=e733] [box=336,818,37,14]: Profile

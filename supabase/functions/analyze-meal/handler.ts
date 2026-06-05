@@ -1,7 +1,8 @@
 import { getUserIdFromAuthorizationHeader } from './auth.ts';
+import { analyzeMealWithModelRouter, type RoutedMealAnalysis } from './modelRouter.ts';
 import { isNonFoodAnalysis } from './nutritionCalibration.ts';
 import { toMacroLensResponse } from './nutritionEstimator.ts';
-import { analyzeMealWithOpenAI, type RawMealAnalysis } from './openaiMealAnalyzer.ts';
+import type { RawMealAnalysis } from './openaiMealAnalyzer.ts';
 
 type AnalyzeRequest = {
   imageUrl?: unknown;
@@ -12,6 +13,7 @@ type HandlerDeps = {
     get(name: string): string | undefined;
   };
   analyzeMeal?: (imageUrl: string, openAiKey: string) => Promise<RawMealAnalysis>;
+  analyzeMealWithRouter?: (imageUrl: string, env: HandlerDeps['env']) => Promise<RoutedMealAnalysis>;
 };
 
 const corsHeaders = {
@@ -71,6 +73,7 @@ function mockMealResponse(imageUrl: string, userId: string) {
     uncertaintyReasons: ['portion_size_estimated_from_photo', 'hidden_oil_or_sauce_possible'],
     correctionSuggestions: [
       { id: 'portion-up', label: 'Portion +15%', correctionType: 'portion_up', targetItemId: null },
+      { id: 'portion-half', label: 'Ate half', correctionType: 'portion_half', targetItemId: null },
       { id: 'add-oil', label: 'Huile ajoutee', correctionType: 'add_oil', targetItemId: null },
     ],
   };
@@ -102,13 +105,17 @@ export async function handleAnalyzeMealRequest(request: Request, deps: HandlerDe
   }
 
   const openAiKey = deps.env.get('OPENAI_API_KEY');
-  if (!openAiKey) {
+  const geminiKey = deps.env.get('GEMINI_API_KEY');
+  const configuredProvider = deps.env.get('MEAL_ANALYSIS_PROVIDER');
+  const hasConfiguredProvider = configuredProvider === 'mock' || Boolean(openAiKey || geminiKey);
+  if (!deps.analyzeMeal && !deps.analyzeMealWithRouter && !hasConfiguredProvider) {
     return jsonResponse(mockMealResponse(payload.imageUrl, userId));
   }
 
   try {
-    const analyzeMeal = deps.analyzeMeal ?? analyzeMealWithOpenAI;
-    const rawAnalysis = await analyzeMeal(payload.imageUrl, openAiKey);
+    const rawAnalysis = deps.analyzeMeal
+      ? await deps.analyzeMeal(payload.imageUrl, openAiKey ?? '')
+      : (await (deps.analyzeMealWithRouter ?? analyzeMealWithModelRouter)(payload.imageUrl, deps.env)).raw;
 
     if (isNonFoodAnalysis(rawAnalysis)) {
       return jsonResponse(

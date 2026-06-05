@@ -1,0 +1,28 @@
+- generic [ref=e1390] [box=0,0,394,701]:
+  - generic [ref=e1391] [cursor=pointer] [box=24,24,346,24]:
+    - img [ref=e1392] [box=24,24,24,24]
+    - generic [ref=e1394] [box=52,25,37,22]: Back
+  - generic [ref=e1395] [box=24,72,346,112]:
+    - generic [ref=e1396] [box=24,72,346,56]: Legal
+    - generic [ref=e1397] [box=24,136,346,48]: App Store documents, support contact, and nutrition disclaimer.
+  - generic [ref=e1398] [box=24,208,346,286]:
+    - generic [ref=e1399] [cursor=pointer] [box=24,208,346,87]:
+      - img [ref=e1400] [box=37,242,20,20]
+      - generic [ref=e1403] [box=69,221,258,62]:
+        - generic [ref=e1404] [box=69,221,258,22]: Privacy Policy
+        - generic [ref=e1405] [box=69,246,258,36]: How MacroLens collects, protects, and deletes your data.
+      - img [ref=e1406] [box=339,243,18,18]
+    - generic [ref=e1410] [cursor=pointer] [box=24,307,346,87]:
+      - img [ref=e1411] [box=37,341,20,20]
+      - generic [ref=e1414] [box=69,320,258,62]:
+        - generic [ref=e1415] [box=69,320,258,22]: Terms of Use
+        - generic [ref=e1416] [box=69,346,258,36]: Terms of use, subscription, and service limits.
+      - img [ref=e1417] [box=339,342,18,18]
+    - generic [ref=e1421] [cursor=pointer] [box=24,406,346,87]:
+      - img [ref=e1422] [box=37,440,20,20]
+      - generic [ref=e1429] [box=69,419,258,62]:
+        - generic [ref=e1430] [box=69,419,258,22]: Support contact
+        - generic [ref=e1431] [box=69,445,258,36]: Send a support request or account question.
+      - img [ref=e1432] [box=339,441,18,18]
+  - generic [ref=e1437] [box=37,530,320,72]: MacroLens is not a medical device. Calories, macros, portions, and reports are estimates for personal tracking and do not replace medical or dietetic advice.
+  - generic [ref=e1438] [box=24,639,346,18]: Version 1.0.0

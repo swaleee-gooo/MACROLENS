@@ -1,0 +1,27 @@
+- generic [ref=e4] [box=0,0,394,852]:
+  - generic [ref=e6] [box=0,0,394,676]:
+    - generic [ref=e7] [box=0,0,394,110]:
+      - generic [ref=e8] [box=24,16,346,44]:
+        - generic [ref=e10] [cursor=pointer] [box=36,18,21,39]: <
+        - generic [ref=e11] [box=153,29,88,18]: MACROLENS
+      - generic [ref=e103] [box=24,76,346,18]:
+        - generic [ref=e104] [box=24,78,69,14]: Step 4 of 13
+        - generic [ref=e105] [box=342,76,28,18]: 40%
+    - generic [ref=e203] [box=0,142,394,408]:
+      - generic [ref=e204] [box=24,166,346,136]:
+        - generic [ref=e205] [box=24,166,346,80]: Your height and weight
+        - generic [ref=e206] [box=24,254,346,48]: We adjust calories and macros with conservative estimates.
+      - generic [ref=e207] [box=24,326,346,88]:
+        - generic [ref=e208] [box=24,326,346,14]: Height
+        - generic [ref=e209] [box=24,348,346,66]:
+          - textbox "175" [ref=e210] [box=41,349,289,64]
+          - generic [ref=e211] [box=330,370,23,22]: cm
+      - generic [ref=e212] [box=24,438,346,88]:
+        - generic [ref=e213] [box=24,438,346,14]: Current weight
+        - generic [ref=e214] [box=24,460,346,66]:
+          - textbox "70.0" [ref=e215] [box=41,461,292,64]
+          - generic [ref=e216] [box=333,482,20,22]: kg
+  - generic [ref=e33] [box=0,739,394,113]:
+    - generic [active] [box=24,764,346,64]:
+      - generic [ref=e35] [box=157,784,43,24]: Next
+      - img [ref=e36] [box=212,784,24,24]

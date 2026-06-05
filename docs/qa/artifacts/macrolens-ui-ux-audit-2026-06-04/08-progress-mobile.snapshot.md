@@ -1,0 +1,114 @@
+- generic [ref=e461] [box=0,0,394,852]:
+  - generic [ref=e735] [box=0,0,378,1708]:
+    - generic [ref=e736] [box=24,24,330,82]:
+      - generic [ref=e737] [box=24,24,330,56]: Progress
+      - generic [ref=e738] [box=24,84,330,22]: Weight, macro adherence, and trends.
+    - generic [ref=e739] [box=24,122,330,211]:
+      - generic [ref=e740] [box=24,122,159,211]:
+        - img [ref=e742] [box=89,172,30,30]
+        - generic [ref=e746] [box=56,247,96,70]:
+          - generic [ref=e747] [box=56,247,96,18]: Current weight
+          - generic [ref=e748] [box=64,268,80,30]: 72.5 kg
+          - generic [ref=e749] [box=65,302,76,14]: Target not set
+      - generic [ref=e750] [box=195,122,159,211]:
+        - img [ref=e752] [box=260,172,30,30]
+        - generic [ref=e755] [box=235,247,81,70]:
+          - generic [ref=e756] [box=235,247,81,18]: Logged days
+          - generic [ref=e757] [box=258,268,34,30]: 1/7
+          - generic [ref=e758] [box=248,302,54,14]: This week
+    - generic [ref=e759] [cursor=pointer] [box=24,349,330,54]:
+      - img [ref=e760] [box=123,367,18,18]
+      - generic [ref=e764] [box=149,365,106,22]: Add weigh-in
+    - generic [ref=e765] [box=24,419,330,364]:
+      - generic [ref=e766] [box=41,436,297,34]:
+        - generic [ref=e768] [cursor=pointer] [box=65,446,20,14]: 90 j
+        - generic [ref=e770] [cursor=pointer] [box=133,446,36,14]: 6 mois
+        - generic [ref=e772] [cursor=pointer] [box=217,446,21,14]: 1 an
+        - generic [ref=e774] [cursor=pointer] [box=291,446,25,14]: Tout
+      - generic [ref=e775] [box=41,486,297,280]:
+        - generic [ref=e776] [box=41,486,297,24]:
+          - generic [ref=e777] [box=41,486,123,24]: Goal Progress
+          - generic [ref=e779] [box=256,491,69,14]: active target
+        - generic [ref=e780] [box=41,522,297,244]:
+          - img [ref=e782] [box=41,522,298,180]:
+            - generic [ref=e787] [box=61,684,30,12]: 7 Mar
+            - generic [ref=e788] [box=173,684,34,12]: 21 Apr
+            - generic [ref=e789] [box=293,684,26,12]: 4 Jun
+          - generic [ref=e881] [box=41,714,297,52]:
+            - generic [ref=e882] [box=53,722,273,18]: 72.3 kg - 4 Jun
+            - generic [ref=e883] [box=53,744,273,14]: 720 kcal logged
+    - generic [ref=e884] [box=24,799,330,264]:
+      - generic [ref=e885] [box=40,815,298,30]:
+        - img [ref=e886] [box=40,819,22,22]
+        - generic [ref=e889] [box=70,815,163,30]: Today tracking
+      - generic [ref=e890] [box=40,856,298,141]:
+        - generic [ref=e891] [box=40,856,145,66]:
+          - generic [ref=e892] [box=52,868,121,14]: Calories left
+          - generic [ref=e893] [box=52,887,121,24]: 1540 kcal
+        - generic [ref=e894] [box=193,856,145,66]:
+          - generic [ref=e895] [box=205,868,121,14]: Protein left
+          - generic [ref=e896] [box=205,887,121,24]: 103 g
+        - generic [ref=e897] [box=40,931,298,66]:
+          - generic [ref=e898] [box=52,943,274,14]: Meals logged
+          - generic [ref=e899] [box=52,961,274,24]: "1"
+      - generic [ref=e900] [cursor=pointer] [box=40,1009,136,38]:
+        - img [ref=e901] [box=52,1020,16,16]
+        - generic [ref=e903] [box=72,1019,92,18]: Weekly report
+    - generic [ref=e904] [box=24,1079,330,179]:
+      - generic [ref=e905] [box=24,1079,330,24]: Trends
+      - generic [ref=e906] [box=24,1115,330,143]:
+        - generic [ref=e907] [box=24,1115,94,66]:
+          - generic [ref=e908] [box=37,1128,68,14]: Avg kcal
+          - generic [ref=e909] [box=37,1146,68,22]: "720"
+        - generic [ref=e910] [box=130,1115,97,66]:
+          - generic [ref=e911] [box=143,1128,71,14]: Avg protein
+          - generic [ref=e912] [box=143,1146,71,22]: 42 g
+        - generic [ref=e913] [box=239,1115,100,66]:
+          - generic [ref=e914] [box=252,1128,74,14]: Logged days
+          - generic [ref=e915] [box=252,1146,74,22]: 1/7
+        - generic [ref=e916] [box=24,1193,96,66]:
+          - generic [ref=e917] [box=37,1206,71,14]: Kcal target
+          - generic [ref=e918] [box=37,1224,71,22]: 32%
+    - generic [ref=e919] [box=24,1274,330,143]:
+      - generic [ref=e920] [box=24,1274,109,66]:
+        - generic [ref=e921] [box=37,1287,84,14]: Calories
+        - generic [ref=e922] [box=37,1306,84,22]: 720 / 2260
+      - generic [ref=e923] [box=145,1274,118,66]:
+        - generic [ref=e924] [box=158,1287,93,14]: Protein
+        - generic [ref=e925] [box=158,1306,93,22]: 42 g / 145 g
+      - generic [ref=e926] [box=24,1352,94,66]:
+        - generic [ref=e927] [box=37,1365,68,14]: Carbs
+        - generic [ref=e928] [box=37,1383,68,22]: 68 g
+      - generic [ref=e929] [box=130,1352,94,66]:
+        - generic [ref=e930] [box=143,1365,68,14]: Fat
+        - generic [ref=e931] [box=143,1383,68,22]: 24 g
+    - generic [ref=e932] [box=24,1434,330,71]:
+      - generic [ref=e934] [box=24,1434,330,18]:
+        - generic [ref=e935] [box=24,1434,51,18]: Calories
+        - generic [ref=e936] [box=330,1434,25,18]: 32%
+      - generic [ref=e940] [box=24,1475,330,18]:
+        - generic [ref=e941] [box=24,1475,47,18]: Protein
+        - generic [ref=e942] [box=330,1475,25,18]: 29%
+    - generic [ref=e945] [box=24,1521,330,143]:
+      - generic [ref=e946] [box=24,1521,330,30]: Today's meals
+      - generic [ref=e947] [cursor=pointer] [box=24,1562,330,102]:
+        - img [ref=e949] [box=60,1598,30,30]
+        - generic [ref=e954] [box=125,1575,217,76]:
+          - generic [ref=e955] [box=125,1575,217,22]: Salmon poke bowl
+          - generic [ref=e956] [box=125,1601,217,18]: 720 kcal - 42 g protein
+          - generic [ref=e958] [box=138,1627,92,18]: Review needed
+  - generic [ref=e709] [box=0,776,394,76]:
+    - generic [ref=e710] [cursor=pointer] [box=0,785,79,55]:
+      - img [ref=e711] [box=28,792,22,22]
+      - generic [ref=e714] [box=23,818,32,14]: Home
+    - generic [active] [ref=e715] [cursor=pointer] [box=79,785,79,55]:
+      - img [ref=e716] [box=107,792,22,22]
+      - generic [ref=e719] [box=94,818,48,14]: Progress
+    - generic "Scan" [ref=e721] [cursor=pointer] [box=165,767,64,64]:
+      - img [ref=e722] [box=184,787,25,25]
+    - generic [ref=e725] [cursor=pointer] [box=236,785,79,55]:
+      - img [ref=e726] [box=265,792,22,22]
+      - generic [ref=e728] [box=255,818,40,14]: History
+    - generic [ref=e729] [cursor=pointer] [box=315,785,79,55]:
+      - img [ref=e730] [box=343,792,22,22]
+      - generic [ref=e733] [box=336,818,37,14]: Profile

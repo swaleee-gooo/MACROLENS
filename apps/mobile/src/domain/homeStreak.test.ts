@@ -41,7 +41,7 @@ describe('buildHomeStreakCalendar', () => {
       '2026-05-31',
     ]);
     expect(calendar.days[1].hasMeal).toBe(true);
-    expect(calendar.days[2]).toMatchObject({ dayOfMonth: 27, hasMeal: true, isToday: true });
+    expect(calendar.days[2]).toMatchObject({ weekdayLabel: 'Wed', dayOfMonth: 27, hasMeal: true, isToday: true });
     expect(calendar.days[3].isFuture).toBe(true);
   });
 

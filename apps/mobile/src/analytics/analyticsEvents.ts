@@ -18,6 +18,9 @@ export type AnalyticsEventName =
   | 'barcode_scan_started'
   | 'barcode_scan_completed'
   | 'label_scan_completed'
+  | 'recipe_import_started'
+  | 'recipe_import_completed'
+  | 'recipe_import_failed'
   | 'progress_viewed'
   | 'weekly_report_viewed';
 

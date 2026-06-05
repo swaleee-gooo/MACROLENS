@@ -18,9 +18,9 @@ export function buildWeeklyReport(input: WeeklyReportInput): WeeklyReport {
   const proteinGap = Math.max(0, Math.round(input.targetProteinG - input.averageProteinG));
 
   return {
-    title: input.daysLogged >= 3 ? 'Semaine solide' : 'Semaine a construire',
-    summary: `${input.daysLogged} jours logges, ${Math.round(input.averageCalories)} kcal en moyenne, ${Math.round(input.averageProteinG)}g de proteines.`,
-    nextStep: proteinGap > 0 ? `Garde le rythme et vise encore ${proteinGap}g de proteines en moyenne.` : 'Tes proteines sont dans la cible, concentre-toi sur la regularite.',
+    title: input.daysLogged >= 3 ? 'Solid week' : 'Week to build',
+    summary: `${input.daysLogged} days logged, ${Math.round(input.averageCalories)} kcal on average, ${Math.round(input.averageProteinG)}g of protein.`,
+    nextStep: proteinGap > 0 ? `Keep the rhythm and aim for ${proteinGap}g more protein on average.` : 'Your protein is on target, focus on consistency.',
   };
 }
 

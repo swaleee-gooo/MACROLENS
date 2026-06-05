@@ -1,0 +1,6 @@
+- generic [ref=e315] [box=0,0,394,852]:
+  - img [ref=e316] [box=24,240,56,56]
+  - generic [ref=e319] [box=24,320,346,42]: MacroLens Scanner
+  - generic [ref=e320] [box=24,386,346,72]: Allow camera access to scan meals, products, and labels without leaving the app.
+  - generic [ref=e322] [cursor=pointer] [box=143,500,107,22]: Allow camera
+  - generic [ref=e324] [cursor=pointer] [box=178,577,37,22]: Back

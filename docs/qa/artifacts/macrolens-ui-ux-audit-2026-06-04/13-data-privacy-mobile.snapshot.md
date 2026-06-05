@@ -1,0 +1,18 @@
+- generic [ref=e1293] [box=0,0,394,420]:
+  - generic [ref=e1294] [cursor=pointer] [box=24,24,346,24]:
+    - img [ref=e1295] [box=24,24,24,24]
+    - generic [ref=e1297] [box=52,25,37,22]: Back
+  - generic [ref=e1298] [box=24,72,346,112]:
+    - generic [ref=e1299] [box=24,72,346,56]: Data
+    - generic [ref=e1300] [box=24,136,346,48]: 1 exportable meals. Server deletion uses the connected account RLS policies.
+  - generic [ref=e1301] [box=24,208,346,168]:
+    - generic [ref=e1302] [cursor=pointer] [box=24,208,346,87]:
+      - img [ref=e1303] [box=37,242,20,20]
+      - generic [ref=e1306] [box=69,221,288,62]:
+        - generic [ref=e1307] [box=69,221,288,22]: Export my data
+        - generic [ref=e1308] [box=69,246,288,36]: "Share a full JSON export: profile, meals, subscription, and export date."
+    - generic [ref=e1309] [cursor=pointer] [box=24,307,346,69]:
+      - img [ref=e1310] [box=37,332,20,20]
+      - generic [ref=e1313] [box=69,320,288,44]:
+        - generic [ref=e1314] [box=69,320,288,22]: Clear local data
+        - generic [ref=e1315] [box=69,346,288,18]: Clear local data from this device.

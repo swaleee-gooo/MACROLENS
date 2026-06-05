@@ -1,5 +1,6 @@
 import { formatConfidenceLabel } from './dashboardViewModel';
-import type { FoodItem, Meal, NutritionSource } from '../domain/types';
+import { buildScanTrustViewModel, effectiveScanConfidence } from '../domain/scanTrust';
+import type { FoodItem, Meal, MealProofMetadata, NutritionSource } from '../domain/types';
 
 export type ResultTrustItemRow = {
   id: string;
@@ -15,6 +16,15 @@ export type ResultTrustViewModel = {
   sourceLabel: string;
   sourceDetail: string;
   confidenceTitle: string;
+  proofBadge?: {
+    label: string;
+    tone: 'green' | 'orange' | 'purple' | 'gray';
+  };
+  reviewQuestion?: {
+    title: string;
+    question: string;
+  };
+  primaryCaloriesLabel: string;
   rangeLabel: string;
   calorieRangeLabel: string;
   macroRanges: {
@@ -29,38 +39,44 @@ export type ResultTrustViewModel = {
 
 function sourceLabel(source: NutritionSource, imageUri: string): string {
   if (source === 'mock') {
-    return 'Mode demo';
+    return 'Demo mode';
   }
 
   if (imageUri.startsWith('manual://')) {
-    return 'Saisie manuelle';
+    return 'Manual entry';
   }
 
   if (source === 'open_food_facts' || source === 'nutrition_label_ocr') {
-    return 'Base produit';
+    return 'Product database';
   }
 
-  return 'Analyse IA';
+  return 'AI analysis';
 }
 
 function sourceDetail(meal: Meal): string {
+  if (meal.proof) {
+    const sourceList = meal.proof.sources.map((source) => providerLabel(source.provider)).join(', ');
+    const sourceText = sourceList.length > 0 ? sourceList : 'nutrition source';
+    return `${sourceText} with ${proofEvidenceLabel(meal.proof.evidenceLevel).toLowerCase()} evidence. Wellness only; not medical guidance.`;
+  }
+
   if (meal.source === 'open_food_facts') {
-    return 'Macros issues de la base produit. Verifie surtout la portion consommee.';
+    return 'Macros come from the product database. Double-check the serving you ate.';
   }
 
   if (meal.source === 'nutrition_label_ocr') {
-    return "Macros lues depuis l'etiquette. Verifie la portion et les valeurs par 100 g.";
+    return 'Macros were read from the label. Check the serving and per-100g values.';
   }
 
   if (meal.imageUri.startsWith('manual://')) {
-    return 'Valeurs saisies ou corrigees manuellement.';
+    return 'Values were entered or corrected manually.';
   }
 
   if (meal.source === 'mock') {
-    return 'Resultat exemple pour tester le flux sans IA live.';
+    return 'Sample result for testing the flow without live AI.';
   }
 
-  return "Estimation photo avec fourchette. Ajuste les aliments visibles avant d'enregistrer.";
+  return 'Photo estimate with a range. Adjust visible foods before saving.';
 }
 
 function foodSourceLabel(source: NutritionSource): string {
@@ -69,7 +85,7 @@ function foodSourceLabel(source: NutritionSource): string {
   }
 
   if (source === 'nutrition_label_ocr') {
-    return 'Etiquette OCR';
+    return 'Label OCR';
   }
 
   if (source === 'usda') {
@@ -80,29 +96,116 @@ function foodSourceLabel(source: NutritionSource): string {
     return 'Demo';
   }
 
-  return 'Estimation IA';
+  return 'AI estimate';
+}
+
+function providerLabel(provider: MealProofMetadata['sources'][number]['provider']): string {
+  if (provider === 'USDA_FDC') {
+    return 'USDA FoodData Central';
+  }
+
+  if (provider === 'OPEN_FOOD_FACTS') {
+    return 'Open Food Facts';
+  }
+
+  return 'Custom source';
+}
+
+function proofEvidenceLabel(evidenceLevel: MealProofMetadata['evidenceLevel']): string {
+  if (evidenceLevel === 'VERIFIED_BARCODE_WEIGHT') {
+    return 'Barcode + weight';
+  }
+
+  if (evidenceLevel === 'VERIFIED_RECIPE_WEIGHT') {
+    return 'Weighed recipe';
+  }
+
+  if (evidenceLevel === 'VERIFIED_PLATE_WEIGHT') {
+    return 'Weighed plate';
+  }
+
+  if (evidenceLevel === 'CALIBRATED_TOTAL_WEIGHT') {
+    return 'Calibrated';
+  }
+
+  if (evidenceLevel === 'RESEARCH_PREDICTED_MASS') {
+    return 'Research predicted';
+  }
+
+  return 'Estimated';
+}
+
+function proofBadge(proof: MealProofMetadata | undefined): ResultTrustViewModel['proofBadge'] {
+  if (!proof) {
+    return undefined;
+  }
+
+  if (proof.status === 'verified') {
+    return { label: 'Verified', tone: 'green' };
+  }
+
+  if (proof.status === 'calibrated') {
+    return { label: 'Calibrated', tone: 'orange' };
+  }
+
+  if (proof.status === 'research') {
+    return { label: 'Research predicted', tone: 'purple' };
+  }
+
+  return { label: 'Estimated', tone: 'gray' };
 }
 
 function quantityLabel(item: FoodItem): string {
+  if (item.quantityGrams) {
+    return `${Math.round(item.quantityGrams.p50)} g p50 (${Math.round(item.quantityGrams.p10)}-${Math.round(item.quantityGrams.p90)} g)`;
+  }
+
   const quantity = Math.round(item.estimatedQuantity * 10) / 10;
   return `${quantity}${item.unit === 'g' ? ' g' : ` ${item.unit}`}`;
 }
 
+function caloriesLabel(item: FoodItem): string {
+  if (item.calorieQuantiles) {
+    return `${Math.round(item.calorieQuantiles.p50)} kcal p50 (${Math.round(item.calorieQuantiles.p10)}-${Math.round(item.calorieQuantiles.p90)} kcal)`;
+  }
+
+  return `${item.calories} kcal`;
+}
+
 function uncertaintyBullets(meal: Meal): string[] {
+  if (meal.proof) {
+    const proofBullets = [...meal.proof.warnings, ...meal.proof.explanation].filter((reason) => reason.trim().length > 0);
+    if (proofBullets.length > 0) {
+      return proofBullets.slice(0, 4);
+    }
+  }
+
   const reasons = meal.uncertaintyReasons?.filter((reason) => reason.trim().length > 0) ?? [];
   if (reasons.length > 0) {
     return reasons.slice(0, 3);
   }
 
   if (meal.confidence === 'high') {
-    return ['Aliments et portions suffisamment lisibles.', 'La correction reste disponible si la portion reelle differe.'];
+    return ['Foods and portions are readable enough.', 'You can still correct the meal if the real portion differs.'];
   }
 
   if (meal.confidence === 'medium') {
-    return ['Les aliments principaux sont detectes, mais une portion peut varier.', 'Ajuste les quantites si le cadrage etait incomplet.'];
+    return ['Main foods were detected, but one portion may vary.', 'Adjust quantities if the framing was incomplete.'];
   }
 
-  return ['Controle les portions visibles avant sauvegarde.', 'Ajoute sauce ou huile si elles ne sont pas clairement visibles.'];
+  return ['Review visible portions before saving.', 'Add sauce or oil if they are not clearly visible.'];
+}
+
+function reviewQuestion(meal: Meal): ResultTrustViewModel['reviewQuestion'] {
+  const question = meal.scanReview?.followUpQuestion.trim();
+  if (!meal.scanReview?.needsUserQuestion || !question) {
+    return undefined;
+  }
+
+  return {
+    title: 'Quick review',
+    question,
+  };
 }
 
 function buildItemRow(item: FoodItem): ResultTrustItemRow {
@@ -110,8 +213,8 @@ function buildItemRow(item: FoodItem): ResultTrustItemRow {
     id: item.id,
     name: item.name,
     quantityLabel: quantityLabel(item),
-    caloriesLabel: `${item.calories} kcal`,
-    macroLine: `${item.proteinG}g prot | ${item.carbsG}g gluc | ${item.fatG}g lip`,
+    caloriesLabel: caloriesLabel(item),
+    macroLine: `${item.proteinG}g protein | ${item.carbsG}g carbs | ${item.fatG}g fat`,
     confidenceLabel: formatConfidenceLabel(item.confidence),
     sourceLabel: foodSourceLabel(item.dataSource),
   };
@@ -124,12 +227,19 @@ function macroRangeLabel(value: number, spread: number): string {
 }
 
 export function buildResultTrustViewModel(meal: Meal): ResultTrustViewModel {
-  const calorieRangeLabel = `${meal.caloriesLow}-${meal.caloriesHigh} kcal`;
+  const calorieRangeLabel = meal.proof?.kcalRange ? `${meal.proof.kcalRange.min}-${meal.proof.kcalRange.max} kcal` : `${meal.caloriesLow}-${meal.caloriesHigh} kcal`;
+  const primaryCaloriesLabel = `${Math.round(meal.caloriesEstimate)} kcal`;
+  const confidenceTier = effectiveScanConfidence(meal.confidence, meal.uncertaintyReasons);
+  const trust = buildScanTrustViewModel(meal);
+  const isManual = meal.imageUri.startsWith('manual://');
 
   return {
     sourceLabel: sourceLabel(meal.source, meal.imageUri),
     sourceDetail: sourceDetail(meal),
-    confidenceTitle: formatConfidenceLabel(meal.confidence),
+    confidenceTitle: isManual ? 'Manual entry' : confidenceTier === meal.confidence ? formatConfidenceLabel(confidenceTier) : trust.confidenceLabel,
+    proofBadge: proofBadge(meal.proof),
+    reviewQuestion: reviewQuestion(meal),
+    primaryCaloriesLabel,
     rangeLabel: calorieRangeLabel,
     calorieRangeLabel,
     macroRanges: {
@@ -137,7 +247,7 @@ export function buildResultTrustViewModel(meal: Meal): ResultTrustViewModel {
       carbs: macroRangeLabel(meal.carbsG, 0.08),
       fat: macroRangeLabel(meal.fatG, 0.14),
     },
-    explanationTitle: 'Pourquoi cette estimation ?',
+    explanationTitle: meal.proof ? 'Why this result?' : 'Why this estimate?',
     explanationBullets: uncertaintyBullets(meal),
     items: meal.items.map(buildItemRow),
   };

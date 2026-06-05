@@ -13,7 +13,7 @@ export function PremiumCard({ children, style }: Props) {
       style={{
         backgroundColor: colors.surface,
         borderColor: colors.line,
-        borderRadius: radius.md,
+        borderRadius: radius.sm,
         borderWidth: 1,
         padding: spacing.lg,
         ...shadows.card,

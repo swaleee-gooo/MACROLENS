@@ -2,6 +2,7 @@ import type { AnalysisService } from './analysisSchema';
 import { analysisResultSchema } from './analysisSchema';
 import { recalculateMeal } from '../domain/nutrition';
 import type { FoodItem, Meal } from '../domain/types';
+import { createMealProofMetadata } from '../metaboproof/mealProof';
 
 function createItem(overrides: Omit<FoodItem, 'mealId'>, mealId: string): FoodItem {
   return {
@@ -20,7 +21,7 @@ export function createMockAnalysisService(): AnalysisService {
         createItem(
           {
             id: `${mealId}-chicken`,
-            name: 'Poulet grille',
+            name: 'Grilled chicken',
             canonicalFoodName: 'chicken breast cooked',
             estimatedQuantity: 140,
             unit: 'g',
@@ -38,7 +39,7 @@ export function createMockAnalysisService(): AnalysisService {
         createItem(
           {
             id: `${mealId}-rice`,
-            name: 'Riz blanc',
+            name: 'White rice',
             canonicalFoodName: 'white rice cooked',
             estimatedQuantity: 170,
             unit: 'g',
@@ -56,7 +57,7 @@ export function createMockAnalysisService(): AnalysisService {
         createItem(
           {
             id: `${mealId}-vegetables`,
-            name: 'Legumes verts',
+            name: 'Green vegetables',
             canonicalFoodName: 'mixed green vegetables cooked',
             estimatedQuantity: 120,
             unit: 'g',
@@ -73,12 +74,12 @@ export function createMockAnalysisService(): AnalysisService {
         ),
       ];
 
-      const meal: Meal = recalculateMeal({
+      const mealWithoutProof: Meal = recalculateMeal({
         id: mealId,
         userId,
         imageUri,
         capturedAt,
-        mealName: 'Poulet, riz et legumes',
+        mealName: 'Chicken, rice, and vegetables',
         caloriesEstimate: 0,
         caloriesLow: 0,
         caloriesHigh: 0,
@@ -87,10 +88,14 @@ export function createMockAnalysisService(): AnalysisService {
         fatG: 0,
         fiberG: 0,
         confidence: 'medium',
-        notes: 'Estimation basee sur une portion visuelle standard.',
+        notes: 'Estimate based on a standard visual portion.',
         source: 'mock',
         items,
       });
+      const meal: Meal = {
+        ...mealWithoutProof,
+        proof: createMealProofMetadata(mealWithoutProof),
+      };
 
       return analysisResultSchema.parse({
         meal,
@@ -109,8 +114,14 @@ export function createMockAnalysisService(): AnalysisService {
             targetItemId: null,
           },
           {
+            id: 'portion-half',
+            label: 'Ate half',
+            correctionType: 'portion_half',
+            targetItemId: null,
+          },
+          {
             id: 'add-oil',
-            label: 'Huile ajoutee',
+            label: 'Added oil',
             correctionType: 'add_oil',
             targetItemId: null,
           },

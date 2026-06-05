@@ -42,6 +42,7 @@ module.exports = {
     name: variant.name,
     slug: 'macrolens',
     scheme: 'macrolens',
+    plugins: ['expo-font'],
     version: '1.0.0',
     orientation: 'portrait',
     icon: './assets/icon.png',
@@ -59,7 +60,7 @@ module.exports = {
       infoPlist: {
         ITSAppUsesNonExemptEncryption: false,
         NSCameraUsageDescription:
-          'MacroLens utilise la camera pour analyser les repas, scanner les codes-barres et lire les etiquettes nutritionnelles.',
+          'MacroLens uses the camera to analyze meals, scan barcodes, and read nutrition labels.',
       },
     },
     android: {

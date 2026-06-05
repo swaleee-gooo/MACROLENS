@@ -1,5 +1,7 @@
 import type { Meal, NutritionSource, UserProfile } from '../domain/types';
 import type { MealRepository } from './mealRepository';
+import type { MetaboProofAnalysisEvent, MetaboProofRepository, PersonalFoodGraphStat, PortionCalibrationRecord } from './metaboProofRepository';
+import type { CorrectionRecord } from '../metaboproof/correctionLoop';
 import type { ProfileRepository } from './profileRepository';
 
 type SupabaseSyncClient = {
@@ -71,6 +73,21 @@ function mergeMeals(localMeals: Meal[], remoteMeals: Meal[]): Meal[] {
   return sortMeals(Array.from(byId.values()));
 }
 
+function mergeCreatedRecords<T extends { id: string; createdAt: string }>(localRecords: T[], remoteRecords: T[]): T[] {
+  const byId = new Map<string, T>();
+  localRecords.forEach((record) => byId.set(record.id, record));
+  remoteRecords.forEach((record) => byId.set(record.id, record));
+  return Array.from(byId.values()).sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+}
+
+function mergePersonalGraphStats(localStats: PersonalFoodGraphStat[], remoteStats: PersonalFoodGraphStat[]): PersonalFoodGraphStat[] {
+  const byKey = new Map<string, PersonalFoodGraphStat>();
+  const keyFor = (stat: PersonalFoodGraphStat) => `${stat.userId}:${stat.graphType}:${stat.graphKey}`;
+  localStats.forEach((stat) => byKey.set(keyFor(stat), stat));
+  remoteStats.forEach((stat) => byKey.set(keyFor(stat), stat));
+  return Array.from(byKey.values()).sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));
+}
+
 function encodeFilterValue(value: string): string {
   return encodeURIComponent(value).replace(/%2D/g, '-');
 }
@@ -121,6 +138,70 @@ function profileSnapshotRow(profile: UserProfile, userId: string) {
   };
 }
 
+function analysisEventRow(record: MetaboProofAnalysisEvent, userId: string) {
+  const scopedRecord = { ...record, userId };
+  return {
+    user_id: userId,
+    client_id: scopedRecord.id,
+    meal_id: scopedRecord.mealId,
+    model_id: scopedRecord.modelId,
+    provider: scopedRecord.provider,
+    image_count: scopedRecord.imageCount,
+    scene_payload: scopedRecord.scenePayload,
+    token_usage: scopedRecord.tokenUsage ?? null,
+    latency_ms: scopedRecord.latencyMs,
+    cost_estimate: scopedRecord.costEstimateUsd,
+    payload: scopedRecord,
+    created_at: scopedRecord.createdAt,
+  };
+}
+
+function correctionRow(record: CorrectionRecord, userId: string) {
+  const scopedRecord = { ...record, userId };
+  return {
+    user_id: userId,
+    client_id: scopedRecord.id,
+    meal_id: scopedRecord.mealId,
+    item_id: scopedRecord.itemId,
+    food_label: scopedRecord.foodLabel,
+    field: scopedRecord.field,
+    previous_value: scopedRecord.previousValue,
+    next_value: scopedRecord.nextValue,
+    correction_type: scopedRecord.correctionType ?? scopedRecord.field,
+    source_model_id: scopedRecord.modelId,
+    payload: scopedRecord,
+    created_at: scopedRecord.createdAt,
+  };
+}
+
+function calibrationRow(record: PortionCalibrationRecord, userId: string) {
+  const scopedRecord = { ...record, userId };
+  return {
+    user_id: userId,
+    client_id: scopedRecord.id,
+    food_label: scopedRecord.foodLabel,
+    container_key: scopedRecord.containerKey,
+    estimated_grams: scopedRecord.estimatedGrams,
+    verified_grams: scopedRecord.verifiedGrams,
+    residual_grams: scopedRecord.residualGrams,
+    source: scopedRecord.source,
+    payload: scopedRecord,
+    created_at: scopedRecord.createdAt,
+  };
+}
+
+function personalGraphStatRow(record: PersonalFoodGraphStat, userId: string) {
+  const scopedRecord = { ...record, userId };
+  return {
+    user_id: userId,
+    graph_key: scopedRecord.graphKey,
+    graph_type: scopedRecord.graphType,
+    stats_payload: scopedRecord.statsPayload,
+    payload: scopedRecord,
+    updated_at: scopedRecord.updatedAt,
+  };
+}
+
 export function createSyncedMealRepository(local: MealRepository, client: SupabaseSyncClient): MealRepository {
   return {
     async listMeals() {
@@ -164,6 +245,141 @@ export function createSyncedMealRepository(local: MealRepository, client: Supaba
       const userId = await authUserId(client);
       if (userId) {
         await client.rest.delete('meals', `user_id=eq.${encodeFilterValue(userId)}`);
+      }
+    },
+  };
+}
+
+export function createSyncedMetaboProofRepository(local: MetaboProofRepository, client: SupabaseSyncClient): MetaboProofRepository {
+  return {
+    async saveAnalysisEvent(record) {
+      const userId = await authUserId(client);
+      const recordToSave = userId ? { ...record, userId } : record;
+      await local.saveAnalysisEvent(recordToSave);
+
+      if (userId) {
+        await client.rest.upsert('meal_analysis_events', analysisEventRow(recordToSave, userId), { onConflict: 'user_id,client_id' });
+      }
+    },
+
+    async listAnalysisEvents(requestedUserId) {
+      const localRecords = await local.listAnalysisEvents(requestedUserId);
+      const userId = await authUserId(client);
+      if (!userId) {
+        return localRecords;
+      }
+
+      const remote = await client.rest.get('meal_analysis_events', 'select=payload&order=created_at.desc');
+      if (remote.error) {
+        return localRecords;
+      }
+
+      const merged = mergeCreatedRecords(localRecords, parsePayloadRows<MetaboProofAnalysisEvent>(remote.data));
+      for (const record of merged) {
+        await local.saveAnalysisEvent({ ...record, userId });
+      }
+      return merged;
+    },
+
+    async saveCorrection(record) {
+      const userId = await authUserId(client);
+      const recordToSave = userId ? { ...record, userId } : record;
+      await local.saveCorrection(recordToSave);
+
+      if (userId) {
+        await client.rest.upsert('meal_corrections', correctionRow(recordToSave, userId), { onConflict: 'user_id,client_id' });
+      }
+    },
+
+    async listCorrections(requestedUserId) {
+      const localRecords = await local.listCorrections(requestedUserId);
+      const userId = await authUserId(client);
+      if (!userId) {
+        return localRecords;
+      }
+
+      const remote = await client.rest.get('meal_corrections', 'select=payload&order=created_at.desc');
+      if (remote.error) {
+        return localRecords;
+      }
+
+      const merged = mergeCreatedRecords(localRecords, parsePayloadRows<CorrectionRecord>(remote.data)).map((record) => ({ ...record, userId }));
+      await local.replaceCorrections(userId, merged);
+      return merged;
+    },
+
+    async replaceCorrections(userId, records) {
+      await local.replaceCorrections(userId, records);
+    },
+
+    async saveCalibration(record) {
+      const userId = await authUserId(client);
+      const recordToSave = userId ? { ...record, userId } : record;
+      await local.saveCalibration(recordToSave);
+
+      if (userId) {
+        await client.rest.upsert('portion_calibrations', calibrationRow(recordToSave, userId), { onConflict: 'user_id,client_id' });
+      }
+    },
+
+    async listCalibrations(requestedUserId) {
+      const localRecords = await local.listCalibrations(requestedUserId);
+      const userId = await authUserId(client);
+      if (!userId) {
+        return localRecords;
+      }
+
+      const remote = await client.rest.get('portion_calibrations', 'select=payload&order=created_at.desc');
+      if (remote.error) {
+        return localRecords;
+      }
+
+      const merged = mergeCreatedRecords(localRecords, parsePayloadRows<PortionCalibrationRecord>(remote.data));
+      for (const record of merged) {
+        await local.saveCalibration({ ...record, userId });
+      }
+      return merged;
+    },
+
+    async upsertPersonalGraphStat(record) {
+      const userId = await authUserId(client);
+      const recordToSave = userId ? { ...record, userId } : record;
+      await local.upsertPersonalGraphStat(recordToSave);
+
+      if (userId) {
+        await client.rest.upsert('personal_food_stats', personalGraphStatRow(recordToSave, userId), { onConflict: 'user_id,graph_key,graph_type' });
+      }
+    },
+
+    async listPersonalGraphStats(requestedUserId) {
+      const localStats = await local.listPersonalGraphStats(requestedUserId);
+      const userId = await authUserId(client);
+      if (!userId) {
+        return localStats;
+      }
+
+      const remote = await client.rest.get('personal_food_stats', 'select=payload&order=updated_at.desc');
+      if (remote.error) {
+        return localStats;
+      }
+
+      const merged = mergePersonalGraphStats(localStats, parsePayloadRows<PersonalFoodGraphStat>(remote.data)).map((record) => ({ ...record, userId }));
+      for (const record of merged) {
+        await local.upsertPersonalGraphStat(record);
+      }
+      return merged;
+    },
+
+    async clearAll() {
+      await local.clearAll();
+      const userId = await authUserId(client);
+      if (userId) {
+        await Promise.all([
+          client.rest.delete('meal_analysis_events', `user_id=eq.${encodeFilterValue(userId)}`),
+          client.rest.delete('meal_corrections', `user_id=eq.${encodeFilterValue(userId)}`),
+          client.rest.delete('portion_calibrations', `user_id=eq.${encodeFilterValue(userId)}`),
+          client.rest.delete('personal_food_stats', `user_id=eq.${encodeFilterValue(userId)}`),
+        ]);
       }
     },
   };

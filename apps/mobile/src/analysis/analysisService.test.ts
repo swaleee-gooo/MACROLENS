@@ -11,8 +11,9 @@ describe('mock analysis service', () => {
     });
 
     expect(() => analysisResultSchema.parse(result)).not.toThrow();
-    expect(result.meal.mealName).toBe('Poulet, riz et legumes');
+    expect(result.meal.mealName).toBe('Chicken, rice, and vegetables');
     expect(result.meal.confidence).toBe('medium');
+    expect(result.meal.proof?.evidenceLevel).toBe('ESTIMATED_VISUAL_ONLY');
     expect(result.uncertaintyReasons).toContain('portion_size_estimated_from_photo');
   });
 });

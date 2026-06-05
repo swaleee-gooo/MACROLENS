@@ -1,7 +1,36 @@
 import { Linking, Pressable, ScrollView, Text, View } from 'react-native';
 import Constants from 'expo-constants';
-import { ArrowLeft, ExternalLink, FileText, LifeBuoy, ShieldCheck } from 'lucide-react-native';
+import { ChevronLeft, ExternalLink, FileText, Info, LifeBuoy, Mail, ShieldCheck, Sliders, Star } from 'lucide-react-native';
+import { useLang } from '../i18n/LanguageContext';
+import { Card, Eyebrow, Num, Seal } from '../ui/primitives';
 import { colors, radius, spacing, typography } from '../ui/theme';
+
+const STR = {
+  en: {
+    title: 'Legal & support',
+    support: 'Support',
+    contactSupport: 'Contact support',
+    helpCenter: 'Help centre',
+    rateApp: 'Rate the app',
+    legal: 'Legal',
+    termsOfUse: 'Terms of Use',
+    privacyPolicy: 'Privacy Policy',
+    noticesLicenses: 'Notices & licences',
+    version: (v: string) => `MacroLens · v${v}`,
+  },
+  fr: {
+    title: 'Légal & support',
+    support: 'Support',
+    contactSupport: 'Contacter le support',
+    helpCenter: "Centre d'aide",
+    rateApp: "Noter l'app",
+    legal: 'Légal',
+    termsOfUse: "Conditions d'utilisation",
+    privacyPolicy: 'Politique de confidentialité',
+    noticesLicenses: 'Mentions & licences',
+    version: (v: string) => `MacroLens · v${v}`,
+  },
+};
 
 const privacyUrl = 'https://github.com/swaleee-gooo/MACROLENS/blob/codex/macrolens-mvp/docs/legal/privacy-policy.md';
 const termsUrl = 'https://github.com/swaleee-gooo/MACROLENS/blob/codex/macrolens-mvp/docs/legal/terms-of-use.md';
@@ -11,59 +40,82 @@ type Props = {
   onBack: () => void;
 };
 
-function LinkRow({ label, detail, icon: Icon, url }: { label: string; detail: string; icon: typeof FileText; url: string }) {
+function LinkRow({
+  label,
+  icon: Icon,
+  url,
+  isLast = false,
+}: {
+  label: string;
+  icon: typeof FileText;
+  url: string;
+  isLast?: boolean;
+}) {
   return (
     <Pressable
       onPress={() => Linking.openURL(url)}
-      style={{
-        alignItems: 'center',
-        backgroundColor: colors.surface,
-        borderColor: colors.line,
-        borderRadius: radius.md,
-        borderWidth: 1,
-        flexDirection: 'row',
+      style={({ pressed }) => ({
+        alignItems: 'center' as const,
+        borderBottomColor: colors.line,
+        borderBottomWidth: isLast ? 0 : 1,
+        flexDirection: 'row' as const,
         gap: spacing.md,
-        padding: spacing.md,
-      }}
+        opacity: pressed ? 0.7 : 1,
+        paddingHorizontal: spacing.md,
+        paddingVertical: 13,
+      })}
     >
-      <Icon color={colors.black} size={20} strokeWidth={2.4} />
-      <View style={{ flex: 1, gap: spacing.xs }}>
-        <Text style={{ color: colors.black, fontSize: typography.body, fontWeight: '900' }}>{label}</Text>
-        <Text style={{ color: colors.muted, fontSize: typography.small, fontWeight: '800', lineHeight: 18 }}>{detail}</Text>
+      <View style={{ alignItems: 'center', backgroundColor: colors.paper2, borderRadius: radius.sm, height: 34, justifyContent: 'center', width: 34 }}>
+        <Icon color={colors.ink2} size={17} strokeWidth={2} />
       </View>
-      <ExternalLink color={colors.muted} size={18} strokeWidth={2.3} />
+      <Text style={{ color: colors.ink, flex: 1, fontSize: typography.body, fontWeight: '500' }}>{label}</Text>
+      <ExternalLink color={colors.muted2} size={15} strokeWidth={2} />
     </Pressable>
   );
 }
 
 export function LegalSupportScreen({ onBack }: Props) {
-  const version = Constants.expoConfig?.version ?? '1.0.0';
+  const { lang } = useLang();
+  const t = STR[lang];
+  const version = Constants.expoConfig?.version ?? '2.0.0';
 
   return (
-    <ScrollView style={{ backgroundColor: colors.background, flex: 1 }} contentContainerStyle={{ gap: spacing.xl, padding: spacing.xl, paddingBottom: spacing.xxxl }}>
-      <Pressable onPress={onBack} style={{ alignItems: 'center', flexDirection: 'row', gap: spacing.xs }}>
-        <ArrowLeft color={colors.black} size={24} strokeWidth={2.5} />
-        <Text style={{ color: colors.black, fontSize: typography.body, fontWeight: '900' }}>Retour</Text>
-      </Pressable>
+    <ScrollView style={{ backgroundColor: colors.background, flex: 1 }} contentContainerStyle={{ gap: spacing.xl, padding: spacing.xl, paddingBottom: spacing.xxxl }} showsVerticalScrollIndicator={false}>
 
+      {/* Push header: back chevron + centered title */}
+      <View style={{ alignItems: 'center', flexDirection: 'row', justifyContent: 'space-between', paddingTop: 4 }}>
+        <Pressable onPress={onBack} style={({ pressed }) => ({ alignItems: 'center', height: 30, justifyContent: 'center', marginLeft: -6, opacity: pressed ? 0.7 : 1, width: 30 })}>
+          <ChevronLeft color={colors.ink2} size={22} strokeWidth={2} />
+        </Pressable>
+        <Text style={{ color: colors.ink, fontSize: 16, fontWeight: '600', letterSpacing: -0.1 }}>{t.title}</Text>
+        <View style={{ width: 30 }} />
+      </View>
+
+      {/* Support group */}
       <View style={{ gap: spacing.sm }}>
-        <Text style={{ color: colors.ink, fontSize: typography.hero, fontWeight: '900' }}>Legal</Text>
-        <Text style={{ color: colors.muted, fontSize: typography.body, fontWeight: '800', lineHeight: 24 }}>Documents App Store, contact support et disclaimer nutritionnel.</Text>
+        <Eyebrow>{t.support}</Eyebrow>
+        <Card style={{ overflow: 'hidden' }}>
+          <LinkRow icon={Mail} label={t.contactSupport} url={supportUrl} />
+          <LinkRow icon={LifeBuoy} label={t.helpCenter} url={supportUrl} />
+          <LinkRow icon={Star} label={t.rateApp} url="https://apps.apple.com" isLast />
+        </Card>
       </View>
 
-      <View style={{ gap: spacing.md }}>
-        <LinkRow detail="Comment MacroLens collecte, protege et supprime tes donnees." icon={ShieldCheck} label="Privacy Policy" url={privacyUrl} />
-        <LinkRow detail="Conditions d utilisation, abonnement et limites du service." icon={FileText} label="Terms of Use" url={termsUrl} />
-        <LinkRow detail="Envoyer une demande support ou une question de compte." icon={LifeBuoy} label="Support contact" url={supportUrl} />
+      {/* Legal group */}
+      <View style={{ gap: spacing.sm }}>
+        <Eyebrow>{t.legal}</Eyebrow>
+        <Card style={{ overflow: 'hidden' }}>
+          <LinkRow icon={FileText} label={t.termsOfUse} url={termsUrl} />
+          <LinkRow icon={ShieldCheck} label={t.privacyPolicy} url={privacyUrl} />
+          <LinkRow icon={Info} label={t.noticesLicenses} url={privacyUrl} isLast />
+        </Card>
       </View>
 
-      <View style={{ backgroundColor: '#FFF7E8', borderColor: '#F1C27D', borderRadius: radius.md, borderWidth: 1, padding: spacing.md }}>
-        <Text style={{ color: colors.amber, fontSize: typography.small, fontWeight: '900', lineHeight: 18 }}>
-          MacroLens n est pas un dispositif medical. Les calories, macros, portions et rapports sont des estimations pour le suivi personnel et ne remplacent pas un avis medical ou dietetique.
-        </Text>
+      {/* Version footer */}
+      <View style={{ alignItems: 'center', marginTop: spacing.lg, paddingBottom: spacing.sm }}>
+        <Seal size={34} color={colors.muted2} />
+        <Eyebrow style={{ color: colors.muted2, marginTop: 10 }}>{t.version(version)}</Eyebrow>
       </View>
-
-      <Text style={{ color: colors.muted, fontSize: typography.small, fontWeight: '800' }}>Version {version}</Text>
     </ScrollView>
   );
 }

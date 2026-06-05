@@ -6,10 +6,10 @@ describe('buildAnalysisAnimationStages', () => {
     const stages = buildAnalysisAnimationStages();
 
     expect(stages.map((stage) => stage.label)).toEqual([
-      'Detection aliments',
-      'Estimation portions',
-      'Calories cachees',
-      'Macros finales',
+      'Detecting foods',
+      'Estimating portions',
+      'Checking hidden calories',
+      'Final macros',
     ]);
     expect(stages.at(-1)?.progress).toBe(100);
   });

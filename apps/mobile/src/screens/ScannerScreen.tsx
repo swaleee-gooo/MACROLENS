@@ -1,8 +1,11 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Alert, Animated, Platform, Pressable, StyleSheet, Text, TextInput, useWindowDimensions, View } from 'react-native';
 import { CameraView, useCameraPermissions, type BarcodeScanningResult } from 'expo-camera';
-import { ArrowLeft, Barcode, Camera, ImagePlus, Keyboard, RefreshCw, ScanText, Sparkles, Sun, Zap } from 'lucide-react-native';
+import { ArrowLeft, Barcode, Camera, ChevronRight, Image, Keyboard, List, PencilLine, RefreshCw, ScanText, Scale, Search, Sparkles, Sun, Zap } from 'lucide-react-native';
+import { ScannerPermissionAsset } from '../components/BrandAssets';
+import { useLang } from '../i18n/LanguageContext';
 import { getScannerModeConfig, scannerModes, type ScannerIconKey, type ScannerMode } from '../scanner/scannerModes';
+import { Eyebrow, PrimaryButton } from '../ui/primitives';
 import { colors, radius, spacing, typography } from '../ui/theme';
 
 type Props = {
@@ -16,6 +19,84 @@ type Props = {
   onManualBarcode: (barcode: string) => void;
   onManualMeal: () => void;
   onOpenLibrary: () => void | Promise<void>;
+  onOpenFoodSearch?: () => void;
+  onOpenVerifiedRecipe?: () => void;
+  onOpenRecipeImport?: () => void;
+};
+
+const STR = {
+  en: {
+    scannerTitle: 'MacroLens Scanner',
+    permissionBody: 'Allow camera access to scan meals, products, and labels. You can still log food without camera access.',
+    allowCamera: 'Allow camera',
+    gallery: 'Gallery',
+    manual: 'Manual',
+    back: 'Back',
+    labelRequired: 'Label required',
+    productNotFound: 'Product not found',
+    labelRequiredDetail: 'The product database does not have enough nutrition values. Frame the per-100g table to create the item.',
+    productNotFoundDetail: 'Try another angle, enter the code, or scan the nutrition label.',
+    tryAgain: 'Try again',
+    scanLabel: 'Scan label',
+    enterCode: 'Enter code',
+    addManually: 'Add manually',
+    tipsTitle: 'Tips for a better scan',
+    tipLight: 'Use natural light',
+    tipFrame: 'Keep the full plate in frame',
+    tipBlur: 'Avoid blur, shadows, and extreme angles',
+    gotIt: 'Got it',
+    enterBarcode: 'Enter barcode',
+    barcodePlaceholder: 'Barcode number',
+    searchProduct: 'Search this product',
+    searching: 'Searching...',
+    autoDetection: 'Automatic detection',
+    cameraUnavailableTitle: 'Camera unavailable',
+    cameraUnavailableDetail: 'Try again in a moment or choose a photo from your library.',
+    moreOptions: 'More options',
+    searchFood: 'Search a food',
+    usdaBase: 'USDA',
+    manualEntry: 'Manual entry',
+    weighedRecipe: 'Weighed recipe',
+    verifiedTag: 'Verified',
+    importRecipe: 'Import from a link',
+    importTag: 'New',
+  },
+  fr: {
+    scannerTitle: 'Scanner MacroLens',
+    permissionBody: 'Autorisez l\'accès à la caméra pour scanner repas, produits et étiquettes. Vous pouvez toujours enregistrer un repas sans caméra.',
+    allowCamera: 'Autoriser la caméra',
+    gallery: 'Galerie',
+    manual: 'Manuel',
+    back: 'Retour',
+    labelRequired: 'Étiquette requise',
+    productNotFound: 'Produit introuvable',
+    labelRequiredDetail: 'La base de données produits ne contient pas assez de valeurs nutritionnelles. Cadrez le tableau pour 100g afin de créer l\'article.',
+    productNotFoundDetail: 'Essayez un autre angle, saisissez le code ou scannez l\'étiquette nutritionnelle.',
+    tryAgain: 'Réessayer',
+    scanLabel: 'Scanner l\'étiquette',
+    enterCode: 'Saisir le code',
+    addManually: 'Ajouter manuellement',
+    tipsTitle: 'Conseils pour un meilleur scan',
+    tipLight: 'Utilisez la lumière naturelle',
+    tipFrame: 'Gardez toute l\'assiette dans le cadre',
+    tipBlur: 'Évitez le flou, les ombres et les angles extrêmes',
+    gotIt: 'Compris',
+    enterBarcode: 'Saisir le code-barres',
+    barcodePlaceholder: 'Numéro de code-barres',
+    searchProduct: 'Rechercher ce produit',
+    searching: 'Recherche...',
+    autoDetection: 'Détection automatique',
+    cameraUnavailableTitle: 'Caméra indisponible',
+    cameraUnavailableDetail: 'Réessayez dans un instant ou choisissez une photo depuis votre galerie.',
+    moreOptions: 'Saisir autrement',
+    searchFood: 'Rechercher un aliment',
+    usdaBase: 'USDA',
+    manualEntry: 'Saisie manuelle',
+    weighedRecipe: 'Recette pesée',
+    verifiedTag: 'Vérifié',
+    importRecipe: 'Importer depuis un lien',
+    importTag: 'Nouveau',
+  },
 };
 
 const barcodeTypes = ['ean13', 'ean8', 'upc_a', 'upc_e', 'itf14', 'code39', 'code128'] as const;
@@ -24,7 +105,7 @@ const iconMap: Record<ScannerIconKey, typeof Camera> = {
   camera: Camera,
   barcode: Barcode,
   label: ScanText,
-  library: ImagePlus,
+  library: Image,
 };
 
 function SheetAction({
@@ -38,30 +119,31 @@ function SheetAction({
   tone?: 'dark' | 'green' | 'light' | 'outline';
   onPress: () => void;
 }) {
-  const backgroundColor = tone === 'dark' ? colors.black : tone === 'green' ? colors.greenSoft : tone === 'outline' ? 'transparent' : colors.surfaceMuted;
-  const foregroundColor = tone === 'dark' ? 'white' : tone === 'green' ? colors.green : colors.black;
-  const borderColor = tone === 'outline' ? colors.line : backgroundColor;
+  const backgroundColor = tone === 'dark' ? colors.night : tone === 'green' ? colors.accentWash : tone === 'outline' ? 'transparent' : colors.paper2;
+  const foregroundColor = tone === 'dark' ? '#FFFFFF' : tone === 'green' ? colors.accentInk : colors.ink;
+  const borderColor = tone === 'outline' ? colors.line2 : backgroundColor;
 
   return (
     <Pressable
       onPress={onPress}
-      style={{
+      style={({ pressed }) => ({
         alignItems: 'center',
         backgroundColor,
         borderColor,
-        borderRadius: radius.pill,
+        borderRadius: radius.md,
         borderWidth: 1,
-        flexDirection: 'row',
+        flexDirection: 'row' as const,
         flexGrow: 1,
         gap: spacing.xs,
         justifyContent: 'center',
         minHeight: 44,
         minWidth: 132,
+        opacity: pressed ? 0.82 : 1,
         paddingHorizontal: spacing.md,
-      }}
+      })}
     >
-      <Icon color={foregroundColor} size={15} strokeWidth={2.6} />
-      <Text numberOfLines={1} style={{ color: foregroundColor, fontSize: typography.small, fontWeight: '900' }}>
+      <Icon color={foregroundColor} size={14} strokeWidth={2} />
+      <Text numberOfLines={1} style={{ color: foregroundColor, fontSize: typography.small, fontWeight: '600' }}>
         {label}
       </Text>
     </Pressable>
@@ -71,9 +153,22 @@ function SheetAction({
 function SheetTip({ label, icon: Icon }: { label: string; icon: typeof Camera }) {
   return (
     <View style={{ alignItems: 'center', flexDirection: 'row', gap: spacing.sm }}>
-      <Icon color={colors.black} size={16} strokeWidth={2.4} />
-      <Text style={{ color: colors.muted, flex: 1, fontSize: typography.small, fontWeight: '800' }}>{label}</Text>
+      <Icon color={colors.ink2} size={15} strokeWidth={2} />
+      <Text style={{ color: colors.muted, flex: 1, fontSize: typography.small }}>{label}</Text>
     </View>
+  );
+}
+
+function MoreRow({ icon: Icon, label, detail, onPress, divider }: { icon: typeof Camera; label: string; detail?: string; onPress: () => void; divider: boolean }) {
+  return (
+    <Pressable onPress={onPress} style={({ pressed }) => ({ alignItems: 'center', borderTopColor: colors.line, borderTopWidth: divider ? 1 : 0, flexDirection: 'row', gap: spacing.md, opacity: pressed ? 0.7 : 1, paddingVertical: 13 })}>
+      <View style={{ alignItems: 'center', backgroundColor: colors.paper2, borderRadius: radius.sm, height: 34, justifyContent: 'center', width: 34 }}>
+        <Icon color={colors.ink2} size={17} strokeWidth={2} />
+      </View>
+      <Text style={{ color: colors.ink, flex: 1, fontSize: typography.body, fontWeight: '600' }}>{label}</Text>
+      {detail ? <Eyebrow>{detail}</Eyebrow> : null}
+      <ChevronRight color={colors.muted2} size={16} strokeWidth={2} />
+    </Pressable>
   );
 }
 
@@ -102,7 +197,13 @@ export function ScannerScreen({
   onManualBarcode,
   onManualMeal,
   onOpenLibrary,
+  onOpenFoodSearch,
+  onOpenVerifiedRecipe,
+  onOpenRecipeImport,
 }: Props) {
+  const { lang } = useLang();
+  const t = STR[lang];
+
   const cameraRef = useRef<CameraView | null>(null);
   const scanLine = useRef(new Animated.Value(0)).current;
   const [permission, requestPermission] = useCameraPermissions();
@@ -115,8 +216,9 @@ export function ScannerScreen({
     productLookupError ? productLookupIssue ?? 'not_found' : null,
   );
   const [manualEntryOpen, setManualEntryOpen] = useState(productLookupError);
-  const [guidanceOpen, setGuidanceOpen] = useState(initialMode === 'meal');
+  const [guidanceOpen, setGuidanceOpen] = useState(false);
   const [manualBarcode, setManualBarcode] = useState('');
+  const [moreOpen, setMoreOpen] = useState(false);
   const { width } = useWindowDimensions();
   const config = getScannerModeConfig(mode);
   const frameSize = useMemo(() => frameSizeFor(mode, width), [mode, width]);
@@ -165,7 +267,7 @@ export function ScannerScreen({
     setScanned(false);
     setLookupIssue(null);
     setManualEntryOpen(false);
-    setGuidanceOpen(nextMode === 'meal');
+    setGuidanceOpen(false);
   }
 
   function handleBarcodeScanned(result: BarcodeScanningResult) {
@@ -201,7 +303,7 @@ export function ScannerScreen({
     try {
       setIsCapturing(true);
       const photo = await cameraRef.current?.takePictureAsync({
-        quality: mode === 'label' ? 0.92 : 0.78,
+        quality: mode === 'label' ? 0.95 : 0.88,
         shutterSound: false,
       });
 
@@ -215,26 +317,66 @@ export function ScannerScreen({
         await onMealPhoto(photo.uri);
       }
     } catch {
-      Alert.alert('Camera indisponible', 'Reessaie dans quelques instants ou choisis une photo depuis ta bibliotheque.');
+      Alert.alert(t.cameraUnavailableTitle, t.cameraUnavailableDetail);
       setIsCapturing(false);
     }
   }
 
   if (!permission) {
-    return <View style={{ backgroundColor: colors.black, flex: 1 }} />;
+    return <View style={{ backgroundColor: colors.night, flex: 1 }} />;
   }
 
   if (!permission.granted) {
     return (
       <View style={{ backgroundColor: colors.background, flex: 1, gap: spacing.xl, justifyContent: 'center', padding: spacing.xl }}>
-        <Camera color={colors.black} size={56} strokeWidth={2.3} />
-        <Text style={{ color: colors.black, fontSize: typography.title, fontWeight: '900' }}>Scanner MacroLens</Text>
-        <Text style={{ color: colors.muted, fontSize: typography.body, fontWeight: '800', lineHeight: 24 }}>Autorise la camera pour scanner tes repas, produits et etiquettes sans quitter l'app.</Text>
-        <Pressable onPress={requestPermission} style={{ alignItems: 'center', backgroundColor: colors.black, borderRadius: radius.pill, minHeight: 58, justifyContent: 'center' }}>
-          <Text style={{ color: 'white', fontSize: typography.body, fontWeight: '900' }}>Autoriser la camera</Text>
-        </Pressable>
+        <View style={{ alignItems: 'center' }}>
+          <ScannerPermissionAsset height={188} width={256} />
+        </View>
+        <Text style={{ color: colors.ink, fontSize: typography.title, fontWeight: '800', letterSpacing: -0.5 }}>{t.scannerTitle}</Text>
+        <Text style={{ color: colors.muted, fontSize: typography.body, lineHeight: 24 }}>{t.permissionBody}</Text>
+        <PrimaryButton label={t.allowCamera} onPress={requestPermission} variant="dark" />
+        <View style={{ flexDirection: 'row', gap: spacing.sm }}>
+          <Pressable
+            onPress={onOpenLibrary}
+            style={({ pressed }) => ({
+              alignItems: 'center',
+              backgroundColor: colors.surface,
+              borderColor: colors.line,
+              borderRadius: radius.md,
+              borderWidth: 1,
+              flex: 1,
+              flexDirection: 'row' as const,
+              gap: spacing.xs,
+              justifyContent: 'center',
+              minHeight: 50,
+              opacity: pressed ? 0.8 : 1,
+            })}
+          >
+            <Image color={colors.ink2} size={16} strokeWidth={2} />
+            <Text style={{ color: colors.ink, fontSize: typography.small, fontWeight: '600' }}>{t.gallery}</Text>
+          </Pressable>
+          <Pressable
+            onPress={onManualMeal}
+            style={({ pressed }) => ({
+              alignItems: 'center',
+              backgroundColor: colors.surface,
+              borderColor: colors.line,
+              borderRadius: radius.md,
+              borderWidth: 1,
+              flex: 1,
+              flexDirection: 'row' as const,
+              gap: spacing.xs,
+              justifyContent: 'center',
+              minHeight: 50,
+              opacity: pressed ? 0.8 : 1,
+            })}
+          >
+            <PencilLine color={colors.ink2} size={16} strokeWidth={2} />
+            <Text style={{ color: colors.ink, fontSize: typography.small, fontWeight: '600' }}>{t.manual}</Text>
+          </Pressable>
+        </View>
         <Pressable onPress={onBack} style={{ alignItems: 'center', minHeight: 48, justifyContent: 'center' }}>
-          <Text style={{ color: colors.ink, fontSize: typography.body, fontWeight: '900' }}>Retour</Text>
+          <Text style={{ color: colors.muted, fontSize: typography.body, fontWeight: '600' }}>{t.back}</Text>
         </Pressable>
       </View>
     );
@@ -242,11 +384,11 @@ export function ScannerScreen({
 
   const scanLineTranslate = scanLine.interpolate({
     inputRange: [0, 1],
-    outputRange: [18, frameSize.height - 22],
+    outputRange: [6, frameSize.height - 6],
   });
 
   return (
-    <View style={{ backgroundColor: colors.black, flex: 1 }}>
+    <View style={{ backgroundColor: colors.night, flex: 1 }}>
       <CameraView
         ref={cameraRef}
         active
@@ -260,17 +402,41 @@ export function ScannerScreen({
         style={StyleSheet.absoluteFillObject}
       />
       <View pointerEvents="box-none" style={StyleSheet.absoluteFillObject}>
-        <View style={{ backgroundColor: 'rgba(0,0,0,0.18)', flex: 1, justifyContent: 'space-between', paddingHorizontal: spacing.lg, paddingVertical: spacing.lg }}>
+        <View style={{ backgroundColor: 'rgba(0,0,0,0.16)', flex: 1, justifyContent: 'space-between', paddingHorizontal: spacing.lg, paddingVertical: spacing.lg }}>
+          {/* Top bar */}
           <View style={{ alignItems: 'center', flexDirection: 'row', justifyContent: 'space-between' }}>
-            <Pressable onPress={onBack} style={{ alignItems: 'center', backgroundColor: colors.scannerGlass, borderRadius: radius.pill, height: 44, justifyContent: 'center', width: 44 }}>
-              <ArrowLeft color={colors.black} size={24} strokeWidth={2.7} />
+            <Pressable
+              onPress={onBack}
+              style={({ pressed }) => ({
+                alignItems: 'center',
+                backgroundColor: colors.scannerGlass,
+                borderRadius: radius.pill,
+                height: 44,
+                justifyContent: 'center',
+                opacity: pressed ? 0.8 : 1,
+                width: 44,
+              })}
+            >
+              <ArrowLeft color={colors.ink} size={21} strokeWidth={2.2} />
             </Pressable>
-            <Text style={{ color: 'white', fontSize: typography.body, fontWeight: '900' }}>Scanner</Text>
-            <Pressable onPress={() => setTorchEnabled((current) => !current)} style={{ alignItems: 'center', backgroundColor: torchEnabled ? colors.greenSoft : colors.scannerGlass, borderRadius: radius.pill, height: 44, justifyContent: 'center', width: 44 }}>
-              <Zap color={colors.black} size={20} strokeWidth={2.5} />
+            <Text style={{ color: '#FFFFFF', fontSize: typography.body, fontWeight: '700' }}>{config.label}</Text>
+            <Pressable
+              onPress={() => setTorchEnabled((current) => !current)}
+              style={({ pressed }) => ({
+                alignItems: 'center',
+                backgroundColor: torchEnabled ? colors.accent : colors.scannerGlass,
+                borderRadius: radius.pill,
+                height: 44,
+                justifyContent: 'center',
+                opacity: pressed ? 0.8 : 1,
+                width: 44,
+              })}
+            >
+              <Zap color={torchEnabled ? '#FFFFFF' : colors.ink} size={18} strokeWidth={2} />
             </Pressable>
           </View>
 
+          {/* Viewfinder */}
           <View style={{ alignItems: 'center', gap: spacing.md }}>
             <View style={{ alignItems: 'center', height: frameSize.height, justifyContent: 'center', width: frameSize.width }}>
               <View style={[styles.corner, styles.cornerTopLeft]} />
@@ -286,92 +452,132 @@ export function ScannerScreen({
               {config.frameVariant !== 'none' ? (
                 <Animated.View
                   style={{
-                    backgroundColor: colors.greenSoft,
+                    backgroundColor: colors.accent,
                     borderRadius: radius.pill,
                     height: 3,
+                    left: 0,
                     opacity: 0.92,
                     position: 'absolute',
-                    shadowColor: colors.greenSoft,
-                    shadowOpacity: 0.9,
-                    shadowRadius: 12,
+                    right: 0,
+                    shadowColor: colors.accent,
+                    shadowOpacity: 0.6,
+                    shadowRadius: 8,
+                    top: 0,
                     transform: [{ translateY: scanLineTranslate }],
-                    width: '78%',
                   }}
                 />
               ) : null}
             </View>
-            <View style={{ alignItems: 'center', gap: spacing.xs, paddingHorizontal: spacing.lg }}>
-              <Text style={{ color: 'white', fontSize: typography.heading, fontWeight: '900', textAlign: 'center' }}>{config.title}</Text>
-              <Text style={{ color: 'rgba(255,255,255,0.86)', fontSize: typography.small, fontWeight: '800', lineHeight: 19, textAlign: 'center' }}>{config.instruction}</Text>
+            {/* Instruction chip */}
+            <View style={{ alignItems: 'center', backgroundColor: colors.scannerPanel, borderRadius: radius.md, gap: spacing.xs, paddingHorizontal: spacing.lg, paddingVertical: spacing.md }}>
+              <Text style={{ color: '#FFFFFF', fontSize: typography.subheading, fontWeight: '700', textAlign: 'center' }}>{config.title}</Text>
+              <Text style={{ color: 'rgba(255,255,255,0.80)', fontSize: typography.small, lineHeight: 19, textAlign: 'center' }}>{config.instruction}</Text>
             </View>
           </View>
 
-          <View style={{ gap: spacing.md }}>
+          {/* Bottom panel */}
+          <View style={{ gap: spacing.sm }}>
+            {/* Lookup issue card */}
             {lookupIssue ? (
-              <View style={{ backgroundColor: colors.scannerGlass, borderColor: 'rgba(255,255,255,0.42)', borderRadius: radius.lg, borderWidth: 1, gap: spacing.sm, padding: spacing.md }}>
+              <View style={{ backgroundColor: colors.scannerGlass, borderColor: 'rgba(255,255,255,0.30)', borderRadius: radius.lg, borderWidth: 1, gap: spacing.sm, padding: spacing.md }}>
                 <View style={{ alignItems: 'center', flexDirection: 'row', gap: spacing.sm }}>
-                  <View style={{ alignItems: 'center', backgroundColor: lookupIssue === 'needs_label' ? colors.greenSoft : colors.amberSoft, borderRadius: radius.pill, height: 34, justifyContent: 'center', width: 34 }}>
-                    {lookupIssue === 'needs_label' ? <ScanText color={colors.green} size={18} strokeWidth={2.6} /> : <Barcode color={colors.amber} size={18} strokeWidth={2.6} />}
+                  <View style={{
+                    alignItems: 'center',
+                    backgroundColor: lookupIssue === 'needs_label' ? colors.accentWash : colors.warnWash,
+                    borderRadius: radius.md,
+                    height: 34,
+                    justifyContent: 'center',
+                    width: 34,
+                  }}>
+                    {lookupIssue === 'needs_label'
+                      ? <ScanText color={colors.accent} size={16} strokeWidth={2} />
+                      : <Barcode color={colors.warn} size={16} strokeWidth={2} />}
                   </View>
-                  <Text style={{ color: colors.black, flex: 1, fontSize: typography.body, fontWeight: '900' }}>{lookupIssue === 'needs_label' ? 'Etiquette requise' : 'Produit introuvable'}</Text>
+                  <Text style={{ color: colors.ink, flex: 1, fontSize: typography.body, fontWeight: '700' }}>
+                    {lookupIssue === 'needs_label' ? t.labelRequired : t.productNotFound}
+                  </Text>
                 </View>
-                <Text style={{ color: colors.muted, fontSize: typography.small, fontWeight: '800', lineHeight: 18 }}>
+                <Text style={{ color: colors.muted, fontSize: typography.small, lineHeight: 18 }}>
                   {lookupIssue === 'needs_label'
-                    ? "La base produit n'a pas assez de valeurs nutritionnelles. Cadre le tableau par 100 g pour creer la fiche."
-                    : "Essaie un autre angle, entre le code ou scanne l'etiquette nutritionnelle."}
+                    ? t.labelRequiredDetail
+                    : t.productNotFoundDetail}
                 </Text>
                 <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm }}>
                   <SheetAction
                     icon={RefreshCw}
-                    label="Reessayer"
+                    label={t.tryAgain}
                     onPress={() => {
                       setScanned(false);
                       setLookupIssue(null);
                     }}
                     tone="dark"
                   />
-                  <SheetAction icon={ScanText} label="Scanner l'etiquette" onPress={() => switchMode('label')} tone="green" />
-                  <SheetAction icon={Keyboard} label="Entrer le code" onPress={openManualBarcodeEntry} />
-                  <SheetAction icon={Camera} label="Ajouter manuellement" onPress={onManualMeal} tone="outline" />
+                  <SheetAction icon={ScanText} label={t.scanLabel} onPress={() => switchMode('label')} tone="green" />
+                  <SheetAction icon={Keyboard} label={t.enterCode} onPress={openManualBarcodeEntry} />
+                  <SheetAction icon={Camera} label={t.addManually} onPress={onManualMeal} tone="outline" />
                 </View>
               </View>
             ) : null}
 
+            {/* Guidance card */}
             {guidanceOpen && !lookupIssue ? (
-              <View style={{ backgroundColor: colors.scannerGlass, borderColor: 'rgba(255,255,255,0.42)', borderRadius: radius.lg, borderWidth: 1, gap: spacing.md, padding: spacing.md }}>
+              <View style={{ backgroundColor: colors.scannerGlass, borderColor: 'rgba(255,255,255,0.30)', borderRadius: radius.lg, borderWidth: 1, gap: spacing.md, padding: spacing.md }}>
                 <View style={{ alignItems: 'center', flexDirection: 'row', gap: spacing.sm }}>
-                  <View style={{ alignItems: 'center', backgroundColor: colors.greenSoft, borderRadius: radius.pill, height: 34, justifyContent: 'center', width: 34 }}>
-                    <Sparkles color={colors.green} size={18} strokeWidth={2.6} />
+                  <View style={{ alignItems: 'center', backgroundColor: colors.accentWash, borderRadius: radius.md, height: 34, justifyContent: 'center', width: 34 }}>
+                    <Sparkles color={colors.accent} size={16} strokeWidth={2} />
                   </View>
-                  <Text style={{ color: colors.black, flex: 1, fontSize: typography.body, fontWeight: '900' }}>Tips pour un meilleur scan</Text>
+                  <Text style={{ color: colors.ink, flex: 1, fontSize: typography.body, fontWeight: '700' }}>{t.tipsTitle}</Text>
                 </View>
                 <View style={{ gap: spacing.sm }}>
-                  <SheetTip icon={Sun} label="Utilise une lumiere naturelle" />
-                  <SheetTip icon={Camera} label="Garde tout le plat dans le cadre" />
-                  <SheetTip icon={ScanText} label="Evite flou, ombres et angles extremes" />
+                  <SheetTip icon={Sun} label={t.tipLight} />
+                  <SheetTip icon={Camera} label={t.tipFrame} />
+                  <SheetTip icon={ScanText} label={t.tipBlur} />
                 </View>
-                <Pressable onPress={() => setGuidanceOpen(false)} style={{ alignItems: 'center', backgroundColor: colors.black, borderRadius: radius.pill, minHeight: 44, justifyContent: 'center' }}>
-                  <Text style={{ color: 'white', fontSize: typography.small, fontWeight: '900' }}>Compris</Text>
+                <Pressable
+                  onPress={() => setGuidanceOpen(false)}
+                  style={({ pressed }) => ({
+                    alignItems: 'center',
+                    backgroundColor: colors.night,
+                    borderRadius: radius.md,
+                    minHeight: 44,
+                    justifyContent: 'center',
+                    opacity: pressed ? 0.8 : 1,
+                  })}
+                >
+                  <Text style={{ color: '#FFFFFF', fontSize: typography.small, fontWeight: '700' }}>{t.gotIt}</Text>
                 </Pressable>
               </View>
             ) : null}
 
+            {/* Manual barcode entry */}
             {mode === 'barcode' && manualEntryOpen ? (
               <View style={{ backgroundColor: colors.scannerGlass, borderRadius: radius.lg, gap: spacing.sm, padding: spacing.md }}>
+                <Eyebrow color={colors.muted}>{t.enterBarcode}</Eyebrow>
                 <TextInput
                   value={manualBarcode}
                   onChangeText={setManualBarcode}
                   keyboardType="number-pad"
-                  placeholder="Entrer le code-barres"
+                  placeholder={t.barcodePlaceholder}
                   placeholderTextColor={colors.muted}
-                  style={{ color: colors.black, fontSize: typography.body, fontWeight: '900', minHeight: 44 }}
+                  style={{ color: colors.ink, fontSize: typography.body, fontWeight: '600', minHeight: 44 }}
                 />
-                <Pressable onPress={submitManualBarcode} style={{ alignItems: 'center', backgroundColor: colors.black, borderRadius: radius.pill, minHeight: 46, justifyContent: 'center' }}>
-                  <Text style={{ color: 'white', fontSize: typography.small, fontWeight: '900' }}>Chercher ce produit</Text>
+                <Pressable
+                  onPress={submitManualBarcode}
+                  style={({ pressed }) => ({
+                    alignItems: 'center',
+                    backgroundColor: colors.night,
+                    borderRadius: radius.md,
+                    minHeight: 46,
+                    justifyContent: 'center',
+                    opacity: pressed ? 0.8 : 1,
+                  })}
+                >
+                  <Text style={{ color: '#FFFFFF', fontSize: typography.small, fontWeight: '700' }}>{t.searchProduct}</Text>
                 </Pressable>
               </View>
             ) : null}
 
+            {/* Mode selector */}
             <View style={{ alignItems: 'center', flexDirection: 'row', gap: spacing.sm, justifyContent: 'center' }}>
               {scannerModes.map((scannerMode) => {
                 const item = getScannerModeConfig(scannerMode);
@@ -384,40 +590,53 @@ export function ScannerScreen({
                     onPress={() => switchMode(scannerMode)}
                     style={{
                       alignItems: 'center',
-                      backgroundColor: isActive ? 'rgba(255,255,255,0.98)' : 'rgba(255,255,255,0.22)',
-                      borderColor: isActive ? 'white' : 'rgba(255,255,255,0.22)',
+                      backgroundColor: isActive ? colors.scannerGlass : 'rgba(255,255,255,0.16)',
+                      borderColor: isActive ? 'rgba(255,255,255,0.80)' : 'rgba(255,255,255,0.18)',
                       borderRadius: radius.md,
                       borderWidth: 1,
                       flex: 1,
                       gap: spacing.xs,
-                      height: 70,
+                      height: 62,
                       justifyContent: 'center',
                       maxWidth: 82,
                     }}
                   >
-                    <Icon color={isActive ? colors.black : 'white'} size={19} strokeWidth={2.4} />
-                    <Text style={{ color: isActive ? colors.black : 'white', fontSize: 10, fontWeight: '900' }}>{item.label}</Text>
+                    <Icon color={isActive ? colors.ink : '#FFFFFF'} size={18} strokeWidth={2} />
+                    <Text style={{ color: isActive ? colors.ink : '#FFFFFF', fontSize: 10, fontWeight: '600' }}>{item.label}</Text>
                   </Pressable>
                 );
               })}
             </View>
 
+            {/* Capture row */}
             <View style={{ alignItems: 'center', flexDirection: 'row', justifyContent: 'space-around' }}>
+              {/* Left action: gallery or manual barcode toggle */}
               <Pressable
                 onPress={mode === 'barcode' ? () => setManualEntryOpen((current) => !current) : onOpenLibrary}
-                style={{ alignItems: 'center', backgroundColor: 'rgba(255,255,255,0.88)', borderRadius: radius.pill, height: 48, justifyContent: 'center', width: 48 }}
+                style={({ pressed }) => ({
+                  alignItems: 'center',
+                  backgroundColor: 'rgba(255,255,255,0.88)',
+                  borderRadius: radius.pill,
+                  height: 48,
+                  justifyContent: 'center',
+                  opacity: pressed ? 0.8 : 1,
+                  width: 48,
+                })}
               >
-                {mode === 'barcode' ? <Keyboard color={colors.black} size={19} strokeWidth={2.4} /> : <ImagePlus color={colors.black} size={19} strokeWidth={2.4} />}
+                {mode === 'barcode'
+                  ? <Keyboard color={colors.ink} size={18} strokeWidth={2} />
+                  : <Image color={colors.ink} size={18} strokeWidth={2} />}
               </Pressable>
 
+              {/* Center: shutter or auto-detect pill */}
               {config.captureType === 'manual_photo' ? (
                 <Pressable
                   disabled={!cameraReady || isCapturing}
                   onPress={captureFrame}
                   style={{
                     alignItems: 'center',
-                    backgroundColor: 'rgba(255,255,255,0.25)',
-                    borderColor: 'white',
+                    backgroundColor: 'rgba(255,255,255,0.22)',
+                    borderColor: '#FFFFFF',
                     borderRadius: radius.pill,
                     borderWidth: 4,
                     height: 82,
@@ -426,55 +645,82 @@ export function ScannerScreen({
                     width: 82,
                   }}
                 >
-                  <View style={{ backgroundColor: isCapturing ? colors.greenSoft : 'white', borderRadius: radius.pill, height: 62, width: 62 }} />
+                  <View style={{ backgroundColor: isCapturing ? colors.accent : '#FFFFFF', borderRadius: radius.pill, height: 62, width: 62 }} />
                 </Pressable>
               ) : (
-                <View style={{ alignItems: 'center', backgroundColor: colors.scannerPanel, borderColor: 'rgba(255,255,255,0.3)', borderRadius: radius.pill, borderWidth: 1, height: 64, justifyContent: 'center', paddingHorizontal: spacing.md, width: 138 }}>
-                  <Text style={{ color: 'white', fontSize: typography.small, fontWeight: '900', textAlign: 'center' }}>{scanned ? 'Recherche...' : 'Detection automatique'}</Text>
+                <View style={{ alignItems: 'center', backgroundColor: colors.scannerPanel, borderColor: 'rgba(255,255,255,0.24)', borderRadius: radius.pill, borderWidth: 1, height: 64, justifyContent: 'center', paddingHorizontal: spacing.md, width: 138 }}>
+                  <Text style={{ color: '#FFFFFF', fontSize: typography.small, fontWeight: '600', textAlign: 'center' }}>{scanned ? t.searching : t.autoDetection}</Text>
                 </View>
               )}
 
-              <Pressable onPress={onManualMeal} style={{ alignItems: 'center', backgroundColor: 'rgba(255,255,255,0.88)', borderRadius: radius.pill, height: 48, justifyContent: 'center', width: 48 }}>
-                <Text style={{ color: colors.black, fontSize: 22, fontWeight: '900' }}>+</Text>
+              {/* Right action: more options sheet */}
+              <Pressable
+                onPress={() => setMoreOpen(true)}
+                style={({ pressed }) => ({
+                  alignItems: 'center',
+                  backgroundColor: 'rgba(255,255,255,0.88)',
+                  borderRadius: radius.pill,
+                  height: 48,
+                  justifyContent: 'center',
+                  opacity: pressed ? 0.8 : 1,
+                  width: 48,
+                })}
+              >
+                <List color={colors.ink} size={18} strokeWidth={2} />
               </Pressable>
             </View>
           </View>
         </View>
       </View>
+      {moreOpen ? (
+        <>
+          <Pressable onPress={() => setMoreOpen(false)} style={{ ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(8,10,12,0.5)' }} />
+          <View style={{ backgroundColor: colors.surface, borderTopLeftRadius: 22, borderTopRightRadius: 22, bottom: 0, left: 0, paddingBottom: spacing.xxl, paddingHorizontal: spacing.lg, paddingTop: spacing.md, position: 'absolute', right: 0 }}>
+            <View style={{ alignSelf: 'center', backgroundColor: colors.line2, borderRadius: 3, height: 4, marginBottom: spacing.md, width: 40 }} />
+            <Eyebrow style={{ marginBottom: spacing.sm }}>{t.moreOptions}</Eyebrow>
+            {onOpenRecipeImport ? (
+              <MoreRow icon={Sparkles} label={t.importRecipe} detail={t.importTag} divider={false} onPress={() => { setMoreOpen(false); onOpenRecipeImport(); }} />
+            ) : null}
+            <MoreRow icon={Search} label={t.searchFood} detail={t.usdaBase} divider={Boolean(onOpenRecipeImport)} onPress={() => { setMoreOpen(false); onOpenFoodSearch?.(); }} />
+            <MoreRow icon={PencilLine} label={t.manualEntry} divider onPress={() => { setMoreOpen(false); onManualMeal(); }} />
+            <MoreRow icon={Scale} label={t.weighedRecipe} detail={t.verifiedTag} divider onPress={() => { setMoreOpen(false); onOpenVerifiedRecipe?.(); }} />
+          </View>
+        </>
+      ) : null}
     </View>
   );
 }
 
 const cornerBase = {
-  borderColor: 'white',
-  height: 42,
+  borderColor: 'rgba(255,255,255,0.90)',
+  height: 40,
   position: 'absolute' as const,
-  width: 42,
+  width: 40,
 };
 
 const styles = StyleSheet.create({
   corner: cornerBase,
   cornerTopLeft: {
-    borderLeftWidth: 3,
-    borderTopWidth: 3,
+    borderLeftWidth: 2.5,
+    borderTopWidth: 2.5,
     left: 0,
     top: 0,
   },
   cornerTopRight: {
-    borderRightWidth: 3,
-    borderTopWidth: 3,
+    borderRightWidth: 2.5,
+    borderTopWidth: 2.5,
     right: 0,
     top: 0,
   },
   cornerBottomLeft: {
-    borderBottomWidth: 3,
-    borderLeftWidth: 3,
+    borderBottomWidth: 2.5,
+    borderLeftWidth: 2.5,
     bottom: 0,
     left: 0,
   },
   cornerBottomRight: {
-    borderBottomWidth: 3,
-    borderRightWidth: 3,
+    borderBottomWidth: 2.5,
+    borderRightWidth: 2.5,
     bottom: 0,
     right: 0,
   },

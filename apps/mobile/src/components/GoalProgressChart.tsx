@@ -19,7 +19,7 @@ export function GoalProgressChart({ progress }: Props) {
     id: point.isoDate,
     label: point.label,
     value: point.weightKg,
-    detail: point.logged ? `${point.calories} kcal loggees` : progress.insight,
+    detail: point.logged ? `${point.calories} kcal logged` : progress.insight,
     highlighted: point.logged,
   }));
 
@@ -33,7 +33,7 @@ export function GoalProgressChart({ progress }: Props) {
       </View>
 
       <InteractiveLineChart
-        emptyLabel="Log tes repas pour afficher ta courbe."
+        emptyLabel="Log meals to show your curve."
         initialSelectedIndex={latestLoggedIndex}
         points={chartPoints}
         targetValue={progress.targetWeightKg}

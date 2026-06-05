@@ -1,6 +1,6 @@
 import type { ConfidenceTier, RawMealAnalysis } from './openaiMealAnalyzer.ts';
 
-type CorrectionType = 'portion_up' | 'portion_down' | 'add_oil' | 'add_sauce' | 'remove_item';
+type CorrectionType = 'portion_up' | 'portion_down' | 'portion_half' | 'add_oil' | 'add_sauce' | 'add_cheese' | 'remove_item';
 
 type NutritionProfile = {
   calories: number;
@@ -48,12 +48,18 @@ const PROFILES: Array<{ patterns: RegExp[]; profile: NutritionProfile }> = [
   { patterns: [/greek yogurt granola berries meal|muesli yogurt meal/i], profile: { calories: 420, proteinG: 24, carbsG: 55, fatG: 13, fiberG: 8 } },
   { patterns: [/ham butter baguette meal|jambon beurre meal/i], profile: { calories: 650, proteinG: 30, carbsG: 88, fatG: 24, fiberG: 5 } },
   { patterns: [/brioche chocolate spread meal|brioche nutella meal/i], profile: { calories: 560, proteinG: 11, carbsG: 75, fatG: 26, fiberG: 4 } },
+  { patterns: [/toast butter jam meal|tartines beurre confiture meal/i], profile: { calories: 430, proteinG: 9, carbsG: 68, fatG: 15, fiberG: 4 } },
+  { patterns: [/pain au chocolat meal|chocolate croissant meal/i], profile: { calories: 370, proteinG: 8, carbsG: 45, fatG: 21, fiberG: 3 } },
+  { patterns: [/apple turnover meal|chausson aux pommes meal/i], profile: { calories: 390, proteinG: 5, carbsG: 52, fatG: 19, fiberG: 3 } },
   { patterns: [/baguette camembert meal/i], profile: { calories: 430, proteinG: 18, carbsG: 62, fatG: 15, fiberG: 4 } },
   { patterns: [/grilled chicken rice green beans meal/i], profile: { calories: 560, proteinG: 50, carbsG: 62, fatG: 14, fiberG: 6 } },
   { patterns: [/salmon quinoa broccoli meal/i], profile: { calories: 720, proteinG: 48, carbsG: 60, fatG: 35, fiberG: 10 } },
+  { patterns: [/quiche lorraine slice meal/i], profile: { calories: 520, proteinG: 20, carbsG: 35, fatG: 38, fiberG: 2 } },
+  { patterns: [/gratin dauphinois ham meal/i], profile: { calories: 760, proteinG: 32, carbsG: 68, fatG: 42, fiberG: 6 } },
   { patterns: [/lentil sausage stew meal|chili rice meal/i], profile: { calories: 820, proteinG: 40, carbsG: 75, fatG: 38, fiberG: 18 } },
   { patterns: [/lemon meringue tart slice meal/i], profile: { calories: 450, proteinG: 6, carbsG: 65, fatG: 20, fiberG: 2 } },
   { patterns: [/crepe chocolate banana meal/i], profile: { calories: 650, proteinG: 12, carbsG: 95, fatG: 24, fiberG: 5 } },
+  { patterns: [/chocolate fondant meal|fondant chocolat meal/i], profile: { calories: 520, proteinG: 8, carbsG: 60, fatG: 34, fiberG: 4 } },
   { patterns: [/vegetable soup bread cheese meal/i], profile: { calories: 510, proteinG: 22, carbsG: 60, fatG: 22, fiberG: 10 } },
   { patterns: [/steak potato salad meal/i], profile: { calories: 630, proteinG: 42, carbsG: 60, fatG: 24, fiberG: 7 } },
   { patterns: [/pizza queen slices meal|pizza slice meal/i], profile: { calories: 880, proteinG: 38, carbsG: 105, fatG: 42, fiberG: 7 } },
@@ -196,7 +202,7 @@ function rawItemToCalibratedItem(raw: RawMealAnalysis, item: RawMealAnalysis['it
     carbsG: roundMacro(macros.carbsG),
     fatG: roundMacro(macros.fatG),
     fiberG: roundMacro(macros.fiberG),
-    confidence: item.confidence,
+    confidence: item.portionConfidence ? mergeConfidence(item.confidence, item.portionConfidence) : item.confidence,
   };
 }
 
@@ -233,14 +239,17 @@ function mealText(raw: RawMealAnalysis): string {
   const itemText = raw.items
     .flatMap((item) => [item.name, item.canonicalFoodName])
     .join(' ');
+  const candidateText = (raw.candidateMeals ?? [])
+    .filter((candidate) => candidate.confidence !== 'low')
+    .map((candidate) => candidate.name)
+    .join(' ');
 
   return [
     raw.mealName,
     raw.mealCategory,
     raw.portionSize,
-    raw.hiddenCalorieRisks.join(' '),
-    raw.uncertaintyReasons.join(' '),
     itemText,
+    candidateText,
   ]
     .join(' ')
     .toLowerCase();
@@ -254,12 +263,55 @@ function visibleMealText(raw: RawMealAnalysis): string {
   return [
     raw.mealName,
     raw.portionSize,
-    raw.hiddenCalorieRisks.join(' '),
-    raw.uncertaintyReasons.join(' '),
     itemText,
   ]
     .join(' ')
     .toLowerCase();
+}
+
+function scanPreflightReasons(raw: RawMealAnalysis): string[] {
+  const reasons: string[] = [];
+
+  if (raw.scanRoute && raw.scanRoute !== 'meal') {
+    reasons.push(`scan_route_${raw.scanRoute}`);
+  }
+
+  if (raw.visualQuality === 'poor') {
+    reasons.push('image_quality_poor');
+  } else if (raw.visualQuality === 'usable') {
+    reasons.push('image_quality_usable');
+  }
+
+  if (raw.portionAmbiguity === 'high') {
+    reasons.push('portion_ambiguity_high');
+  } else if (raw.portionAmbiguity === 'medium') {
+    reasons.push('portion_ambiguity_medium');
+  }
+
+  if (raw.needsUserQuestion && raw.followUpQuestion?.trim()) {
+    reasons.push(`needs_user_answer:${raw.followUpQuestion.trim()}`);
+  }
+
+  return reasons;
+}
+
+function confidenceForScanPreflight(raw: RawMealAnalysis): ConfidenceTier {
+  if (
+    raw.visualQuality === 'poor' ||
+    raw.portionAmbiguity === 'high' ||
+    raw.scanRoute === 'barcode' ||
+    raw.scanRoute === 'nutrition_label' ||
+    raw.scanRoute === 'packaged' ||
+    raw.scanRoute === 'unclear'
+  ) {
+    return 'low';
+  }
+
+  if (raw.visualQuality === 'usable' || raw.portionAmbiguity === 'medium' || raw.needsUserQuestion) {
+    return 'medium';
+  }
+
+  return raw.confidence;
 }
 
 function replaceWithTemplate(
@@ -297,21 +349,38 @@ function applyKnownDishTemplate(raw: RawMealAnalysis, items: CalibratedItem[], r
     }
   };
 
+  if ((raw.visualQuality === 'poor' && raw.confidence === 'low') || raw.scanRoute === 'unclear' || raw.scanRoute === 'non_food') {
+    return raw.confidence;
+  }
+
   const applyComposite = (name: string, canonicalFoodName: string, confidence: ConfidenceTier = 'low') => {
     applyCompositeTemplate(items, { name, canonicalFoodName, confidence });
     addReason();
     return confidence;
   };
 
+  if (/pain au chocolat|chocolate croissant|chocolate pastry/i.test(text)) {
+    return applyComposite('Pain au chocolat estime', 'pain au chocolat meal', 'medium');
+  }
+
+  if (/chausson|apple turnover|apple pastry/i.test(text)) {
+    return applyComposite('Chausson aux pommes estime', 'apple turnover meal', 'medium');
+  }
+
+  if (/tartine|toast/i.test(text) && /butter|beurre|jam|confiture/i.test(text)) {
+    return applyComposite('Tartines beurre confiture estimees', 'toast butter jam meal');
+  }
+
   if (
     /jambon[-\s]?beurre|ham and butter|ham butter baguette|baguette.*ham.*butter|ham.*sandwich.*butter|sandwich.*ham.*butter|jambon.*sandwich|sandwich.*jambon/i.test(
       text,
-    )
+    ) ||
+    ((/ham|jambon/i.test(text) && /baguette|sandwich|bread|pain/i.test(text) && /butter|beurre/i.test(text)))
   ) {
     return applyComposite('Demi-baguette jambon beurre estimee', 'ham butter baguette meal');
   }
 
-  if (/brioche/i.test(text) || (/nutella|chocolate spread|spread/i.test(text) && /toast|bread|pain/i.test(text))) {
+  if (/brioche/i.test(text) || (/nutella|chocolate spread|spread/i.test(text) && /toast|bread|pain|loaf|slice/i.test(text))) {
     return applyComposite('Brioche Nutella estimee', 'brioche chocolate spread meal');
   }
 
@@ -323,10 +392,26 @@ function applyKnownDishTemplate(raw: RawMealAnalysis, items: CalibratedItem[], r
     return applyComposite('Soupe pain fromage estimee', 'vegetable soup bread cheese meal');
   }
 
+  if (/quiche/i.test(text) && /lorraine|slice|bacon|cream|creme/i.test(text)) {
+    return applyComposite('Part de quiche lorraine estimee', 'quiche lorraine slice meal');
+  }
+
+  if (/gratin|dauphinois/i.test(text) || (/potato|pomme/i.test(text) && /ham|jambon/i.test(text) && /cream|cheese|fromage|creme/i.test(text))) {
+    return applyComposite('Gratin dauphinois jambon estime', 'gratin dauphinois ham meal');
+  }
+
   if (
     /steak|beef patty|ground beef|boeuf|b\u0153uf/i.test(visibleText) &&
     /pomme|potato|salad|salade|greens/i.test(visibleText) &&
     !/fries|frites/i.test(visibleText)
+  ) {
+    return applyComposite('Steak pommes de terre salade estime', 'steak potato salad meal', 'medium');
+  }
+
+  if (
+    /steak|beef patty|ground beef|boeuf|b\u0153uf/i.test(visibleText) &&
+    !/burger|fries|frites/i.test(visibleText) &&
+    (raw.mealCategory === 'mixed_plate' || raw.mealCategory === 'burger_fries')
   ) {
     return applyComposite('Steak pommes de terre salade estime', 'steak potato salad meal', 'medium');
   }
@@ -355,7 +440,7 @@ function applyKnownDishTemplate(raw: RawMealAnalysis, items: CalibratedItem[], r
     return 'low';
   }
 
-  if (raw.mealCategory !== 'poke_bowl' && /salmon|saumon/i.test(text) && /quinoa|broccoli|brocoli/i.test(text)) {
+  if (raw.mealCategory !== 'poke_bowl' && /salmon|saumon/i.test(text) && (/quinoa|broccoli|brocoli/i.test(text) || raw.mealCategory === 'mixed_plate')) {
     return applyComposite('Saumon quinoa brocoli estime', 'salmon quinoa broccoli meal', 'medium');
   }
 
@@ -367,7 +452,7 @@ function applyKnownDishTemplate(raw: RawMealAnalysis, items: CalibratedItem[], r
     return applyComposite('Lentilles saucisse estimees', 'lentil sausage stew meal');
   }
 
-  if (/bo bun|b[o\u00f2] b[u\u00fa]n|bun bo|vermicelli/i.test(text) && /beef|boeuf|b\u0153uf/i.test(text)) {
+  if (/bo bun|b[o\u00f2] b[u\u00fa]n|bun bo|vermicelli|rice noodle|noodle/i.test(text) && /beef|boeuf|b\u0153uf/i.test(text)) {
     return applyComposite('Bo bun boeuf estime', 'bo bun beef meal');
   }
 
@@ -401,7 +486,7 @@ function applyKnownDishTemplate(raw: RawMealAnalysis, items: CalibratedItem[], r
 
   if (
     /chevre chaud|goat cheese salad|goat cheese|cheese toast|toast.*cheese|warm cheese|fromage.*toast|toast.*fromage/i.test(text) &&
-    /salad|salade|lettuce|greens|plateau/i.test(text)
+    (/salad|salade|lettuce|greens|plateau|toast|bread/i.test(text) || raw.mealCategory === 'salad')
   ) {
     return applyComposite('Salade chevre chaud estimee', 'goat cheese salad meal');
   }
@@ -418,6 +503,10 @@ function applyKnownDishTemplate(raw: RawMealAnalysis, items: CalibratedItem[], r
     return applyComposite('Crepe Nutella banane estimee', 'crepe chocolate banana meal');
   }
 
+  if (/fondant|lava cake|chocolate cake/i.test(text)) {
+    return applyComposite('Fondant chocolat estime', 'chocolate fondant meal', 'medium');
+  }
+
   if (/salade composee|composed salad|pasta salad|vegetable pasta salad/i.test(text)) {
     return applyComposite('Salade composee estimee', 'composed salad meal', 'medium');
   }
@@ -426,7 +515,7 @@ function applyKnownDishTemplate(raw: RawMealAnalysis, items: CalibratedItem[], r
     return applyComposite('Assiette buffet mixte estimee', 'buffet mixed plate meal');
   }
 
-  if (/fromage|cheese/i.test(text) && /pain|bread/i.test(text) && /vin|wine|aperitif|ap(?:e|\u00e9)ritif/i.test(text)) {
+  if (/fromage|cheese/i.test(text) && /pain|bread/i.test(text) && (/vin|wine|aperitif|ap(?:e|\u00e9)ritif/i.test(text) || raw.mealCategory === 'mixed_plate')) {
     return applyComposite('Fromage pain aperitif estime', 'cheese bread aperitif meal');
   }
 
@@ -434,16 +523,16 @@ function applyKnownDishTemplate(raw: RawMealAnalysis, items: CalibratedItem[], r
     return applyComposite('Raclette assiette estimee', 'raclette plate meal');
   }
 
-  if (/muesli|granola|greek yogurt|yaourt grec|yogurt fruit|fruit bowl/i.test(text)) {
-    return applyComposite('Yaourt grec granola fruits estime', 'greek yogurt granola berries meal', 'medium');
-  }
-
   if (/skyr/i.test(text) || (/yogurt|yaourt/i.test(text) && /banana|banane/i.test(text) && !/granola|muesli|berries|berry|fruit bowl/i.test(text))) {
     return applyComposite('Skyr banane estime', 'skyr banana meal', 'high');
   }
 
-  if (/protein bar|protein bars|barre proteinee|energy bar|chocolate coated protein bar|snack bars/i.test(text)) {
+  if (/protein bar|protein bars|barre proteinee|energy bar|chocolate coated protein bar|snack bars|granola bar|cereal bar/i.test(text)) {
     return applyComposite('Barre proteinee chocolat estimee', 'chocolate protein bar meal', 'medium');
+  }
+
+  if (/muesli|granola|greek yogurt|yaourt grec|yogurt fruit|fruit bowl/i.test(text)) {
+    return applyComposite('Yaourt grec granola fruits estime', 'greek yogurt granola berries meal', 'medium');
   }
 
   if (/sandwich/i.test(text) && /chicken|poulet|crudite|crudites|lettuce|tomato|avocado|bacon/i.test(text)) {
@@ -507,7 +596,8 @@ function applyKnownDishTemplate(raw: RawMealAnalysis, items: CalibratedItem[], r
   if (
     /chicken|poulet/i.test(text) &&
     /rice|riz/i.test(text) &&
-    /vegetable|vegetables|legume|legumes|broccoli|brocoli|bell pepper|pepper|poivron/i.test(text)
+    !/curry|katsu|coco|coconut|pad thai|couscous/i.test(text) &&
+    (/vegetable|vegetables|legume|legumes|broccoli|brocoli|bell pepper|pepper|poivron/i.test(text) || raw.mealCategory === 'mixed_plate')
   ) {
     replaceWithTemplate(items, [
       { name: 'Poulet estime', canonicalFoodName: 'chicken breast cooked', grams: 130, confidence: 'low' },
@@ -639,16 +729,40 @@ function confidenceForAmbiguity(raw: RawMealAnalysis): ConfidenceTier {
   return raw.confidence;
 }
 
-function confidenceRange(confidence: ConfidenceTier, hiddenRiskCount: number) {
+function confidenceForPackagedPhoto(raw: RawMealAnalysis, reasons: string[]): ConfidenceTier {
+  if (raw.mealCategory !== 'packaged') {
+    return raw.confidence;
+  }
+
+  if (!reasons.includes('packaged_food_barcode_or_label_preferred')) {
+    reasons.push('packaged_food_barcode_or_label_preferred');
+  }
+
+  return 'low';
+}
+
+function confidenceRange(confidence: ConfidenceTier, hiddenRiskCount: number, raw: RawMealAnalysis) {
+  const preflightPenalty =
+    (raw.visualQuality === 'poor' ? 1 : 0) +
+    (raw.portionAmbiguity === 'high' ? 1 : 0) +
+    (raw.scanRoute === 'unclear' ? 1 : 0) +
+    (raw.needsUserQuestion ? 1 : 0);
+
   if (confidence === 'high') {
     return { low: 0.92, high: 1.1 };
   }
 
   if (confidence === 'medium') {
-    return { low: 0.85, high: hiddenRiskCount > 0 ? 1.25 : 1.18 };
+    return {
+      low: preflightPenalty > 0 ? 0.8 : 0.85,
+      high: hiddenRiskCount > 0 || preflightPenalty > 0 ? 1.28 : 1.18,
+    };
   }
 
-  return { low: 0.75, high: hiddenRiskCount > 0 ? 1.35 : 1.28 };
+  return {
+    low: preflightPenalty >= 2 ? 0.68 : 0.75,
+    high: hiddenRiskCount > 0 || preflightPenalty > 0 ? 1.42 : 1.28,
+  };
 }
 
 function mergeConfidence(a: ConfidenceTier, b: ConfidenceTier): ConfidenceTier {
@@ -668,18 +782,26 @@ export function isNonFoodAnalysis(raw: RawMealAnalysis): boolean {
 export function calibrateMealAnalysis(raw: RawMealAnalysis): CalibratedMealAnalysis {
   const items = raw.items.map((item) => rawItemToCalibratedItem(raw, item));
   const uncertaintyReasons = [...raw.uncertaintyReasons];
+  for (const reason of scanPreflightReasons(raw)) {
+    if (!uncertaintyReasons.includes(reason)) {
+      uncertaintyReasons.push(reason);
+    }
+  }
   let confidence = raw.confidence;
 
+  confidence = mergeConfidence(confidence, confidenceForScanPreflight(raw));
   confidence = mergeConfidence(confidence, applyPokeBowlRules(raw, items, uncertaintyReasons));
   confidence = mergeConfidence(confidence, applyKnownDishTemplate(raw, items, uncertaintyReasons));
   confidence = mergeConfidence(confidence, confidenceForAmbiguity(raw));
+  confidence = mergeConfidence(confidence, confidenceForPackagedPhoto(raw, uncertaintyReasons));
 
   const totals = sumItems(items);
-  const range = confidenceRange(confidence, raw.hiddenCalorieRisks.length);
+  const range = confidenceRange(confidence, raw.hiddenCalorieRisks.length, raw);
 
   const correctionSuggestions: CalibratedMealAnalysis['correctionSuggestions'] = [
     { id: 'portion-up', label: 'Portion +15%', correctionType: 'portion_up', targetItemId: null },
     { id: 'portion-down', label: 'Portion -15%', correctionType: 'portion_down', targetItemId: null },
+    { id: 'portion-half', label: 'Ate half', correctionType: 'portion_half', targetItemId: null },
   ];
 
   const hiddenRiskText = raw.hiddenCalorieRisks.join(' ').toLowerCase();
@@ -688,6 +810,9 @@ export function calibrateMealAnalysis(raw: RawMealAnalysis): CalibratedMealAnaly
   }
   if (/sauce|dressing|vinaigrette/.test(hiddenRiskText) || raw.mealCategory === 'poke_bowl') {
     correctionSuggestions.push({ id: 'add-sauce', label: 'Sauce ajoutee', correctionType: 'add_sauce', targetItemId: null });
+  }
+  if (/cheese|fromage|parmesan|chevre/.test(hiddenRiskText)) {
+    correctionSuggestions.push({ id: 'add-cheese', label: 'Cheese added', correctionType: 'add_cheese', targetItemId: null });
   }
 
   return {

@@ -1,6 +1,6 @@
 import { calculateMealStreak } from '../domain/streaks';
 import { buildGoalProgress } from '../domain/goalProgress';
-import { buildHomeStreakTimeline } from '../domain/homeStreak';
+import { buildHomeStreakCalendar } from '../domain/homeStreak';
 import type { MacroTargets, Meal, UserProfile } from '../domain/types';
 import { buildDailySummary } from './dashboardViewModel';
 
@@ -22,10 +22,10 @@ export function buildPremiumDashboardViewModel(
   const summary = buildDailySummary(meals, todayIsoDate, targets);
   const calorieTarget = targets?.calorieTarget ?? 0;
   const proteinTarget = targets?.proteinTargetG ?? 0;
-  const streakCalendar = buildHomeStreakTimeline(meals, todayIsoDate);
+  const streakCalendar = buildHomeStreakCalendar(meals, todayIsoDate);
 
   return {
-    dateLabel: 'Aujourd hui',
+    dateLabel: 'Today',
     streakCalendar,
     goalProgress: profile ? buildGoalProgress(meals, profile, todayIsoDate, goalProgressDays) : null,
     calories: {
@@ -51,7 +51,7 @@ export function buildPremiumDashboardViewModel(
     },
     streakDays: calculateMealStreak(meals, todayIsoDate),
     nextBadge: {
-      label: 'Chef Etoile',
+      label: 'Star Chef',
       daysRemaining: 3,
     },
   };

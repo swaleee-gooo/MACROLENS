@@ -1,4 +1,4 @@
-export const NON_FOOD_PHOTO_MESSAGE = 'Je ne vois pas de nourriture sur cette photo. Reprends une photo de ton repas.';
+export const NON_FOOD_PHOTO_MESSAGE = 'I do not see food in this photo. Retake a photo of your meal.';
 
 export class NonFoodPhotoError extends Error {
   readonly userMessage: string;

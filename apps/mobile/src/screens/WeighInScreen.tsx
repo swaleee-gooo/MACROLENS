@@ -1,8 +1,11 @@
 import { useMemo, useState } from 'react';
-import { Pressable, Text, TextInput, View } from 'react-native';
-import { ArrowLeft, CalendarDays, Check } from 'lucide-react-native';
+import { Pressable, ScrollView, Text, View } from 'react-native';
+import { ArrowLeft, Check, Minus, Plus, TrendingDown } from 'lucide-react-native';
+import Svg, { Circle, Polyline } from 'react-native-svg';
 import { calculateMacroTargets } from '../domain/macroTargets';
+import { useLang } from '../i18n/LanguageContext';
 import type { MacroTargets, UserProfile } from '../domain/types';
+import { Card, Eyebrow, Num, PrimaryButton } from '../ui/primitives';
 import { colors, radius, spacing, typography } from '../ui/theme';
 
 type Props = {
@@ -22,16 +25,81 @@ const emptyTargets: MacroTargets = {
   proteinOverrideG: null,
 };
 
+const STR = {
+  en: {
+    back: 'Back',
+    addWeighIn: 'Add weigh-in',
+    addWeighInSubtitle: 'Keep your goal progress up to date.',
+    weightOfDay: 'Weight today',
+    targetWeight: (kg: string) => `Current target: ${kg}`,
+    targetNotSet: 'Current target: not set',
+    trend30: '30-day trend',
+    save: 'Save',
+  },
+  fr: {
+    back: 'Retour',
+    addWeighIn: 'Ajouter une pesée',
+    addWeighInSubtitle: 'Gardez votre progression à jour.',
+    weightOfDay: 'Poids du jour',
+    targetWeight: (kg: string) => `Cible actuelle : ${kg}`,
+    targetNotSet: 'Cible actuelle : non définie',
+    trend30: 'Tendance · 30 jours',
+    save: 'Enregistrer',
+  },
+};
+
 function parseNumber(value: string): number {
   const parsed = Number(value.replace(',', '.'));
   return Number.isFinite(parsed) && parsed > 0 ? parsed : 0;
 }
 
+function TrendChart({ startKg, endKg }: { startKg: number; endKg: number }) {
+  // Illustrative 8-point downward trend from startKg to endKg
+  const points: [number, number][] = [
+    [6, 12],
+    [46, 22],
+    [86, 18],
+    [126, 32],
+    [166, 40],
+    [206, 52],
+    [246, 60],
+    [274, 68],
+  ];
+  const polyPts = points.map(([x, y]) => `${x},${y}`).join(' ');
+  const minKg = Math.min(startKg, endKg);
+  const maxKg = Math.max(startKg, endKg) + 0.5;
+
+  return (
+    <View>
+      <Svg viewBox="0 0 280 90" width="100%" height={90}>
+        <Polyline
+          fill="none"
+          stroke={colors.accent}
+          strokeWidth={2.5}
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          points={polyPts}
+        />
+        {points.map(([x, y], i) => (
+          <Circle key={i} cx={x} cy={y} r={2.6} fill={colors.paper} stroke={colors.accent} strokeWidth={2} />
+        ))}
+      </Svg>
+      <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 6 }}>
+        <Num style={{ color: colors.muted, fontSize: typography.tiny }}>{maxKg.toFixed(1)} kg</Num>
+        <Num style={{ color: colors.muted, fontSize: typography.tiny }}>{minKg.toFixed(1)} kg</Num>
+      </View>
+    </View>
+  );
+}
+
 export function WeighInScreen({ profile, userId, onBack, onSave }: Props) {
-  const [weight, setWeight] = useState(profile?.weightKg ? String(profile.weightKg) : '');
-  const [unit, setUnit] = useState<'kg' | 'lb'>('kg');
-  const weightKg = parseNumber(weight);
+  const { lang } = useLang();
+  const t = STR[lang];
+  const initialWeight = profile?.weightKg ?? 70;
+  const [weightTenths, setWeightTenths] = useState(Math.round(initialWeight * 10));
+  const weightKg = weightTenths / 10;
   const canSave = weightKg >= 35 && weightKg <= 250;
+
   const nextProfile = useMemo(() => {
     if (!canSave) {
       return null;
@@ -62,42 +130,105 @@ export function WeighInScreen({ profile, userId, onBack, onSave }: Props) {
     }
   }
 
+  const todayLabel = new Date().toISOString().slice(0, 10);
+  const targetKg = profile?.targetWeightKg ?? null;
+
   return (
-    <View style={{ backgroundColor: colors.background, flex: 1, justifyContent: 'space-between', padding: spacing.xl }}>
-      <View style={{ gap: spacing.xl }}>
-        <Pressable onPress={onBack} style={{ alignItems: 'center', alignSelf: 'flex-start', flexDirection: 'row', gap: spacing.sm }}>
-          <ArrowLeft color={colors.black} size={24} strokeWidth={2.6} />
-          <Text style={{ color: colors.black, fontSize: typography.body, fontWeight: '900' }}>Back</Text>
+    <View style={{ backgroundColor: colors.background, flex: 1, justifyContent: 'space-between' }}>
+      <ScrollView
+        contentContainerStyle={{ gap: spacing.xl, padding: spacing.xl, paddingBottom: spacing.lg }}
+        showsVerticalScrollIndicator={false}
+      >
+        <Pressable
+          onPress={onBack}
+          style={{ alignItems: 'center', alignSelf: 'flex-start', flexDirection: 'row', gap: spacing.sm }}
+        >
+          <ArrowLeft color={colors.ink} size={22} strokeWidth={2.2} />
+          <Text style={{ color: colors.ink, fontSize: typography.body, fontWeight: '600' }}>{t.back}</Text>
         </Pressable>
-        <View style={{ alignItems: 'center', gap: spacing.xs }}>
-          <Text style={{ color: colors.black, fontSize: typography.small, fontWeight: '900' }}>MACROLENS</Text>
-          <Text style={{ color: colors.black, fontSize: typography.heading, fontWeight: '900', marginTop: spacing.md }}>Add weigh-in</Text>
-          <Text style={{ color: colors.muted, fontSize: typography.small, fontWeight: '800', textAlign: 'center' }}>Keep your goal progress up to date.</Text>
-        </View>
 
-        <View style={{ backgroundColor: colors.surface, borderColor: colors.line, borderRadius: radius.lg, borderWidth: 1, gap: spacing.lg, padding: spacing.xl }}>
-          <View style={{ alignItems: 'center', flexDirection: 'row', gap: spacing.sm }}>
-            <CalendarDays color={colors.muted} size={18} strokeWidth={2.5} />
-            <Text style={{ color: colors.muted, fontSize: typography.small, fontWeight: '900' }}>{new Date().toISOString().slice(0, 10)}</Text>
-          </View>
-          <View style={{ alignItems: 'center', flexDirection: 'row', gap: spacing.md }}>
-            <TextInput value={weight} onChangeText={setWeight} keyboardType="numeric" placeholder="70.0" placeholderTextColor={colors.muted} style={{ color: colors.black, flex: 1, fontSize: typography.hero, fontWeight: '900', minHeight: 82, textAlign: 'center' }} />
-            <View style={{ backgroundColor: colors.surfaceMuted, borderRadius: radius.pill, flexDirection: 'row', padding: spacing.xs }}>
-              {(['kg', 'lb'] as const).map((value) => (
-                <Pressable key={value} onPress={() => setUnit(value)} style={{ alignItems: 'center', backgroundColor: unit === value ? colors.green : 'transparent', borderRadius: radius.pill, minHeight: 34, minWidth: 44, justifyContent: 'center' }}>
-                  <Text style={{ color: unit === value ? 'white' : colors.muted, fontSize: typography.small, fontWeight: '900' }}>{value}</Text>
-                </Pressable>
-              ))}
+        {/* Weight stepper card */}
+        <Card style={{ gap: spacing.sm, padding: spacing.xl, alignItems: 'center' }}>
+          <Eyebrow>{t.weightOfDay}</Eyebrow>
+          <View
+            style={{
+              alignItems: 'center',
+              borderColor: colors.line2,
+              borderRadius: radius.md,
+              borderWidth: 1,
+              flexDirection: 'row',
+              justifyContent: 'space-between',
+              marginVertical: spacing.md,
+              padding: 6,
+              width: '100%',
+            }}
+          >
+            <Pressable
+              onPress={() => setWeightTenths((w) => Math.max(350, w - 1))}
+              style={{
+                alignItems: 'center',
+                backgroundColor: colors.paper2,
+                borderRadius: radius.sm,
+                height: 38,
+                justifyContent: 'center',
+                width: 38,
+              }}
+            >
+              <Minus color={colors.ink} size={18} strokeWidth={2} />
+            </Pressable>
+            <View style={{ alignItems: 'baseline', flexDirection: 'row', gap: 4 }}>
+              <Num style={{ fontSize: 34, fontWeight: '600' }}>{weightKg.toFixed(1)}</Num>
+              <Text style={{ color: colors.muted, fontSize: typography.small }}>kg</Text>
             </View>
+            <Pressable
+              onPress={() => setWeightTenths((w) => Math.min(2500, w + 1))}
+              style={{
+                alignItems: 'center',
+                backgroundColor: colors.paper2,
+                borderRadius: radius.sm,
+                height: 38,
+                justifyContent: 'center',
+                width: 38,
+              }}
+            >
+              <Plus color={colors.ink} size={18} strokeWidth={2} />
+            </Pressable>
           </View>
-          <Text style={{ color: colors.muted, fontSize: typography.small, fontWeight: '800', textAlign: 'center' }}>Current target: {profile?.targetWeightKg ? `${profile.targetWeightKg} kg` : 'not set'}</Text>
-        </View>
-      </View>
+          <Num style={{ color: colors.muted, fontSize: typography.tiny }}>{todayLabel}</Num>
+        </Card>
 
-      <Pressable disabled={!canSave} onPress={save} style={{ alignItems: 'center', backgroundColor: canSave ? colors.black : colors.line, borderRadius: radius.pill, flexDirection: 'row', gap: spacing.sm, minHeight: 58, justifyContent: 'center' }}>
-        <Check color="white" size={20} strokeWidth={2.7} />
-        <Text style={{ color: 'white', fontSize: typography.body, fontWeight: '900' }}>Save</Text>
-      </Pressable>
+        {/* 30-day trend card */}
+        <Card style={{ padding: spacing.lg }}>
+          <View style={{ alignItems: 'center', flexDirection: 'row', justifyContent: 'space-between', marginBottom: spacing.md }}>
+            <Eyebrow>{t.trend30}</Eyebrow>
+            {targetKg !== null && (
+              <View style={{ alignItems: 'center', flexDirection: 'row', gap: 5 }}>
+                <TrendingDown color={colors.accentInk} size={15} strokeWidth={2} />
+                <Num style={{ color: colors.accentInk, fontSize: typography.tiny, fontWeight: '600' }}>
+                  {(weightKg - targetKg).toFixed(1)} kg
+                </Num>
+              </View>
+            )}
+          </View>
+          <TrendChart startKg={weightKg} endKg={targetKg ?? weightKg - 1.2} />
+          <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 6 }}>
+            <Num style={{ color: colors.muted, fontSize: typography.tiny }}>{weightKg.toFixed(1)} kg</Num>
+            <Num style={{ color: colors.muted, fontSize: typography.tiny }}>
+              {targetKg !== null ? t.targetWeight(`${targetKg} kg`) : t.targetNotSet}
+            </Num>
+          </View>
+        </Card>
+      </ScrollView>
+
+      <View style={{ padding: spacing.xl, paddingBottom: spacing.xxl }}>
+        <PrimaryButton
+          label={t.save}
+          onPress={save}
+          variant="dark"
+          disabled={!canSave}
+          icon={<Check color="#FFFFFF" size={18} strokeWidth={2.4} />}
+        />
+      </View>
     </View>
   );
 }

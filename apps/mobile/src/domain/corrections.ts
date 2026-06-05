@@ -4,8 +4,10 @@ import type { FoodItem, Meal } from './types';
 export type MealCorrection =
   | { type: 'portion_up'; targetItemId: string | null }
   | { type: 'portion_down'; targetItemId: string | null }
+  | { type: 'portion_half'; targetItemId: string | null }
   | { type: 'add_oil'; targetItemId: string | null }
   | { type: 'add_sauce'; targetItemId: string | null }
+  | { type: 'add_cheese'; targetItemId: string | null }
   | { type: 'remove_item'; targetItemId: string };
 
 export type MealCorrectionType = MealCorrection['type'];
@@ -51,11 +53,20 @@ export function applyMealCorrection(meal: Meal, correction: MealCorrection): Mea
     });
   }
 
+  if (correction.type === 'portion_half') {
+    return recalculateMeal({
+      ...meal,
+      items: meal.items.map((item) =>
+        appliesToItem(item, correction.targetItemId) ? scaleFoodItem(item, 0.5) : item,
+      ),
+    });
+  }
+
   if (correction.type === 'add_oil') {
     return recalculateMeal(
       addEstimatedItem(meal, {
         id: `${meal.id}-oil-${meal.items.length + 1}`,
-        name: 'Huile de cuisson',
+        name: 'Cooking oil',
         canonicalFoodName: 'olive oil',
         estimatedQuantity: 14,
         unit: 'g',
@@ -85,6 +96,26 @@ export function applyMealCorrection(meal: Meal, correction: MealCorrection): Mea
         fatG: 7,
         fiberG: 0.2,
         confidence: 'low',
+        dataSource: 'estimated',
+        sourceFoodId: null,
+      }),
+    );
+  }
+
+  if (correction.type === 'add_cheese') {
+    return recalculateMeal(
+      addEstimatedItem(meal, {
+        id: `${meal.id}-cheese-${meal.items.length + 1}`,
+        name: 'Cheese',
+        canonicalFoodName: 'cheese',
+        estimatedQuantity: 30,
+        unit: 'g',
+        calories: 112,
+        proteinG: 7,
+        carbsG: 1,
+        fatG: 9,
+        fiberG: 0,
+        confidence: 'medium',
         dataSource: 'estimated',
         sourceFoodId: null,
       }),

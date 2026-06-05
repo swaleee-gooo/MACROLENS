@@ -1,8 +1,10 @@
 import { describe, expect, it, vi } from 'vitest';
 import type { Meal, UserProfile } from '../domain/types';
+import type { CorrectionRecord } from '../metaboproof/correctionLoop';
 import { createMemoryStorageAdapter, createMealRepository } from './mealRepository';
+import { createMetaboProofRepository } from './metaboProofRepository';
 import { createProfileRepository } from './profileRepository';
-import { createSyncedMealRepository, createSyncedProfileRepository } from './cloudSyncRepository';
+import { createSyncedMealRepository, createSyncedMetaboProofRepository, createSyncedProfileRepository } from './cloudSyncRepository';
 
 const meal: Meal = {
   id: 'meal-1',
@@ -69,6 +71,27 @@ function createClient(remoteMeals: Meal[] = [], remoteProfile: UserProfile | nul
   };
 }
 
+function createMetaboProofClient(remoteCorrections: CorrectionRecord[] = []) {
+  const getSession = vi.fn().mockResolvedValue({
+    data: { session: { access_token: 'token', user: { id: 'auth-user' } } },
+    error: null,
+  });
+  const get = vi.fn(async (table: string) => {
+    if (table === 'meal_corrections') {
+      return { data: remoteCorrections.map((payload) => ({ payload })), error: null };
+    }
+
+    return { data: [], error: null };
+  });
+  const upsert = vi.fn().mockResolvedValue({ data: [], error: null });
+  const remove = vi.fn().mockResolvedValue({ data: null, error: null });
+
+  return {
+    auth: { getSession },
+    rest: { get, upsert, delete: remove },
+  };
+}
+
 describe('cloud sync repositories', () => {
   it('lists remote meals, merges them with local meals, and caches the result locally', async () => {
     const storage = createMemoryStorageAdapter();
@@ -119,6 +142,81 @@ describe('cloud sync repositories', () => {
         payload: expect.objectContaining({ id: 'auth-user' }),
       }),
       { onConflict: 'id' },
+    );
+  });
+
+  it('merges local and remote MetaboProof corrections and caches the merged ledger locally', async () => {
+    const local = createMetaboProofRepository(createMemoryStorageAdapter());
+    await local.saveCorrection({
+      id: 'local-correction',
+      userId: 'auth-user',
+      mealId: 'meal-1',
+      itemId: 'item-rice',
+      foodLabel: 'Rice',
+      modelId: 'gpt-4o',
+      field: 'grams',
+      previousValue: 180,
+      nextValue: 240,
+      correctionType: 'portion_up',
+      createdAt: '2026-06-04T10:00:00.000Z',
+    });
+    const client = createMetaboProofClient([
+      {
+        id: 'remote-correction',
+        userId: 'auth-user',
+        mealId: 'meal-2',
+        itemId: 'item-sauce',
+        foodLabel: 'Sauce',
+        modelId: 'gemini-2.5-flash',
+        field: 'portion',
+        previousValue: 1,
+        nextValue: 2,
+        correctionType: 'add_sauce',
+        createdAt: '2026-06-04T11:00:00.000Z',
+      },
+    ]);
+    const repository = createSyncedMetaboProofRepository(local, client);
+
+    const result = await repository.listCorrections('auth-user');
+
+    expect(result.map((record) => record.id)).toEqual(['remote-correction', 'local-correction']);
+    expect((await local.listCorrections('auth-user')).map((record) => record.id)).toEqual(['remote-correction', 'local-correction']);
+    expect(client.rest.get).toHaveBeenCalledWith('meal_corrections', 'select=payload&order=created_at.desc');
+  });
+
+  it('upserts MetaboProof correction rows with user-owned REST columns and payload snapshots', async () => {
+    const local = createMetaboProofRepository(createMemoryStorageAdapter());
+    const client = createMetaboProofClient();
+    const repository = createSyncedMetaboProofRepository(local, client);
+
+    await repository.saveCorrection({
+      id: 'correction-1',
+      userId: 'local-user',
+      mealId: 'meal-1',
+      itemId: 'item-rice',
+      foodLabel: 'Rice',
+      modelId: 'gpt-4o',
+      field: 'grams',
+      previousValue: 180,
+      nextValue: 240,
+      correctionType: 'portion_up',
+      createdAt: '2026-06-04T10:00:00.000Z',
+    });
+
+    expect(client.rest.upsert).toHaveBeenCalledWith(
+      'meal_corrections',
+      expect.objectContaining({
+        user_id: 'auth-user',
+        client_id: 'correction-1',
+        meal_id: 'meal-1',
+        item_id: 'item-rice',
+        food_label: 'Rice',
+        field: 'grams',
+        correction_type: 'portion_up',
+        source_model_id: 'gpt-4o',
+        payload: expect.objectContaining({ id: 'correction-1', userId: 'auth-user' }),
+      }),
+      { onConflict: 'user_id,client_id' },
     );
   });
 });

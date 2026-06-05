@@ -1,0 +1,71 @@
+- generic [ref=e312] [box=0,0,378,1090]:
+  - generic [ref=e313] [box=24,24,330,42]:
+    - img [ref=e315] [cursor=pointer] [box=33,33,24,24]
+    - generic [ref=e317] [box=115,34,86,22]: Scan result
+    - generic [ref=e319] [box=261,38,82,14]: Review needed
+  - generic [ref=e320] [box=24,82,330,122]:
+    - img [ref=e322] [box=69,117,52,52]
+    - generic [ref=e326] [box=182,107,172,71]:
+      - generic [ref=e327] [box=182,107,172,30]: 612-828 kcal
+      - generic [ref=e328] [box=182,141,172,18]: Estimated range
+      - generic [ref=e329] [box=182,163,172,16]: Salmon poke bowl
+  - generic [ref=e330] [box=24,220,330,68]:
+    - generic [ref=e331] [box=24,220,105,68]:
+      - generic [ref=e334] [box=49,233,40,14]: Protein
+      - generic [ref=e335] [box=37,251,79,24]: 39-45g
+    - generic [ref=e336] [box=137,220,105,68]:
+      - generic [ref=e339] [box=162,233,30,14]: Carbs
+      - generic [ref=e340] [box=150,251,79,24]: 63-73g
+    - generic [ref=e341] [box=250,220,105,68]:
+      - generic [ref=e344] [box=274,233,17,14]: Fat
+      - generic [ref=e345] [box=262,251,79,24]: 21-27g
+  - generic [ref=e346] [box=24,304,330,97]:
+    - generic [ref=e347] [box=24,304,330,22]:
+      - generic [ref=e348] [box=24,304,146,22]: Detected foods (1)
+      - generic [ref=e349] [cursor=pointer] [box=311,306,43,18]:
+        - img [ref=e350] [box=311,308,14,14]
+        - generic [ref=e353] [box=329,306,25,18]: Edit
+    - generic [ref=e355] [box=25,338,329,62]:
+      - generic [ref=e356] [cursor=pointer] [box=37,351,261,36]:
+        - generic [ref=e358] [box=47,360,16,18]: SP
+        - generic [ref=e359] [box=85,351,213,36]:
+          - generic [ref=e360] [box=85,351,213,18]: Salmon poke bowl
+          - generic [ref=e361] [box=85,373,213,14]: 720 kcal - 1 portion
+      - img [ref=e363] [cursor=pointer] [box=316,361,16,16]
+  - generic [ref=e366] [cursor=pointer] [box=24,417,330,58]:
+    - img [ref=e367] [box=136,437,19,19]
+    - generic [ref=e371] [box=163,435,79,22]: Save meal
+  - generic [ref=e372] [box=24,491,330,122]:
+    - generic [ref=e373] [box=41,508,297,27]:
+      - generic [ref=e374] [box=41,511,144,22]:
+        - img [ref=e375] [box=41,511,22,22]
+        - generic [ref=e378] [box=71,511,114,22]: Review details
+      - generic [ref=e380] [box=233,513,92,18]: Review needed
+    - generic [ref=e381] [box=41,547,297,20]: Values were entered or corrected manually.
+    - generic [ref=e382] [box=41,579,297,18]: 42g protein
+  - generic [ref=e383] [box=24,630,330,186]:
+    - generic [ref=e384] [box=41,646,297,30]: Why this estimate?
+    - generic [ref=e387] [box=56,688,282,20]: Review visible portions before saving.
+    - generic [ref=e390] [box=56,720,282,40]: Add sauce or oil if they are not clearly visible.
+    - generic [ref=e393] [box=54,777,194,18]: Bigger portion than expected?
+  - generic [ref=e394] [box=24,832,330,190]:
+    - generic [ref=e395] [box=24,832,330,30]: Global corrections
+    - generic [ref=e396] [box=24,874,330,148]:
+      - generic [ref=e397] [cursor=pointer] [box=24,874,101,44]:
+        - img [ref=e398] [box=37,888,16,16]
+        - generic [ref=e402] [box=57,886,55,18]: Ate half
+      - generic [ref=e403] [cursor=pointer] [box=133,874,153,44]:
+        - img [ref=e404] [box=145,888,16,16]
+        - generic [ref=e408] [box=165,886,107,18]: Smaller portion
+      - generic [ref=e409] [cursor=pointer] [box=24,926,146,44]:
+        - img [ref=e410] [box=37,940,16,16]
+        - generic [ref=e414] [box=57,938,100,18]: Larger portion
+      - generic [ref=e415] [cursor=pointer] [box=178,926,112,44]:
+        - img [ref=e416] [box=191,940,16,16]
+        - generic [ref=e419] [box=211,938,67,18]: Added oil
+      - generic [ref=e420] [cursor=pointer] [box=24,978,133,44]:
+        - img [ref=e421] [box=37,992,16,16]
+        - generic [ref=e424] [box=57,990,87,18]: Added sauce
+      - generic [ref=e425] [cursor=pointer] [box=165,978,141,44]:
+        - img [ref=e426] [box=178,992,16,16]
+        - generic [ref=e429] [box=198,990,95,18]: Added cheese

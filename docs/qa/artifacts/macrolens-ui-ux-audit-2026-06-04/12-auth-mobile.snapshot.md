@@ -1,0 +1,29 @@
+- generic [ref=e1177] [box=0,0,394,820]:
+  - generic [ref=e1178] [cursor=pointer] [box=24,24,346,24]:
+    - img [ref=e1179] [box=24,24,24,24]
+    - generic [ref=e1181] [box=52,25,37,22]: Back
+  - generic [ref=e1182] [box=24,72,346,168]:
+    - generic [ref=e1183] [box=24,72,346,112]: Create your account
+    - generic [ref=e1184] [box=24,192,346,48]: Sync your meals, profile, and progress across all your devices.
+  - generic [ref=e1185] [box=24,264,346,116]:
+    - generic [ref=e1186] [cursor=pointer] [box=24,264,346,52]:
+      - img [ref=e1187] [box=37,281,19,19]
+      - generic [ref=e1190] [box=68,279,289,22]: Continue with Apple
+    - generic [ref=e1191] [cursor=pointer] [box=24,328,346,52]:
+      - img [ref=e1192] [box=37,345,19,19]
+      - generic [ref=e1196] [box=68,343,289,22]: Continue with Google
+  - generic [ref=e1197] [box=24,404,346,223]:
+    - generic [ref=e1198] [box=41,421,312,22]:
+      - img [ref=e1199] [box=41,423,18,18]
+      - generic [ref=e1202] [box=67,421,43,22]: Email
+    - textbox "you@example.com" [ref=e1203] [box=41,454,312,48]
+    - textbox "Password" [ref=e1204] [box=41,514,312,48]
+    - generic [ref=e1205] [box=41,574,312,36]:
+      - img [ref=e1206] [box=41,574,16,16]
+      - generic [ref=e1209] [box=65,574,288,36]: Private data, active Supabase RLS, no data resale.
+  - generic [box=24,651,346,58]:
+    - img [ref=e1210] [box=125,671,19,19]
+    - generic [ref=e1213] [box=152,669,117,22]: Create account
+  - generic [ref=e1214] [box=24,733,346,43]:
+    - generic [ref=e1216] [cursor=pointer] [box=116,733,162,18]: I already have an account
+    - generic [ref=e1218] [cursor=pointer] [box=143,759,108,18]: Forgot password

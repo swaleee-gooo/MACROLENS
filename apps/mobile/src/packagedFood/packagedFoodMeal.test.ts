@@ -24,6 +24,7 @@ describe('createPackagedFoodMeal', () => {
     expect(meal.caloriesEstimate).toBe(162);
     expect(meal.proteinG).toBe(1.9);
     expect(meal.items[0].estimatedQuantity).toBe(30);
+    expect(meal.proof?.evidenceLevel).toBe('VERIFIED_BARCODE_WEIGHT');
   });
 
   it('keeps the label photo URI when a meal comes from nutrition label OCR', () => {

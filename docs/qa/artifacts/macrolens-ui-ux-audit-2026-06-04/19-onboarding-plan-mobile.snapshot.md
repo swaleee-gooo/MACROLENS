@@ -1,0 +1,30 @@
+- generic [ref=e4] [box=0,0,394,852]:
+  - generic [ref=e6] [box=0,0,394,734]:
+    - generic [ref=e7] [box=0,0,394,110]:
+      - generic [ref=e8] [box=24,16,346,44]:
+        - generic [ref=e10] [cursor=pointer] [box=36,18,21,39]: <
+        - generic [ref=e11] [box=153,29,88,18]: MACROLENS
+      - generic [ref=e103] [box=24,76,346,18]:
+        - generic [ref=e104] [box=24,78,69,14]: Step 9 of 13
+        - generic [ref=e105] [box=342,76,27,18]: 73%
+    - generic [ref=e325] [box=0,142,394,467]:
+      - generic [ref=e326] [box=24,166,346,160]:
+        - generic [ref=e327] [box=24,166,346,80]: Your personalized plan
+        - generic [ref=e328] [box=24,254,346,72]: Scan restaurant meals, correct portions in seconds, and aim for 145g of protein per day.
+      - generic [ref=e330] [box=41,366,312,201]:
+        - generic [ref=e331] [box=41,366,312,88]:
+          - generic [ref=e332] [box=41,366,312,14]: Daily calories
+          - generic [ref=e333] [box=41,381,312,56]: 2020 kcal
+          - generic [ref=e334] [box=41,437,312,18]: Starting target
+        - generic [ref=e335] [box=41,470,312,38]:
+          - generic [ref=e337] [cursor=pointer] [box=54,481,81,18]: 145g Protein
+          - generic [ref=e339] [cursor=pointer] [box=169,481,70,18]: 218g Carbs
+          - generic [ref=e341] [cursor=pointer] [box=272,481,47,18]: 63g Fat
+        - generic [ref=e342] [box=41,524,312,43]:
+          - img [ref=e344] [box=46,538,17,17]
+          - generic [ref=e346] [box=81,524,272,43]:
+            - generic [ref=e347] [box=81,524,272,22]: High-confidence plan
+            - generic [ref=e348] [box=81,550,272,18]: Based on your answers, weight, and goal.
+  - generic [ref=e350] [cursor=pointer] [box=24,764,346,64]:
+    - generic [ref=e351] [box=139,784,80,24]: Continue
+    - img [ref=e352] [box=231,784,24,24]

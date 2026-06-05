@@ -1,0 +1,83 @@
+- generic [ref=e461] [box=0,0,394,852]:
+  - generic [ref=e996] [box=0,0,378,1468]:
+    - generic [ref=e997] [box=0,0,378,80]:
+      - generic [ref=e998] [box=24,17,246,46]:
+        - img [ref=e999] [box=24,28,24,24]
+        - generic [ref=e1001] [box=56,17,214,46]: MACROLENS
+      - generic [ref=e1003] [box=327,29,8,22]: "1"
+    - generic [ref=e1005] [box=24,104,330,102]:
+      - generic [ref=e1006] [box=24,104,284,102]:
+        - generic [ref=e1007] [box=24,104,284,56]: Profile
+        - generic [ref=e1008] [box=24,160,284,46]: Your MacroLens settings and metrics.
+      - img [ref=e1010] [cursor=pointer] [box=322,146,19,19]
+    - generic [ref=e1014] [box=24,230,330,406]:
+      - generic [ref=e1015] [box=41,247,297,70]:
+        - generic [ref=e1017] [box=58,271,24,22]: ML
+        - generic [ref=e1018] [box=111,247,147,70]:
+          - generic [ref=e1019] [box=111,247,147,48]: MacroLens Member
+          - generic [ref=e1020] [box=111,299,147,18]: Since May 2026
+        - generic [ref=e1021] [cursor=pointer] [box=270,262,68,40]:
+          - img [ref=e1022] [box=282,274,15,15]
+          - generic [ref=e1025] [box=301,273,25,18]: Edit
+      - generic [ref=e1026] [box=41,332,297,286]:
+        - generic [ref=e1027] [box=41,332,297,66]:
+          - img [ref=e1029] [box=63,356,19,19]
+          - generic [ref=e1033] [box=104,345,221,40]:
+            - generic [ref=e1034] [box=104,345,221,14]: Goal
+            - generic [ref=e1035] [box=104,364,221,22]: Lose weight
+        - generic [ref=e1036] [box=41,406,297,66]:
+          - img [ref=e1038] [box=63,429,19,19]
+          - generic [ref=e1041] [box=104,419,221,40]:
+            - generic [ref=e1042] [box=104,419,221,14]: Current weight
+            - generic [ref=e1043] [box=104,437,221,22]: 72.5 kg
+        - generic [ref=e1044] [box=41,480,297,66]:
+          - img [ref=e1046] [box=63,503,19,19]
+          - generic [ref=e1050] [box=104,492,221,40]:
+            - generic [ref=e1051] [box=104,492,221,14]: Target weight
+            - generic [ref=e1052] [box=104,511,221,22]: Not set
+        - generic [ref=e1053] [box=41,553,297,66]:
+          - img [ref=e1055] [box=63,577,19,19]
+          - generic [ref=e1061] [box=104,566,221,40]:
+            - generic [ref=e1062] [box=104,566,221,14]: Activity
+            - generic [ref=e1063] [box=104,584,221,22]: Moderate
+    - generic [ref=e1065] [box=24,660,330,120]:
+      - generic [ref=e1066] [box=41,683,116,74]:
+        - generic [ref=e1067] [box=41,683,116,18]: Current streak
+        - generic [ref=e1068] [box=41,700,116,56]: 1 days
+      - img [ref=e1070] [box=278,702,34,34]
+    - generic [ref=e1072] [box=0,803,378,187]:
+      - generic [ref=e1073] [box=24,803,330,30]: Summary
+      - generic [ref=e1074] [box=24,845,330,82]:
+        - generic [ref=e1075] [box=24,845,159,82]:
+          - generic [ref=e1076] [box=41,862,126,14]: Meals
+          - generic [ref=e1077] [box=41,880,126,30]: "1"
+        - generic [ref=e1078] [box=195,845,159,82]:
+          - generic [ref=e1079] [box=212,862,126,14]: Scans
+          - generic [ref=e1080] [box=212,880,126,30]: "0"
+      - generic [ref=e1082] [cursor=pointer] [box=141,954,97,22]: Saved meals
+    - generic [ref=e1084] [box=24,1014,330,30]: Badges
+    - generic [ref=e1085] [box=0,1080,378,356]:
+      - generic [ref=e1086] [box=24,1080,330,24]: To unlock
+      - generic [ref=e1087] [box=24,1116,330,154]:
+        - img [ref=e1089] [box=177,1153,24,24]
+        - generic [ref=e1093] [box=149,1209,79,18]: 7-day streak
+        - generic [ref=e1094] [box=130,1238,119,14]: Log a meal for 7 days.
+      - generic [ref=e1095] [box=24,1282,330,154]:
+        - img [ref=e1097] [box=177,1319,24,24]
+        - generic [ref=e1101] [box=143,1375,92,18]: 7 protein days
+        - generic [ref=e1102] [box=97,1404,185,14]: Hit your protein target for 7 days.
+  - generic [ref=e709] [box=0,776,394,76]:
+    - generic [ref=e710] [cursor=pointer] [box=0,785,79,55]:
+      - img [ref=e711] [box=28,792,22,22]
+      - generic [ref=e714] [box=23,818,32,14]: Home
+    - generic [ref=e715] [cursor=pointer] [box=79,785,79,55]:
+      - img [ref=e716] [box=107,792,22,22]
+      - generic [ref=e719] [box=94,818,48,14]: Progress
+    - generic "Scan" [ref=e721] [cursor=pointer] [box=165,767,64,64]:
+      - img [ref=e722] [box=184,787,25,25]
+    - generic [ref=e725] [cursor=pointer] [box=236,785,79,55]:
+      - img [ref=e726] [box=265,792,22,22]
+      - generic [ref=e728] [box=255,818,40,14]: History
+    - generic [active] [ref=e729] [cursor=pointer] [box=315,785,79,55]:
+      - img [ref=e730] [box=343,792,22,22]
+      - generic [ref=e733] [box=336,818,37,14]: Profile

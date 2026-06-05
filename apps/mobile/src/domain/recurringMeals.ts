@@ -28,7 +28,7 @@ function lastLoggedLabel(capturedAt: string): string {
   return `${date.getUTCDate().toString().padStart(2, '0')}/${(date.getUTCMonth() + 1).toString().padStart(2, '0')}`;
 }
 
-export function buildRecurringMealSuggestions(meals: Meal[], limit = 4): RecurringMealSuggestion[] {
+function groupedMealSuggestions(meals: Meal[]): RecurringMealSuggestion[] {
   const groups = new Map<string, Meal[]>();
 
   for (const meal of meals) {
@@ -55,7 +55,11 @@ export function buildRecurringMealSuggestions(meals: Meal[], limit = 4): Recurri
         proteinG: templateMeal.proteinG,
         templateMeal,
       };
-    })
+    });
+}
+
+export function buildRecurringMealSuggestions(meals: Meal[], limit = 4): RecurringMealSuggestion[] {
+  return groupedMealSuggestions(meals)
     .sort((a, b) => {
       if (b.count !== a.count) {
         return b.count - a.count;
@@ -63,6 +67,12 @@ export function buildRecurringMealSuggestions(meals: Meal[], limit = 4): Recurri
 
       return b.lastLoggedAt.localeCompare(a.lastLoggedAt);
     })
+    .slice(0, limit);
+}
+
+export function buildRecentMealSuggestions(meals: Meal[], limit = 10): RecurringMealSuggestion[] {
+  return groupedMealSuggestions(meals)
+    .sort((a, b) => b.lastLoggedAt.localeCompare(a.lastLoggedAt))
     .slice(0, limit);
 }
 

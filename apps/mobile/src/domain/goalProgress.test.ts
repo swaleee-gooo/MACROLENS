@@ -65,6 +65,6 @@ describe('buildGoalProgress', () => {
 
     expect(progress.currentWeightKg).toBe(80);
     expect(progress.points.every((point) => point.logged === false)).toBe(true);
-    expect(progress.insight).toBe('Log tes repas pour faire bouger la courbe.');
+    expect(progress.insight).toBe('Log meals to move the curve.');
   });
 });

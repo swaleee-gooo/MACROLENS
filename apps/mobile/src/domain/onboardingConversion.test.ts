@@ -9,7 +9,7 @@ describe('buildPersonalizedPromise', () => {
         friction: 'restaurant_meals',
         proteinTargetG: 150,
       }),
-    ).toBe('Scanne tes repas au restaurant, corrige les portions en secondes, et vise 150g de proteines par jour.');
+    ).toBe('Scan restaurant meals, correct portions in seconds, and aim for 150g of protein per day.');
   });
 
   it('personalizes hidden-calorie muscle gain promise around protein target', () => {
@@ -19,6 +19,6 @@ describe('buildPersonalizedPromise', () => {
         friction: 'hidden_calories',
         proteinTargetG: 170,
       }),
-    ).toBe('Garde tes proteines hautes, repere les calories cachees, et construis tes repas autour de 170g de proteines par jour.');
+    ).toBe('Keep protein high, spot hidden calories, and build meals around 170g of protein per day.');
   });
 });

@@ -24,6 +24,7 @@ type SupabaseLike = {
         options: { contentType: string; upsert: boolean },
       ): Promise<{ data: { path: string } | null; error: unknown }>;
       createSignedUrl(path: string, expiresIn: number): Promise<{ data: { signedUrl: string } | null; error: unknown }>;
+      remove?(paths: string[]): Promise<{ data: unknown; error: unknown }>;
     };
   };
   functions: {
@@ -71,6 +72,18 @@ async function imageUriToArrayBuffer(imageUri: string): Promise<ArrayBuffer> {
   return response.arrayBuffer();
 }
 
+async function removeUploadedImage(bucket: { remove?: (paths: string[]) => Promise<{ data: unknown; error: unknown }> }, path: string): Promise<void> {
+  if (!bucket.remove) {
+    return;
+  }
+
+  try {
+    await bucket.remove([path]);
+  } catch {
+    // Best-effort cleanup should not hide the analysis result or typed scan errors.
+  }
+}
+
 export function createRemoteAnalysisService(config: RemoteConfig, client?: SupabaseLike): AnalysisService {
   const supabase = client ?? (createMacroLensSupabaseClient(config.supabaseUrl, config.supabaseAnonKey) as unknown as SupabaseLike);
 
@@ -89,38 +102,42 @@ export function createRemoteAnalysisService(config: RemoteConfig, client?: Supab
         throw new Error('image_upload_failed');
       }
 
-      const signedUrlResult = await bucket.createSignedUrl(uploadResult.data.path, 10 * 60);
-      if (signedUrlResult.error || !signedUrlResult.data) {
-        throw new Error('image_signed_url_failed');
-      }
-
-      const functionResult = await supabase.functions.invoke('analyze-meal', {
-        body: { imageUrl: signedUrlResult.data.signedUrl },
-      });
-
-      const nonFoodMessage = getNonFoodMessage(functionResult.data);
-      if (nonFoodMessage !== null) {
-        throw new NonFoodPhotoError(nonFoodMessage);
-      }
-
-      if (functionResult.error) {
-        const errorPayload = await getFunctionErrorPayload(functionResult.error);
-        const wrappedNonFoodMessage = getNonFoodMessage(errorPayload);
-        if (wrappedNonFoodMessage !== null) {
-          throw new NonFoodPhotoError(wrappedNonFoodMessage);
+      try {
+        const signedUrlResult = await bucket.createSignedUrl(uploadResult.data.path, 10 * 60);
+        if (signedUrlResult.error || !signedUrlResult.data) {
+          throw new Error('image_signed_url_failed');
         }
 
-        throw new Error('analysis_function_failed');
-      }
+        const functionResult = await supabase.functions.invoke('analyze-meal', {
+          body: { imageUrl: signedUrlResult.data.signedUrl },
+        });
 
-      const analysis = analysisResultSchema.parse(functionResult.data);
-      return {
-        ...analysis,
-        meal: {
-          ...analysis.meal,
-          imageUri,
-        },
-      };
+        const nonFoodMessage = getNonFoodMessage(functionResult.data);
+        if (nonFoodMessage !== null) {
+          throw new NonFoodPhotoError(nonFoodMessage);
+        }
+
+        if (functionResult.error) {
+          const errorPayload = await getFunctionErrorPayload(functionResult.error);
+          const wrappedNonFoodMessage = getNonFoodMessage(errorPayload);
+          if (wrappedNonFoodMessage !== null) {
+            throw new NonFoodPhotoError(wrappedNonFoodMessage);
+          }
+
+          throw new Error('analysis_function_failed');
+        }
+
+        const analysis = analysisResultSchema.parse(functionResult.data);
+        return {
+          ...analysis,
+          meal: {
+            ...analysis.meal,
+            imageUri,
+          },
+        };
+      } finally {
+        await removeUploadedImage(bucket, uploadResult.data.path);
+      }
     },
   };
 }

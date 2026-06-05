@@ -1,0 +1,7 @@
+project_id = "macrolens"
+
+[functions.analyze-meal]
+entrypoint = "./functions/analyze-meal/index.ts"
+
+[functions.extract-recipe]
+entrypoint = "./functions/extract-recipe/index.ts"

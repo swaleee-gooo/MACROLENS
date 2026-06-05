@@ -46,12 +46,12 @@ export function buildDailySummary(meals: Meal[], isoDate: string, targets: Macro
 
 export function formatConfidenceLabel(confidence: ConfidenceTier): string {
   if (confidence === 'high') {
-    return 'Fiabilite elevee';
+    return 'High confidence';
   }
 
   if (confidence === 'medium') {
-    return 'Fiabilite moyenne';
+    return 'Medium confidence';
   }
 
-  return 'A verifier';
+  return 'Needs review';
 }

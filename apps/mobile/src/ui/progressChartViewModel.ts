@@ -21,9 +21,9 @@ function round(value: number): number {
 
 const emptyPoint: ProgressChartPointInput & { valueLabel: string } = {
   id: 'empty',
-  label: 'Aucune donnee',
+  label: 'No data',
   value: 0,
-  detail: 'Log tes repas pour afficher la courbe.',
+  detail: 'Log meals to show the curve.',
   highlighted: false,
   valueLabel: '--',
 };

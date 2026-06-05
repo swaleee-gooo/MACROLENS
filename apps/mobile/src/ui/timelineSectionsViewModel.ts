@@ -13,11 +13,11 @@ function previousIsoDate(isoDate: string): string {
 
 function sectionTitle(date: string, todayIsoDate: string): string {
   if (date === todayIsoDate) {
-    return "Aujourd'hui";
+    return 'Today';
   }
 
   if (date === previousIsoDate(todayIsoDate)) {
-    return 'Hier';
+    return 'Yesterday';
   }
 
   return date;

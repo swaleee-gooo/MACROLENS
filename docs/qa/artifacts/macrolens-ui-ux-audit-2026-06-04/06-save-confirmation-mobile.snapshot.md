@@ -1,0 +1,23 @@
+- generic [ref=e430] [box=0,0,394,852]:
+  - generic [ref=e431] [box=24,24,346,423]:
+    - img [ref=e433] [box=173,80,48,48]
+    - generic [ref=e435] [box=24,168,346,94]:
+      - generic [ref=e436] [box=108,168,177,42]: Meal saved
+      - generic [ref=e437] [box=24,218,346,44]: Salmon poke bowl was added to your timeline.
+    - generic [ref=e438] [box=118,278,157,39]:
+      - img [ref=e439] [box=131,289,18,18]
+      - generic [ref=e441] [box=157,287,105,22]: +1 streak day
+    - generic [ref=e442] [box=24,334,346,114]:
+      - generic [ref=e443] [box=25,334,172,112]:
+        - generic [ref=e444] [box=49,358,124,18]: Calories
+        - generic [ref=e445] [box=49,380,124,42]: +720 kcal
+      - generic [ref=e447] [box=197,334,172,112]:
+        - generic [ref=e448] [box=287,358,58,18]: Protein
+        - generic [ref=e449] [box=264,380,81,42]: +42 g
+  - generic [ref=e450] [box=24,702,346,126]:
+    - generic [ref=e451] [cursor=pointer] [box=24,702,346,60]:
+      - img [ref=e452] [box=121,723,19,19]
+      - generic [ref=e455] [box=148,720,124,24]: Back to Home
+    - generic [ref=e456] [cursor=pointer] [box=24,774,346,54]:
+      - img [ref=e457] [box=130,792,18,18]
+      - generic [ref=e460] [box=156,790,108,22]: View timeline

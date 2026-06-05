@@ -1,8 +1,29 @@
+import type { EvidenceLevel, FoodSceneAnalysis, HiddenCalorieRisk, NutritionSourceProvider, ProofStatus } from '../metaboproof/types';
+
 export type ConfidenceTier = 'high' | 'medium' | 'low';
 
 export type NutritionSource = 'open_food_facts' | 'nutrition_label_ocr' | 'usda' | 'estimated' | 'mock';
 
-export type CorrectionType = 'portion_up' | 'portion_down' | 'add_oil' | 'add_sauce' | 'remove_item';
+export type ScanRoute = 'meal' | 'barcode' | 'nutrition_label' | 'packaged' | 'non_food' | 'unclear';
+
+export type VisualQuality = 'good' | 'usable' | 'poor';
+
+export type PortionAmbiguity = 'low' | 'medium' | 'high';
+
+export type ScanReview = {
+  scanRoute: ScanRoute;
+  visualQuality: VisualQuality;
+  portionAmbiguity: PortionAmbiguity;
+  needsUserQuestion: boolean;
+  followUpQuestion: string;
+  candidateMeals: Array<{
+    name: string;
+    reason: string;
+    confidence: ConfidenceTier;
+  }>;
+};
+
+export type CorrectionType = 'portion_up' | 'portion_down' | 'portion_half' | 'add_oil' | 'add_sauce' | 'add_cheese' | 'remove_item';
 
 export type CorrectionSuggestion = {
   id: string;
@@ -27,6 +48,8 @@ export type FoodItem = {
   name: string;
   canonicalFoodName: string;
   estimatedQuantity: number;
+  quantityGrams?: { p10: number; p50: number; p90: number };
+  calorieQuantiles?: { p10: number; p50: number; p90: number };
   unit: string;
   calories: number;
   proteinG: number;
@@ -36,6 +59,21 @@ export type FoodItem = {
   confidence: ConfidenceTier;
   dataSource: NutritionSource;
   sourceFoodId: string | null;
+  hiddenCalorieRisks?: HiddenCalorieRisk[];
+};
+
+export type MealProofMetadata = {
+  engine: 'MetaboProof';
+  evidenceLevel: EvidenceLevel;
+  status: ProofStatus;
+  kcalRange?: { min: number; max: number };
+  warnings: string[];
+  explanation: string[];
+  sources: Array<{
+    provider: NutritionSourceProvider;
+    externalId: string;
+    name: string;
+  }>;
 };
 
 export type Meal = {
@@ -57,6 +95,9 @@ export type Meal = {
   items: FoodItem[];
   uncertaintyReasons?: string[];
   correctionSuggestions?: CorrectionSuggestion[];
+  scanReview?: ScanReview;
+  proof?: MealProofMetadata;
+  scene?: FoodSceneAnalysis;
 };
 
 export type UserGoal = 'lose_fat' | 'build_muscle' | 'maintain' | 'understand_eating';

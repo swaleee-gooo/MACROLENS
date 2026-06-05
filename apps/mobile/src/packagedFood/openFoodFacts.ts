@@ -63,7 +63,7 @@ export function normalizeBarcodeCandidates(rawBarcode: string): string[] {
 export function mapOpenFoodFactsProduct(response: OpenFoodFactsProductResponse): PackagedFoodItem {
   const nutriments = response.product?.nutriments ?? {};
   const brand = response.product?.brands?.split(',')[0]?.trim();
-  const name = response.product?.product_name_fr || response.product?.product_name || brand || 'Produit scanne';
+  const name = response.product?.product_name_fr || response.product?.product_name || brand || 'Scanned product';
 
   return {
     barcode: response.code,

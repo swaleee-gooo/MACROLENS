@@ -24,6 +24,7 @@ describe('createRemoteAnalysisService', () => {
       data: { signedUrl: 'https://cdn.example/test.jpg?token=signed' },
       error: null,
     });
+    const remove = vi.fn().mockResolvedValue({ data: [], error: null });
     const invoke = vi.fn().mockResolvedValue({
       data: {
         meal: {
@@ -71,7 +72,7 @@ describe('createRemoteAnalysisService', () => {
       { supabaseUrl: 'https://example.supabase.co', supabaseAnonKey: 'sb_publishable_123' },
       {
         auth: { getSession, signInAnonymously },
-        storage: { from: () => ({ upload, createSignedUrl }) },
+        storage: { from: () => ({ upload, createSignedUrl, remove }) },
         functions: { invoke },
       },
     );
@@ -86,6 +87,7 @@ describe('createRemoteAnalysisService', () => {
     expect(invoke).toHaveBeenCalledWith('analyze-meal', {
       body: { imageUrl: 'https://cdn.example/test.jpg?token=signed' },
     });
+    expect(remove).toHaveBeenCalledWith(['auth-user/12345.jpg']);
     expect(result.meal.mealName).toBe('Test meal');
     expect(result.meal.imageUri).toBe('file://meal.jpg');
   });

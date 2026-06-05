@@ -6,9 +6,9 @@ export type AnalysisAnimationStage = {
 
 export function buildAnalysisAnimationStages(): AnalysisAnimationStage[] {
   return [
-    { label: 'Detection aliments', detail: 'On isole les ingredients visibles.', progress: 18 },
-    { label: 'Estimation portions', detail: 'On compare volume, assiette et densite.', progress: 46 },
-    { label: 'Calories cachees', detail: 'Sauces, huile et toppings sont verifies.', progress: 74 },
-    { label: 'Macros finales', detail: 'Calories, proteines et plage probable arrivent.', progress: 100 },
+    { label: 'Detecting foods', detail: 'Identifying the visible ingredients.', progress: 18 },
+    { label: 'Estimating portions', detail: 'Comparing volume, plate size, and density.', progress: 46 },
+    { label: 'Checking hidden calories', detail: 'Sauces, oil, and toppings are reviewed.', progress: 74 },
+    { label: 'Final macros', detail: 'Calories, protein, and the likely range are almost ready.', progress: 100 },
   ];
 }

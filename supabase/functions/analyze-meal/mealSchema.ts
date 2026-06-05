@@ -1,4 +1,8 @@
 const confidenceEnum = ['high', 'medium', 'low'] as const;
+const scanRouteEnum = ['meal', 'barcode', 'nutrition_label', 'packaged', 'non_food', 'unclear'] as const;
+const visualQualityEnum = ['good', 'usable', 'poor'] as const;
+const ambiguityEnum = ['low', 'medium', 'high'] as const;
+const itemRoleEnum = ['protein', 'starch', 'vegetable', 'fat', 'sauce', 'dairy', 'fruit', 'drink', 'dessert', 'unknown'] as const;
 const mealCategoryEnum = [
   'poke_bowl',
   'pasta',
@@ -13,16 +17,40 @@ const mealCategoryEnum = [
 ] as const;
 const portionSizeEnum = ['small', 'standard', 'large', 'unknown'] as const;
 
+const hiddenCalorieRiskSchema = {
+  type: 'object',
+  additionalProperties: false,
+  required: ['type', 'description', 'kcalImpactP10', 'kcalImpactP50', 'kcalImpactP90', 'evidence', 'answerableQuestion'],
+  properties: {
+    type: { type: 'string' },
+    description: { type: 'string' },
+    kcalImpactP10: { type: 'number' },
+    kcalImpactP50: { type: 'number' },
+    kcalImpactP90: { type: 'number' },
+    evidence: {
+      type: 'array',
+      items: { type: 'string' },
+    },
+    answerableQuestion: { type: 'string' },
+  },
+} as const;
+
 export const mealAnalysisJsonSchema = {
   type: 'object',
   additionalProperties: false,
   required: [
     'isFoodPhoto',
     'nonFoodReason',
+    'scanRoute',
+    'visualQuality',
     'mealName',
     'mealCategory',
     'portionSize',
+    'portionAmbiguity',
     'confidence',
+    'needsUserQuestion',
+    'followUpQuestion',
+    'candidateMeals',
     'uncertaintyReasons',
     'hiddenCalorieRisks',
     'items',
@@ -30,10 +58,28 @@ export const mealAnalysisJsonSchema = {
   properties: {
     isFoodPhoto: { type: 'boolean' },
     nonFoodReason: { type: 'string' },
+    scanRoute: { enum: scanRouteEnum },
+    visualQuality: { enum: visualQualityEnum },
     mealName: { type: 'string' },
     mealCategory: { enum: mealCategoryEnum },
     portionSize: { enum: portionSizeEnum },
+    portionAmbiguity: { enum: ambiguityEnum },
     confidence: { enum: confidenceEnum },
+    needsUserQuestion: { type: 'boolean' },
+    followUpQuestion: { type: 'string' },
+    candidateMeals: {
+      type: 'array',
+      items: {
+        type: 'object',
+        additionalProperties: false,
+        required: ['name', 'reason', 'confidence'],
+        properties: {
+          name: { type: 'string' },
+          reason: { type: 'string' },
+          confidence: { enum: confidenceEnum },
+        },
+      },
+    },
     uncertaintyReasons: {
       type: 'array',
       items: { type: 'string' },
@@ -51,25 +97,55 @@ export const mealAnalysisJsonSchema = {
           'name',
           'canonicalFoodName',
           'estimatedQuantity',
+          'quantityLow',
+          'quantityHigh',
+          'quantityP10',
+          'quantityP50',
+          'quantityP90',
           'unit',
           'calories',
+          'calorieP10',
+          'calorieP50',
+          'calorieP90',
           'proteinG',
           'carbsG',
           'fatG',
           'fiberG',
           'confidence',
+          'portionConfidence',
+          'role',
+          'visualEvidence',
+          'hiddenCalorieRisks',
         ],
         properties: {
           name: { type: 'string' },
           canonicalFoodName: { type: 'string' },
           estimatedQuantity: { type: 'number' },
+          quantityLow: { type: 'number' },
+          quantityHigh: { type: 'number' },
+          quantityP10: { type: 'number' },
+          quantityP50: { type: 'number' },
+          quantityP90: { type: 'number' },
           unit: { type: 'string' },
           calories: { type: 'number' },
+          calorieP10: { type: 'number' },
+          calorieP50: { type: 'number' },
+          calorieP90: { type: 'number' },
           proteinG: { type: 'number' },
           carbsG: { type: 'number' },
           fatG: { type: 'number' },
           fiberG: { type: 'number' },
           confidence: { enum: confidenceEnum },
+          portionConfidence: { enum: confidenceEnum },
+          role: { enum: itemRoleEnum },
+          visualEvidence: {
+            type: 'array',
+            items: { type: 'string' },
+          },
+          hiddenCalorieRisks: {
+            type: 'array',
+            items: hiddenCalorieRiskSchema,
+          },
         },
       },
     },

@@ -40,3 +40,9 @@ yarn-error.*
 # generated native folders
 /ios
 /android
+
+# local Expo run logs
+expo-*.log
+
+# local scratch screenshots
+/macrolens-dashboard-*.png

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { buildRecurringMealSuggestions, cloneMealForRelog } from './recurringMeals';
+import { buildRecentMealSuggestions, buildRecurringMealSuggestions, cloneMealForRelog } from './recurringMeals';
 import type { Meal } from './types';
 
 function meal(id: string, mealName: string, capturedAt: string, calories = 500, proteinG = 35): Meal {
@@ -62,6 +62,32 @@ describe('buildRecurringMealSuggestions', () => {
     ]);
 
     expect(suggestions.map((suggestion) => suggestion.mealName)).toEqual(['Poulet riz', 'Skyr']);
+  });
+});
+
+describe('buildRecentMealSuggestions', () => {
+  it('keeps the latest version of each meal and sorts by recency', () => {
+    const suggestions = buildRecentMealSuggestions([
+      meal('old-bowl', 'Bowl Proteine', '2026-05-20T12:00:00.000Z', 520, 40),
+      meal('latest-skyr', 'Skyr', '2026-05-25T08:00:00.000Z', 220, 28),
+      meal('latest-bowl', ' bowl proteine ', '2026-05-24T12:00:00.000Z', 610, 48),
+    ]);
+
+    expect(suggestions.map((suggestion) => suggestion.templateMeal.id)).toEqual(['latest-skyr', 'latest-bowl']);
+    expect(suggestions[1]).toMatchObject({
+      count: 2,
+      calories: 610,
+    });
+  });
+
+  it('honors the limit after de-duplicating meal names', () => {
+    const suggestions = buildRecentMealSuggestions([
+      meal('a', 'A', '2026-05-24T08:00:00.000Z'),
+      meal('b', 'B', '2026-05-23T08:00:00.000Z'),
+      meal('c', 'C', '2026-05-22T08:00:00.000Z'),
+    ], 2);
+
+    expect(suggestions.map((suggestion) => suggestion.mealName)).toEqual(['A', 'B']);
   });
 });
 

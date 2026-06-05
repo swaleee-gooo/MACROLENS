@@ -71,8 +71,22 @@ describe('applyMealCorrection', () => {
   it('adds oil as a new estimated item', () => {
     const corrected = applyMealCorrection(meal, { type: 'add_oil', targetItemId: null });
 
-    expect(corrected.items.some((item) => item.name === 'Huile de cuisson')).toBe(true);
+    expect(corrected.items.some((item) => item.name === 'Cooking oil')).toBe(true);
     expect(corrected.fatG).toBe(19);
+  });
+
+  it('can mark that only half the meal was eaten', () => {
+    const corrected = applyMealCorrection(meal, { type: 'portion_half', targetItemId: null });
+
+    expect(corrected.items[0].estimatedQuantity).toBe(70);
+    expect(corrected.caloriesEstimate).toBe(116);
+  });
+
+  it('adds cheese as a hidden calorie correction', () => {
+    const corrected = applyMealCorrection(meal, { type: 'add_cheese', targetItemId: null });
+
+    expect(corrected.items.some((item) => item.name === 'Cheese')).toBe(true);
+    expect(corrected.caloriesEstimate).toBe(343);
   });
 
   it('removes a target item', () => {

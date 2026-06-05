@@ -1,0 +1,17 @@
+- generic [ref=e4] [box=0,0,394,852]:
+  - generic [ref=e6] [box=0,0,378,763]:
+    - generic [ref=e8] [box=24,16,330,44]:
+      - generic [ref=e10] [cursor=pointer] [box=36,18,21,39]: <
+      - generic [ref=e11] [box=145,29,88,18]: MACROLENS
+    - generic [ref=e12] [box=0,92,378,545]:
+      - generic [ref=e13] [box=24,124,330,136]:
+        - generic [ref=e14] [box=24,124,330,80]: Track macros from a photo
+        - generic [ref=e15] [box=24,212,330,48]: AI analysis, quick corrections, clear tracking. Simple. Fast. Honest.
+      - generic [ref=e23] [box=221,496,124,97]:
+        - generic [ref=e24] [box=234,509,98,24]: 510 kcal
+        - generic [ref=e25] [box=234,537,98,14]: 38g protein
+        - generic [ref=e26] [box=234,552,98,14]: 46g carbs
+        - generic [ref=e27] [box=234,566,98,14]: 16g fat
+  - generic [ref=e34] [cursor=pointer] [box=24,764,346,64]:
+    - generic [ref=e35] [box=129,784,99,24]: Get started
+    - img [ref=e36] [box=240,784,24,24]
