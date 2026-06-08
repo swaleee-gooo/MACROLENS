@@ -50,7 +50,7 @@
     "eas:build:ios:testflight": "npx eas-cli build --platform ios --profile production --auto-submit",
     "eas:update:development": "npx eas-cli update --channel development --environment development",
     "eas:update:preview": "npx eas-cli update --channel preview --environment preview",
-    "eas:update:production": "npx eas-cli update --channel production --environment production",
+    "eas:update:production": "npx eas-cli update --channel production --environment production --message production-update",
     "test": "vitest run --passWithNoTests",
     "test:watch": "vitest"
   },
