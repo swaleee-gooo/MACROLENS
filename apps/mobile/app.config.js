@@ -36,6 +36,24 @@ function resolveVariant() {
 }
 
 const variant = variants[resolveVariant()];
+const socialShareSchemes = [
+  'instagram',
+  'instagram-stories',
+  'snapchat',
+  'snapchat-creativekit',
+  'tiktoksharesdk',
+  'tiktokopensdk',
+  'fb',
+  'fbapi',
+  'fb-messenger-share-api',
+];
+const androidSharePackages = [
+  'com.instagram.android',
+  'com.zhiliaoapp.musically',
+  'com.snapchat.android',
+  'com.facebook.orca',
+  'com.facebook.katana',
+];
 
 module.exports = {
   expo: {
@@ -60,6 +78,12 @@ module.exports = {
           },
         },
       ],
+      [
+        'react-native-share',
+        {
+          android: androidSharePackages,
+        },
+      ],
     ],
     version: '1.0.0',
     orientation: 'portrait',
@@ -78,6 +102,7 @@ module.exports = {
       bundleIdentifier: variant.bundleIdentifier,
       infoPlist: {
         ITSAppUsesNonExemptEncryption: false,
+        LSApplicationQueriesSchemes: socialShareSchemes,
         NSCameraUsageDescription:
           'MacroLens uses the camera to analyze meals, scan barcodes, and read nutrition labels.',
       },

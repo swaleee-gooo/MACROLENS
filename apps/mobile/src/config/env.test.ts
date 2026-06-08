@@ -10,6 +10,7 @@ describe('resolveAppEnv', () => {
       revenueCatAppleApiKey: '',
       revenueCatMonthlyProductId: 'prod03d96b4e28',
       revenueCatAnnualProductId: 'prod0ef75e0b34',
+      facebookAppId: '',
       usdaFdcApiKey: '',
       geminiApiKey: '',
       openAiApiKey: '',
@@ -33,6 +34,7 @@ describe('resolveAppEnv', () => {
       revenueCatAppleApiKey: '',
       revenueCatMonthlyProductId: 'prod03d96b4e28',
       revenueCatAnnualProductId: 'prod0ef75e0b34',
+      facebookAppId: '',
       usdaFdcApiKey: '',
       geminiApiKey: '',
       openAiApiKey: '',
@@ -81,5 +83,9 @@ describe('resolveAppEnv', () => {
       openAiApiKey: 'openai_key',
       visionModelProvider: 'gemini',
     });
+  });
+
+  it('parses the optional Facebook App ID for Instagram Stories sharing', () => {
+    expect(resolveAppEnv({ EXPO_PUBLIC_FACEBOOK_APP_ID: ' 123456789 ' }).facebookAppId).toBe('123456789');
   });
 });

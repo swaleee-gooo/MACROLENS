@@ -1,0 +1,307 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>MacroLens — Tier 1 Growth · Cartes partageables · Parrainage · Funnel aha→paywall</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* "Clinical Trust" design system — copied verbatim from macrolens-redesign.html for pixel parity */
+:root{
+  --paper:oklch(98.6% .003 100); --paper-2:oklch(96.6% .004 100); --paper-3:oklch(93.8% .005 100);
+  --ink:oklch(23% .013 255); --ink-2:oklch(36% .013 255); --muted:oklch(56% .012 255); --muted-2:oklch(68% .010 255);
+  --line:oklch(90.5% .006 100); --line-2:oklch(84% .008 100);
+  --accent:oklch(57% .115 162); --accent-ink:oklch(40% .10 162); --accent-wash:oklch(95% .03 162); --accent-line:oklch(86% .05 162);
+  --warn:oklch(70% .12 70); --warn-ink:oklch(46% .10 62); --warn-wash:oklch(95.5% .04 78); --warn-line:oklch(87% .06 78);
+  --danger:oklch(57% .16 25); --danger-ink:oklch(45% .14 25); --danger-wash:oklch(95% .04 25); --danger-line:oklch(87% .07 25);
+  --protein:oklch(62% .14 25); --protein-w:oklch(95% .035 25);
+  --carbs:oklch(72% .12 72); --carbs-w:oklch(95.5% .04 78);
+  --fat:oklch(60% .10 248); --fat-w:oklch(95% .03 248);
+  --fiber:oklch(57% .10 300); --fiber-w:oklch(95% .03 300);
+  --night:oklch(25% .008 255); --night-2:oklch(32% .010 255);
+  --font-display:'Space Grotesk',system-ui,sans-serif; --font-sans:'IBM Plex Sans',system-ui,sans-serif; --font-mono:'IBM Plex Mono',ui-monospace,monospace;
+  --r-lg:18px; --r-md:13px; --r-sm:9px; --r-pill:999px;
+  --s1:4px; --s2:8px; --s3:12px; --s4:16px; --s5:20px; --s6:24px; --s8:32px;
+  --shadow-card:0 1px 1px rgba(20,24,28,.03); --shadow-fab:0 8px 20px rgba(20,30,26,.22);
+  --ease-out:cubic-bezier(.2,.7,.3,1);
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0;overflow-x:clip}
+body{font-family:var(--font-sans);color:var(--ink);background:oklch(92.5% .004 100);
+  background-image:radial-gradient(1100px 520px at 50% -8%, oklch(95% .005 100) 0%, oklch(91% .004 100) 70%);min-height:100vh;-webkit-font-smoothing:antialiased}
+.num{font-family:var(--font-mono);font-feature-settings:"tnum" 1;font-variant-numeric:tabular-nums}
+.eyebrow{font-family:var(--font-mono);text-transform:uppercase;letter-spacing:.14em;font-size:10px;font-weight:500;color:var(--muted)}
+.mast{max-width:1320px;margin:0 auto;padding:38px 30px 0}
+.brand{display:flex;align-items:center;gap:12px}
+.brand .seal{width:30px;height:30px;color:var(--accent)}
+.brand .wm{font-family:var(--font-display);font-weight:700;font-size:23px;letter-spacing:-.02em}
+.brand .ver{margin-left:auto;color:var(--muted)}
+.hr{height:1px;background:var(--line-2);margin:18px auto;width:calc(100% - 60px);max-width:1260px}
+.mast .lede{color:var(--ink-2);font-size:14.5px;line-height:1.55;max-width:860px;margin:0}
+.mast .lede b{color:var(--ink);font-weight:600}
+.board{max-width:1320px;margin:0 auto;padding:14px 30px 90px;display:flex;flex-wrap:wrap;gap:48px 40px;justify-content:flex-start;align-items:flex-start}
+.section-head{width:100%;display:flex;align-items:center;gap:16px;margin:34px 0 -6px}
+.section-head .badge{display:inline-flex;width:26px;height:26px;align-items:center;justify-content:center;background:var(--ink);color:var(--paper);border-radius:7px;font-family:var(--font-mono);font-size:12px;font-weight:600}
+.section-head .t{font-family:var(--font-display);font-weight:600;font-size:19px;letter-spacing:-.01em;white-space:nowrap}
+.section-head .ln{flex:1;height:1px;background:var(--line-2)}
+.fw{display:flex;flex-direction:column;align-items:center;gap:13px}
+.flabel{display:flex;align-items:flex-start;gap:9px;font-family:var(--font-mono);font-size:11px;font-weight:500;color:var(--ink-2);letter-spacing:.01em;max-width:330px;line-height:1.5}
+.flabel .n{display:inline-flex;width:21px;height:21px;align-items:center;justify-content:center;background:var(--paper-3);color:var(--ink-2);border:1px solid var(--line-2);border-radius:6px;font-size:10.5px;font-weight:600;flex:0 0 21px;margin-top:1px}
+.flabel b{color:var(--accent-ink)}
+/* phone */
+.phone{width:330px;height:716px;background:var(--paper);border-radius:42px;position:relative;overflow:hidden;
+  box-shadow:0 0 0 1px var(--line-2), 0 2px 4px rgba(20,24,28,.05), 0 26px 56px rgba(20,28,40,.15)}
+.statusbar{height:46px;flex:0 0 46px;display:flex;align-items:flex-end;justify-content:space-between;padding:0 24px 7px;z-index:5;color:var(--ink)}
+.statusbar .time{font-family:var(--font-mono);font-size:13px;font-weight:500}
+.statusbar.light,.statusbar.light .time{color:#fff}
+.sb-r{display:flex;align-items:center;gap:6px}
+.home-ind{position:absolute;left:50%;bottom:7px;transform:translateX(-50%);width:116px;height:4px;border-radius:3px;background:var(--ink);opacity:.8;z-index:30}
+.home-ind.light{background:#fff;opacity:.9}
+.scroll{position:absolute;inset:0;display:flex;flex-direction:column}
+.body{flex:1 1 auto;overflow-y:auto;padding:0 var(--s5) var(--s6);scrollbar-width:none}
+.body::-webkit-scrollbar{display:none}
+.body.flush{padding:0}
+/* primitives */
+.scr-title{font-family:var(--font-display);font-size:26px;font-weight:600;letter-spacing:-.025em;margin:0;line-height:1.08}
+.sub{color:var(--muted);font-size:13px;line-height:1.5}
+.row{display:flex;align-items:center}.between{justify-content:space-between}
+.card{background:var(--paper);border:1px solid var(--line);border-radius:var(--r-lg);box-shadow:var(--shadow-card)}
+.rule{height:1px;background:var(--line)}
+.muted{color:var(--muted)}.tiny{font-size:11px}
+.btn{display:flex;align-items:center;justify-content:center;gap:8px;border:none;cursor:pointer;font-family:var(--font-sans);font-weight:600;font-size:15px;border-radius:var(--r-md);width:100%;padding:16px;transition:.15s var(--ease-out)}
+.btn-dark{background:var(--ink);color:var(--paper)}.btn-accent{background:var(--accent);color:#fff}
+.btn-ghost{background:var(--paper-2);color:var(--ink);border:1px solid var(--line-2)}
+.btn svg{width:18px;height:18px}
+.clickable{cursor:pointer}
+.proof{display:inline-flex;align-items:center;gap:6px;font-family:var(--font-mono);text-transform:uppercase;letter-spacing:.08em;font-size:10px;font-weight:500;padding:5px 9px;border-radius:7px;background:var(--accent-wash);color:var(--accent-ink);border:1px solid var(--accent-line)}
+.proof svg{width:12px;height:12px}
+.proof.est{background:var(--warn-wash);color:var(--warn-ink);border-color:var(--warn-line)}
+.mbar{height:8px;border-radius:var(--r-pill);overflow:hidden;display:flex;background:var(--paper-3);gap:2px}
+.mbar span{height:100%}
+.mlegend{display:flex;gap:16px;margin-top:11px}.mlegend .it{flex:1}.mlegend .dot{width:7px;height:7px;border-radius:2px}
+.prog{height:4px;background:var(--paper-3);border-radius:var(--r-pill);overflow:hidden}.prog>i{display:block;height:100%;background:var(--ink);border-radius:var(--r-pill)}
+.food{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;flex:0 0 44px;border:1px solid rgba(20,24,28,.05)}
+.food svg{width:23px;height:23px}
+.opt{display:flex;align-items:center;gap:14px;border:1px solid var(--line-2);border-radius:var(--r-md);padding:15px;font-weight:600;font-size:14.5px;cursor:pointer;background:var(--paper)}
+.opt.on{border-color:var(--ink);box-shadow:inset 3px 0 0 var(--accent)}
+.opt .ic{width:34px;height:34px;border-radius:9px;background:var(--paper-2);display:flex;align-items:center;justify-content:center;color:var(--ink-2)}.opt .ic svg{width:19px;height:19px}
+/* bottom sheet (reused from scan sheet) */
+.sheet{position:absolute;left:0;right:0;bottom:0;background:var(--paper);border-radius:22px 22px 0 0;padding:10px 16px 24px;z-index:26;box-shadow:0 -10px 30px rgba(0,0,0,.18)}
+.sheet-grab{width:40px;height:4px;border-radius:3px;background:var(--line-2);margin:2px auto 12px}
+.scrim{position:absolute;inset:0;background:rgba(8,10,12,.42);z-index:25}
+/* share story card (9:16 export asset) */
+.story{width:282px;height:501px;border-radius:26px;overflow:hidden;position:relative;box-shadow:0 0 0 1px var(--line-2),0 22px 50px rgba(20,28,40,.18);background:var(--paper)}
+.story .photo{height:236px;position:relative;display:flex;align-items:flex-end;padding:16px}
+.story .wmark{position:absolute;right:14px;top:14px;display:flex;align-items:center;gap:7px;background:rgba(255,255,255,.92);border-radius:9px;padding:6px 9px;backdrop-filter:blur(6px)}
+.story .wmark .seal{width:15px;height:15px;color:var(--accent)}
+.story .wmark .wm{font-family:var(--font-display);font-weight:700;font-size:13px;letter-spacing:-.02em;color:var(--ink)}
+.story .src{display:inline-flex;align-items:center;gap:6px;background:rgba(8,10,12,.5);color:#fff;border-radius:8px;padding:6px 9px;font-family:var(--font-mono);font-size:9.5px;letter-spacing:.06em;text-transform:uppercase;backdrop-filter:blur(4px)}
+.story .foot{position:absolute;left:0;right:0;bottom:0;padding:13px 16px;display:flex;align-items:center;gap:10px;border-top:1px solid var(--line)}
+.story .cta{flex:1}.story .cta .t{font-weight:600;font-size:12.5px;letter-spacing:-.01em}.story .cta .s{font-family:var(--font-mono);font-size:9.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-top:2px}
+.qr{width:46px;height:46px;border-radius:10px;background:#fff;border:1px solid var(--line-2);display:grid;grid-template-columns:repeat(5,1fr);grid-template-rows:repeat(5,1fr);gap:1.5px;padding:6px}
+.qr i{background:var(--ink);border-radius:1px}
+.gift{width:62px;height:62px;border-radius:18px;background:var(--accent-wash);border:1px solid var(--accent-line);display:flex;align-items:center;justify-content:center;color:var(--accent-ink)}
+.gift svg{width:30px;height:30px}
+.refrow{display:flex;align-items:center;gap:12px;padding:13px 4px}
+.refrow .av{width:34px;height:34px;border-radius:10px;background:var(--ink);color:var(--paper);display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-weight:600;font-size:12px;flex:0 0 34px}
+.code{display:flex;align-items:center;justify-content:space-between;border:1.5px dashed var(--accent-line);background:var(--accent-wash);border-radius:var(--r-md);padding:13px 15px}
+.code .v{font-family:var(--font-mono);font-weight:600;font-size:18px;letter-spacing:.12em;color:var(--accent-ink)}
+.plan-pill{display:flex;align-items:center;justify-content:space-between;border:1px solid var(--line-2);border-radius:var(--r-md);padding:14px 15px;cursor:pointer;background:var(--paper)}
+.plan-pill.on{border-color:var(--ink);box-shadow:inset 3px 0 0 var(--accent)}
+.badge-best{font-family:var(--font-mono);font-size:9px;text-transform:uppercase;letter-spacing:.06em;background:var(--accent);color:#fff;border-radius:6px;padding:3px 7px;font-weight:600}
+.stars{display:flex;gap:2px;color:var(--warn)}.stars svg{width:12px;height:12px}
+.note{font-family:var(--font-mono);font-size:9.5px;color:var(--muted-2);text-transform:uppercase;letter-spacing:.05em;text-align:center}
+</style>
+</head>
+<body>
+<header>
+  <div class="mast"><div class="brand"><span class="seal" id="brandseal"></span><span class="wm">MacroLens</span><span class="ver eyebrow">Growth · Tier 1 · maquette pixel-perfect</span></div></div>
+  <div class="hr"></div>
+  <div class="mast" style="padding-top:0"><p class="lede">Les <b>3 features qui bougent le MRR</b>, dessinées dans ton système <b>« Clinical Trust »</b> (Space Grotesk + IBM Plex Mono, accent émeraude, sceau MetaboProof). <b>1 · Cartes partageables</b> (acquisition virale) — <b>2 · Parrainage</b> (bouche-à-oreille + attribution influ) — <b>3 · Funnel aha → plan → paywall</b> (conversion). Annotations = notes d'implémentation.</p></div>
+</header>
+<div class="board" id="board"></div>
+
+<script>
+const stroke=(p,w='1.75')=>`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="${w}" stroke-linecap="round" stroke-linejoin="round">${p}</svg>`;
+const I={
+  seal:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linejoin="round"><path d="M12 2.5 19 5v6c0 4.8-3.3 8.1-7 10-3.7-1.9-7-5.2-7-10V5l7-2.5Z"/><path d="m8.7 11.8 2.3 2.3 4.4-4.6" stroke-linecap="round"/></svg>`,
+  share:stroke('<circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.6 13.5 6.8 4M15.4 6.5 8.6 10.5"/>'),
+  back:stroke('<path d="m15 18-6-6 6-6"/>','2'),
+  chevR:stroke('<path d="m9 6 6 6-6 6"/>','2'),
+  check:stroke('<path d="M5 12.5 10 17l9-10"/>','2.4'),
+  gift:stroke('<path d="M20 12v8H4v-8M2 7h20v5H2zM12 22V7M12 7S11 3 8.5 3 6 5 6 5s.5 2 3 2M12 7s1-4 3.5-4S18 5 18 5s-.5 2-3 2"/>'),
+  users:stroke('<circle cx="9" cy="8" r="3.4"/><path d="M3 20c0-3.4 2.7-5 6-5s6 1.6 6 5"/><path d="M16 4.5a3.4 3.4 0 0 1 0 6.6M21 20c0-2.6-1.4-4.2-3.6-4.8"/>'),
+  flame:stroke('<path d="M12 3s5 4 5 8.5A5 5 0 0 1 7 12c0-1.5.8-2.8.8-2.8S9 11 10.5 11C11.6 11 9.5 6.5 12 3Z"/>'),
+  spark:stroke('<path d="M12 3v4M12 17v4M3 12h4M17 12h4M6.3 6.3 9 9M15 15l2.7 2.7M17.7 6.3 15 9M9 15l-2.7 2.7"/>'),
+  camera:stroke('<path d="M4 8a2 2 0 0 1 2-2h2l1.5-2h5L18 6h2a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2z"/><circle cx="12" cy="13" r="3.4"/>'),
+  link:stroke('<path d="M9 15l6-6M10.5 6.5 12 5a4 4 0 0 1 6 6l-1.5 1.5M13.5 17.5 12 19a4 4 0 0 1-6-6l1.5-1.5"/>'),
+  copy:stroke('<rect x="9" y="9" width="11" height="11" rx="2.5"/><path d="M5 15V6a2 2 0 0 1 2-2h8"/>'),
+  bookmark:stroke('<path d="M6 4h12v17l-6-4-6 4z"/>'),
+  cart:stroke('<circle cx="9" cy="20" r="1.4"/><circle cx="17" cy="20" r="1.4"/><path d="M3 4h2l2.2 11.5a1.5 1.5 0 0 0 1.5 1.2h8.4a1.5 1.5 0 0 0 1.5-1.2L21 8H6"/>'),
+  star:`<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 3.5l2.6 5.3 5.9.8-4.3 4.1 1 5.8L12 16.9 6.8 19.6l1-5.8L3.5 9.6l5.9-.8z"/></svg>`,
+  apple:`<svg viewBox="0 0 24 24" fill="currentColor"><path d="M16 13c0-2 1.6-3 1.7-3.1-1-1.4-2.4-1.6-2.9-1.6-1.2-.1-2.4.7-3 .7s-1.6-.7-2.6-.7C7 8.3 5.7 9 5 10.2c-1.5 2.6-.4 6.4 1 8.5.7 1 1.6 2.2 2.7 2.1 1-.1 1.5-.7 2.7-.7s1.6.7 2.7.7 1.9-1 2.6-2c.8-1.2 1.2-2.3 1.2-2.4-.1 0-2.6-1-2.6-3.9zM14.3 6.6c.6-.7 1-1.7.9-2.6-.8 0-1.9.6-2.5 1.3-.5.6-1 1.6-.9 2.5.9.1 1.9-.5 2.5-1.2z"/></svg>`,
+  x:stroke('<path d="m6 6 12 12M18 6 6 18"/>','2'),
+};
+document.getElementById('brandseal').innerHTML=I.seal;
+
+const phone=(time,inner,light='')=>`<div class="phone"><div class="scroll">
+  <div class="statusbar ${light}"><span class="time">${time}</span><div class="sb-r"><span class="num" style="font-size:11px">5G</span><svg width="22" height="12" viewBox="0 0 24 12" fill="currentColor"><rect x="1" y="3" width="20" height="9" rx="2.4" opacity=".35"/><rect x="2.5" y="4.4" width="14" height="6" rx="1.4"/><rect x="22" y="5" width="1.6" height="5" rx=".8" opacity=".5"/></svg></div></div>
+  ${inner}<div class="home-ind ${light}"></div></div></div>`;
+const fw=(p,label)=>`<div class="fw">${p}<div class="flabel">${label}</div></div>`;
+const sec=(n,t)=>`<div class="section-head"><span class="badge">${n}</span><span class="t">${t}</span><span class="ln"></span></div>`;
+
+/* ===================== 1 · CARTES PARTAGEABLES ===================== */
+// In-app: result screen with the new "Partager" button
+const resultShare=phone('14:32',`<div class="body" style="padding-top:6px">
+  <div class="row between" style="margin-bottom:14px"><span style="width:34px;height:34px;border-radius:50%;border:1px solid var(--line);display:flex;align-items:center;justify-content:center;color:var(--ink)">${I.back}</span><span class="proof est">${I.seal} Estimé</span></div>
+  <div style="height:130px;border-radius:var(--r-lg);background:linear-gradient(135deg,oklch(72% .12 60),oklch(58% .14 35));position:relative;margin-bottom:14px;overflow:hidden"><span class="src" style="position:absolute;left:12px;bottom:12px">▶ Importé · TikTok</span></div>
+  <div class="scr-title">Bol de poulet teriyaki</div>
+  <div class="eyebrow" style="margin-top:16px">Par portion</div>
+  <div class="row" style="align-items:flex-end;gap:8px;margin-top:4px"><span class="num" style="font-size:40px;font-weight:500;letter-spacing:-.03em">508</span><span class="num muted" style="font-size:13px;margin-bottom:7px">kcal</span></div>
+  <div class="mbar" style="margin-top:14px"><span style="width:38%;background:var(--protein)"></span><span style="width:44%;background:var(--carbs)"></span><span style="width:18%;background:var(--fat)"></span></div>
+  <div class="mlegend"><div class="it"><div class="row" style="gap:6px"><span class="dot" style="background:var(--protein)"></span><span class="eyebrow">Prot</span></div><div class="num" style="font-weight:600;font-size:16px;margin-top:4px">52g</div></div><div class="it"><div class="row" style="gap:6px"><span class="dot" style="background:var(--carbs)"></span><span class="eyebrow">Gluc</span></div><div class="num" style="font-weight:600;font-size:16px;margin-top:4px">56g</div></div><div class="it"><div class="row" style="gap:6px"><span class="dot" style="background:var(--fat)"></span><span class="eyebrow">Lip</span></div><div class="num" style="font-weight:600;font-size:16px;margin-top:4px">6g</div></div></div>
+  <button class="btn btn-accent" style="margin-top:20px">${I.share} Partager ma carte</button>
+  <button class="btn btn-dark" style="margin-top:10px">${I.bookmark} Enregistrer le repas</button>
+</div>`);
+
+// The share sheet (entry point → choose card style)
+const shareSheet=phone('14:32',`<div class="body" style="opacity:.5;padding-top:6px"><div class="scr-title" style="margin-top:60px">Bol de poulet teriyaki</div><div class="num" style="font-size:40px;font-weight:500;margin-top:14px">508 kcal</div></div>
+  <div class="scrim"></div>
+  <div class="sheet"><div class="sheet-grab"></div>
+    <div class="row between" style="margin:2px 4px 12px"><span class="eyebrow">Partager la carte</span><span style="width:18px;height:18px;color:var(--muted)">${I.x}</span></div>
+    <div class="opt on" style="margin-bottom:9px"><div class="ic" style="color:var(--accent-ink);background:var(--accent-wash)">${I.cart}</div><div style="flex:1">Carte recette<div class="muted tiny" style="font-weight:400;margin-top:2px">Photo + macros + liste de courses</div></div><span style="width:18px;color:var(--accent)">${I.check}</span></div>
+    <div class="opt" style="margin-bottom:9px"><div class="ic">${I.seal}</div><div style="flex:1">Carte macros<div class="muted tiny" style="font-weight:400;margin-top:2px">Le repas + ses calories</div></div></div>
+    <div class="opt" style="margin-bottom:14px"><div class="ic">${I.flame}</div><div style="flex:1">Story progrès<div class="muted tiny" style="font-weight:400;margin-top:2px">Série + perte de poids</div></div></div>
+    <button class="btn btn-dark">${I.share} Partager vers…</button>
+    <div class="note" style="margin-top:12px">iOS share sheet → Stories Insta · TikTok · Messages</div>
+  </div>`);
+
+// The exported story cards (the viral asset)
+const wmark=`<div class="wmark"><span class="seal">${I.seal}</span><span class="wm">MacroLens</span></div>`;
+const storyFoot=(t,s)=>`<div class="foot"><div class="qr">${Array.from({length:25}).map((_,i)=>`<i style="opacity:${[0,1,2,4,5,9,10,12,14,15,16,18,20,24].includes(i)?1:.12}"></i>`).join('')}</div><div class="cta"><div class="t">${t}</div><div class="s">${s}</div></div></div>`;
+
+const cardRecipe=`<div class="story">
+  <div class="photo" style="background:linear-gradient(135deg,oklch(72% .12 60),oklch(54% .14 32))">${wmark}<span class="src">▶ Recette TikTok importée</span></div>
+  <div style="padding:14px 16px 92px">
+    <div style="font-family:var(--font-display);font-weight:600;font-size:21px;letter-spacing:-.02em;line-height:1.1">Bol de poulet teriyaki</div>
+    <div class="row" style="gap:8px;align-items:flex-end;margin-top:10px"><span class="num" style="font-size:30px;font-weight:500;letter-spacing:-.02em">508</span><span class="num muted" style="font-size:11px;margin-bottom:5px">kcal / portion</span></div>
+    <div class="mbar" style="margin-top:11px"><span style="width:38%;background:var(--protein)"></span><span style="width:44%;background:var(--carbs)"></span><span style="width:18%;background:var(--fat)"></span></div>
+    <div class="row" style="gap:14px;margin-top:9px"><span class="num" style="font-size:11px"><b style="color:var(--protein)">●</b> 52g P</span><span class="num" style="font-size:11px"><b style="color:var(--carbs)">●</b> 56g G</span><span class="num" style="font-size:11px"><b style="color:var(--fat)">●</b> 6g L</span></div>
+    <div class="eyebrow" style="margin-top:15px">Liste de courses</div>
+    <div class="num" style="font-size:11px;color:var(--ink-2);line-height:1.7;margin-top:5px">▢ Blanc de poulet · 150g<br>▢ Riz cuit · 200g<br>▢ Sauce teriyaki · 30g <span class="muted">+2</span></div>
+  </div>
+  ${storyFoot('Importe n’importe quelle recette TikTok','Télécharge MacroLens')}
+</div>`;
+
+const cardMacros=`<div class="story">
+  <div class="photo" style="height:200px;background:linear-gradient(135deg,oklch(66% .10 150),oklch(48% .12 165))">${wmark}<span class="src">${I.camera} Scan IA</span></div>
+  <div style="padding:16px 16px 92px">
+    <div class="eyebrow">Mon repas</div>
+    <div style="font-family:var(--font-display);font-weight:600;font-size:19px;letter-spacing:-.02em;margin-top:5px">Saumon, riz & avocat</div>
+    <div class="row" style="gap:8px;align-items:flex-end;margin-top:12px"><span class="num" style="font-size:34px;font-weight:500;letter-spacing:-.02em">612</span><span class="num muted" style="font-size:12px;margin-bottom:6px">kcal</span><span class="proof est" style="margin-left:auto;margin-bottom:4px">${I.seal} Estimé</span></div>
+    <div class="mbar" style="margin-top:14px;height:10px"><span style="width:34%;background:var(--protein)"></span><span style="width:30%;background:var(--carbs)"></span><span style="width:36%;background:var(--fat)"></span></div>
+    <div class="mlegend" style="margin-top:13px"><div class="it"><div class="eyebrow">Prot</div><div class="num" style="font-weight:600;font-size:17px;margin-top:4px">41g</div></div><div class="it"><div class="eyebrow">Gluc</div><div class="num" style="font-weight:600;font-size:17px;margin-top:4px">38g</div></div><div class="it"><div class="eyebrow">Lip</div><div class="num" style="font-weight:600;font-size:17px;margin-top:4px">28g</div></div></div>
+  </div>
+  ${storyFoot('Scanne ton assiette → calories + macros','Télécharge MacroLens')}
+</div>`;
+
+const cardProgress=`<div class="story">
+  <div class="photo" style="height:188px;background:var(--ink);color:#fff">${wmark}
+    <div style="position:relative"><div class="eyebrow" style="color:rgba(255,255,255,.6)">Série en cours</div><div class="row" style="gap:9px;align-items:center;margin-top:4px"><span style="width:26px;height:26px;color:var(--warn)">${I.flame}</span><span class="num" style="font-size:32px;font-weight:600">21</span><span style="font-size:13px;color:rgba(255,255,255,.7);margin-top:8px">jours</span></div></div>
+  </div>
+  <div style="padding:16px 16px 92px">
+    <div class="eyebrow">Progression · 30 jours</div>
+    <svg viewBox="0 0 240 70" style="width:100%;height:70px;margin-top:10px"><polyline points="0,12 40,18 80,16 120,30 160,34 200,48 240,52" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/><circle cx="240" cy="52" r="3.5" fill="var(--accent)"/></svg>
+    <div class="row between" style="margin-top:12px"><div><div class="eyebrow">Poids</div><div class="num" style="font-weight:600;font-size:22px;margin-top:4px">−2,4 <span style="font-size:12px;color:var(--muted)">kg</span></div></div><div style="text-align:right"><div class="eyebrow">Repas loggés</div><div class="num" style="font-weight:600;font-size:22px;margin-top:4px">128</div></div></div>
+  </div>
+  ${storyFoot('21 jours de suivi · sans craquer','Télécharge MacroLens')}
+</div>`;
+
+/* ===================== 2 · PARRAINAGE ===================== */
+const referral=phone('09:41',`<div class="body" style="padding-top:6px">
+  <div class="row between" style="margin-bottom:18px"><span style="width:34px;height:34px;border-radius:50%;border:1px solid var(--line);display:flex;align-items:center;justify-content:center;color:var(--ink)">${I.back}</span><span class="eyebrow">Parrainage</span><span style="width:34px"></span></div>
+  <div style="display:flex;flex-direction:column;align-items:center;text-align:center;gap:12px;margin-top:8px"><div class="gift">${I.gift}</div>
+    <div class="scr-title" style="font-size:24px">Invite un ami,<br>gagnez 1 semaine chacun</div>
+    <div class="sub" style="max-width:250px">Ton ami obtient MacroLens Pro 7 jours offerts. Toi aussi, dès qu'il s'inscrit.</div>
+  </div>
+  <div class="eyebrow" style="margin:24px 2px 8px">Ton code</div>
+  <div class="code"><span class="v">IDRISS7</span><span class="row" style="gap:6px;color:var(--accent-ink);font-family:var(--font-mono);font-size:11px;font-weight:600">${I.copy} Copier</span></div>
+  <button class="btn btn-dark" style="margin-top:13px">${I.share} Partager mon invitation</button>
+  <div class="eyebrow" style="margin:26px 2px 6px">Tes invitations · 3 / 5</div>
+  <div class="prog" style="height:7px"><i style="width:60%;background:var(--accent)"></i></div>
+  <div class="card" style="overflow:hidden;margin-top:14px">
+    <div class="refrow" style="padding-left:14px;padding-right:14px"><span class="av">LM</span><div style="flex:1"><div style="font-weight:600;font-size:13.5px">Léa M.</div><div class="muted tiny num">Inscrite · +7 jours</div></div><span style="width:18px;color:var(--accent)">${I.check}</span></div>
+    <div class="rule" style="margin:0 14px"></div>
+    <div class="refrow" style="padding-left:14px;padding-right:14px"><span class="av">TR</span><div style="flex:1"><div style="font-weight:600;font-size:13.5px">Thomas R.</div><div class="muted tiny num">Inscrit · +7 jours</div></div><span style="width:18px;color:var(--accent)">${I.check}</span></div>
+    <div class="rule" style="margin:0 14px"></div>
+    <div class="refrow" style="padding-left:14px;padding-right:14px;opacity:.55"><span class="av" style="background:var(--paper-3);color:var(--muted)">?</span><div style="flex:1"><div style="font-weight:600;font-size:13.5px">En attente</div><div class="muted tiny num">Invitation envoyée</div></div></div>
+  </div>
+  <div class="note" style="margin-top:16px">Codes uniques → attribution RevenueCat (CAC par influ)</div>
+</div>`);
+
+/* ===================== 3 · FUNNEL AHA → PLAN → PAYWALL ===================== */
+// AHA — let them feel ONE scan before the paywall
+const aha=phone('09:41',`<div class="body" style="padding-top:6px">
+  <div class="prog" style="margin:8px 0 18px"><i style="width:78%"></i></div>
+  <div class="eyebrow">Essaie maintenant · gratuit</div>
+  <div class="scr-title" style="margin-top:8px">Scanne ton 1ᵉʳ repas</div>
+  <div class="sub" style="margin-top:6px">Avant de continuer, vois ce que MacroLens fait en 2 secondes.</div>
+  <div style="height:150px;border-radius:var(--r-lg);background:linear-gradient(135deg,oklch(70% .11 70),oklch(52% .13 40));margin-top:16px;position:relative;overflow:hidden"><span class="proof est" style="position:absolute;right:12px;bottom:12px;background:rgba(255,255,255,.92)">${I.seal} Estimé</span></div>
+  <div class="card" style="padding:16px;margin-top:14px">
+    <div class="row between"><span class="eyebrow">Détecté à l'instant</span><span class="num muted tiny">IA · 1,8s</span></div>
+    <div class="row" style="gap:8px;align-items:flex-end;margin-top:8px"><span class="num" style="font-size:30px;font-weight:500;letter-spacing:-.02em">486</span><span class="num muted" style="font-size:12px;margin-bottom:5px">kcal</span></div>
+    <div class="mbar" style="margin-top:12px"><span style="width:40%;background:var(--protein)"></span><span style="width:42%;background:var(--carbs)"></span><span style="width:18%;background:var(--fat)"></span></div>
+  </div>
+  <div style="text-align:center;font-weight:600;font-size:14px;margin-top:18px">Bluffant, non&nbsp;? 🤯</div>
+  <button class="btn btn-dark" style="margin-top:12px">Oui — construis mon plan ${I.chevR}</button>
+</div>`);
+
+// Personalized plan
+const plan=phone('09:41',`<div class="body" style="padding-top:6px">
+  <div class="row between" style="margin:6px 0 20px"><span style="width:24px;color:var(--ink-2)">${I.back}</span><div class="prog" style="flex:1;margin:0 14px"><i style="width:100%"></i></div><span class="num tiny muted">12 / 12</span></div>
+  <div class="eyebrow">Ton plan · personnalisé</div>
+  <div class="scr-title" style="margin-top:8px">Voici TON objectif</div>
+  <div class="sub" style="margin-top:6px">Calculé selon ton corps, ton rythme et ton but.</div>
+  <div class="card" style="padding:22px 20px;margin-top:16px"><div class="eyebrow">Calories / jour</div><div class="num" style="font-size:48px;font-weight:500;letter-spacing:-.02em;line-height:1.05;margin:6px 0 13px">2 180</div><div class="proof">${I.seal} Ajusté chaque semaine selon tes données</div></div>
+  <div class="row" style="gap:9px;margin-top:11px">
+    <div class="card" style="flex:1;padding:15px 13px"><div class="row" style="gap:6px"><span style="width:7px;height:7px;border-radius:2px;background:var(--protein)"></span><span class="eyebrow">Prot</span></div><div class="num" style="font-weight:600;font-size:18px;margin-top:7px">165<span style="font-size:11px;color:var(--muted)">g</span></div></div>
+    <div class="card" style="flex:1;padding:15px 13px"><div class="row" style="gap:6px"><span style="width:7px;height:7px;border-radius:2px;background:var(--carbs)"></span><span class="eyebrow">Gluc</span></div><div class="num" style="font-weight:600;font-size:18px;margin-top:7px">208<span style="font-size:11px;color:var(--muted)">g</span></div></div>
+    <div class="card" style="flex:1;padding:15px 13px"><div class="row" style="gap:6px"><span style="width:7px;height:7px;border-radius:2px;background:var(--fat)"></span><span class="eyebrow">Lip</span></div><div class="num" style="font-weight:600;font-size:18px;margin-top:7px">62<span style="font-size:11px;color:var(--muted)">g</span></div></div>
+  </div>
+  <div class="card" style="padding:14px 16px;margin-top:13px;display:flex;gap:11px;align-items:center;background:var(--accent-wash);border-color:var(--accent-line)"><span style="width:18px;color:var(--accent-ink)">${I.spark}</span><span class="tiny" style="color:var(--accent-ink);line-height:1.45">Objectif <b>−5 kg</b> estimé vers le <b>14 sept.</b> en tenant ce plan.</span></div>
+  <button class="btn btn-dark" style="margin-top:16px">Activer mon plan ${I.chevR}</button>
+</div>`);
+
+// Paywall — annual default + social proof + 7-day trial
+const paywall=phone('09:41',`<div class="body" style="padding-top:6px">
+  <div class="row between" style="margin:6px 0 16px"><span style="width:22px;color:var(--muted-2)">${I.x}</span><span class="eyebrow">Essai 7 jours offert</span><span style="width:22px"></span></div>
+  <div class="scr-title">Débloque ton plan<br>complet</div>
+  <div style="margin-top:16px;display:flex;flex-direction:column;gap:9px">
+    ${['Scans illimités + import recettes','Suivi macros & objectifs adaptatifs','Apple Santé, rappels & rapports'].map(t=>`<div class="row" style="gap:10px"><span style="width:20px;height:20px;border-radius:6px;background:var(--accent-wash);color:var(--accent-ink);display:flex;align-items:center;justify-content:center">${I.check}</span><span style="font-size:13.5px;font-weight:500">${t}</span></div>`).join('')}
+  </div>
+  <div class="plan-pill on" style="margin-top:18px"><div><div class="row" style="gap:8px"><span style="font-weight:600;font-size:14.5px">Annuel</span><span class="badge-best">2 mois offerts</span></div><div class="num muted tiny" style="margin-top:3px">49,99 € / an · 4,17 €/mois</div></div><span class="num" style="font-weight:600;font-size:15px">4,17€<span style="font-size:10px;color:var(--muted)">/m</span></span></div>
+  <div class="plan-pill" style="margin-top:9px"><div><div style="font-weight:600;font-size:14.5px">Mensuel</div><div class="num muted tiny" style="margin-top:3px">9,99 € / mois</div></div><span class="num" style="font-weight:600;font-size:15px;color:var(--muted)">9,99€</span></div>
+  <div class="row" style="gap:6px;justify-content:center;margin-top:16px"><span class="stars">${[0,0,0,0,0].map(()=>I.star).join('')}</span><span class="num muted tiny">4,9 · 2 400+ avis</span></div>
+  <button class="btn btn-dark" style="margin-top:12px">Commencer l'essai gratuit ${I.chevR}</button>
+  <div class="note" style="margin-top:11px">Annuel pré-sélectionné · rappel avant prélèvement</div>
+</div>`);
+
+/* ===================== RENDER ===================== */
+document.getElementById('board').innerHTML=
+  sec(1,'Cartes partageables — acquisition virale')
+  + fw(resultShare,`<span class="n">A</span>Le bouton <b>Partager ma carte</b> apparaît sur chaque résultat / recette. Point d'entrée du levier viral.`)
+  + fw(shareSheet,`<span class="n">B</span>Feuille de choix → 3 formats de carte, puis <b>share sheet iOS</b> (Stories, TikTok, Messages).`)
+  + fw(cardRecipe,`<span class="n">C</span><b>Carte recette</b> (asset Story 9:16) : photo + macros + liste de courses + watermark + QR. C'est ce qui se poste.`)
+  + fw(cardMacros,`<span class="n">D</span><b>Carte macros</b> : un repas scanné, calories + barre macro + sceau. Format « flex » quotidien.`)
+  + fw(cardProgress,`<span class="n">E</span><b>Story progrès</b> : série + courbe poids. Preuve sociale = le meilleur déclencheur de partage.`)
+  + sec(2,'Parrainage — bouche-à-oreille + attribution influenceurs')
+  + fw(referral,`<span class="n">F</span>Code unique par user → « 1 semaine offerte ×2 ». Les <b>codes uniques par influenceur</b> donnent le CAC via RevenueCat.`)
+  + sec(3,'Funnel aha → plan → paywall — le multiplicateur de conversion')
+  + fw(aha,`<span class="n">G</span><b>Aha</b> : un 1ᵉʳ scan ressenti <b>avant</b> de payer. On montre la valeur, puis on demande.`)
+  + fw(plan,`<span class="n">H</span><b>« Voici TON plan »</b> : objectif personnalisé + date estimée → engagement avant le paywall.`)
+  + fw(paywall,`<span class="n">I</span><b>Paywall</b> : annuel <b>pré-sélectionné</b> (anti-churn), essai 7 j, preuve sociale (étoiles + avis).`);
+</script>
+</body>
+</html>

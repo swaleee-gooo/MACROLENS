@@ -7,6 +7,8 @@ import { buildResultTrustViewModel, type ResultTrustItemRow } from '../ui/result
 import { useLang } from '../i18n/LanguageContext';
 import { Card, Eyebrow, MacroBar, Num, ProofChip, Seal, ToleranceBar } from '../ui/primitives';
 import { colors, fonts, radius, spacing, typography } from '../ui/theme';
+import { ShareCardButton } from '../share/ShareCardButton';
+import { cardDataFromMeal } from '../share/shareCardContent';
 
 type Props = {
   meal: Meal;
@@ -31,6 +33,8 @@ const STR = {
     noDetailedFoodsDetail: 'This meal comes from a global entry.',
     looksRight: 'Looks right?',
     saveMeal: 'Save meal',
+    shareMyCard: 'Share my card',
+    sharingCard: 'Preparing card...',
     demoMode: 'Demo mode',
     demoDetail: 'AI analysis is not connected: this result is a fixed example for testing the photo, correction and Timeline flow.',
     quickCorrections: 'Quick corrections',
@@ -55,6 +59,8 @@ const STR = {
     noDetailedFoodsDetail: 'Ce repas provient d\'une entrée globale.',
     looksRight: 'Ça vous semble bon ?',
     saveMeal: 'Enregistrer le repas',
+    shareMyCard: 'Partager ma carte',
+    sharingCard: 'Preparation...',
     demoMode: 'Mode démo',
     demoDetail: 'L\'analyse IA n\'est pas connectée : ce résultat est un exemple fixe pour tester la photo, la correction et le flux Chronologie.',
     quickCorrections: 'Corrections rapides',
@@ -150,6 +156,8 @@ export function ResultScreen({ meal, onApplyCorrection, onAdjustItem, onSave, on
   const proofBadge = resultTrust.proofBadge;
   const proofTone = proofBadge ? proofWash(proofBadge.tone) : null;
   const verified = proofBadge?.tone === 'green';
+  const shareKind = meal.imageUri.startsWith('recipe://') ? 'recipe' : 'meal';
+  const shareCardData = cardDataFromMeal(meal, shareKind);
 
   const proteinKcal = meal.proteinG * 4;
   const carbsKcal = meal.carbsG * 4;
@@ -275,6 +283,8 @@ export function ResultScreen({ meal, onApplyCorrection, onAdjustItem, onSave, on
           <ThumbsUp color={colors.muted} size={18} strokeWidth={2} />
           <ThumbsDown color={colors.muted} size={18} strokeWidth={2} />
         </View>
+
+        <ShareCardButton data={shareCardData} label={t.shareMyCard} sharingLabel={t.sharingCard} />
 
         <Pressable onPress={onSave} style={{ alignItems: 'center', backgroundColor: colors.ink, borderRadius: radius.md, flexDirection: 'row', gap: spacing.sm, justifyContent: 'center', paddingVertical: 17 }}>
           <Text style={{ color: '#FFFFFF', fontSize: typography.body, fontWeight: '700' }}>{t.saveMeal}</Text>

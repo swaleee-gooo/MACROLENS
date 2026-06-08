@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>MacroLens — Share card (final · A Cinematic)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#FAFAF9; --ink:#16181C; --ink-2:#34373D; --muted:#6B6F77; --muted-2:#9499A0;
+  --line:#E5E4E0; --line-2:#D5D4CF;
+  --accent:#149E6E; --accent-ink:#0C6B4C; --accent-wash:#E6F4EE; --accent-line:#BFE3D3;
+  --protein:#C75A45; --carbs:#D6A24A; --fat:#5C7CC2;
+  --font-display:'Space Grotesk',system-ui,sans-serif; --font-sans:'IBM Plex Sans',system-ui,sans-serif; --font-mono:'IBM Plex Mono',ui-monospace,monospace;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{font-family:var(--font-sans);color:var(--ink);background:#0f1115;min-height:100vh;-webkit-font-smoothing:antialiased;background-image:radial-gradient(1000px 600px at 50% -10%, #1b1f27 0%, #0f1115 70%)}
+.num{font-family:var(--font-mono);font-variant-numeric:tabular-nums}
+.eyebrow{font-family:var(--font-mono);text-transform:uppercase;letter-spacing:.16em;font-size:9.5px;font-weight:500}
+.mast{max-width:1200px;margin:0 auto;padding:40px 30px 4px;color:#fff}
+.mast .wm{font-family:var(--font-display);font-weight:700;font-size:22px;letter-spacing:-.02em}
+.mast .lede{color:#aeb4bf;font-size:14px;line-height:1.55;max-width:760px;margin:14px 0 0}.mast .lede b{color:#fff}
+.board{max-width:1200px;margin:0 auto;padding:30px;display:flex;flex-wrap:wrap;gap:50px 44px;justify-content:center;align-items:flex-start}
+.col{display:flex;flex-direction:column;align-items:center;gap:15px}
+.tag{font-family:var(--font-mono);font-size:11px;letter-spacing:.05em;color:#cdd2da;display:flex;align-items:center;gap:8px}
+.tag .k{display:inline-flex;width:22px;height:22px;align-items:center;justify-content:center;background:#23272f;color:#fff;border-radius:6px;font-weight:600;font-size:11px}.tag b{color:var(--accent)}
+.desc{font-family:var(--font-mono);font-size:10px;color:#8b919c;line-height:1.6;max-width:282px;text-align:center}
+.grain{position:absolute;inset:0;background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");opacity:.06;mix-blend-mode:overlay;pointer-events:none}
+.mbar{height:7px;border-radius:999px;overflow:hidden;display:flex;gap:2px}.mbar span{height:100%}
+.macrochip{display:flex;align-items:center;gap:6px;font-family:var(--font-mono);font-size:11px;font-weight:500}
+.macrochip i{width:7px;height:7px;border-radius:2px;display:inline-block}
+.story{width:300px;height:533px;border-radius:30px;overflow:hidden;position:relative;box-shadow:0 30px 70px rgba(0,0,0,.5),0 0 0 1px rgba(255,255,255,.05)}
+.qr{width:42px;height:42px;border-radius:9px;background:#fff;display:grid;grid-template-columns:repeat(7,1fr);grid-template-rows:repeat(7,1fr);gap:1.4px;padding:5px;flex:0 0 42px}
+.qr i{background:var(--ink);border-radius:1px}.qr i.o{opacity:0}
+/* phone (share sheet) */
+.phone{width:300px;height:533px;background:var(--ink);border-radius:36px;position:relative;overflow:hidden;box-shadow:0 30px 70px rgba(0,0,0,.5),0 0 0 1px rgba(255,255,255,.05)}
+.sheet{position:absolute;left:0;right:0;bottom:0;background:var(--paper);border-radius:24px 24px 0 0;padding:12px 16px 22px}
+.grab{width:40px;height:4px;border-radius:3px;background:var(--line-2);margin:2px auto 14px}
+.plat{display:flex;flex-direction:column;align-items:center;gap:7px;flex:1}
+.plat .ic{width:52px;height:52px;border-radius:16px;display:flex;align-items:center;justify-content:center;color:#fff;font-family:var(--font-display);font-weight:700;font-size:20px}
+.plat .nm{font-size:10.5px;color:var(--ink-2);font-weight:500}
+</style>
+</head>
+<body>
+<header class="mast">
+  <div style="display:flex;align-items:center;gap:11px"><span id="hseal" style="width:28px;height:28px;color:var(--accent);display:flex"></span><span class="wm">MacroLens</span><span class="eyebrow" style="margin-left:auto;color:#7d838d">Share card · final · A Cinematic</span></div>
+  <p class="lede">Direction <b>A</b>, corrigée : pas de sceau ni de pill « TikTok », <b>508 aéré</b>, <b>full English</b>, marche pour les recettes <b>importées comme persos</b>. Partage natif vers <b>Instagram · TikTok · Snapchat · Messenger · Facebook</b>, et <b>QR → App Store MacroLens</b>.</p>
+</header>
+<div class="board" id="board"></div>
+
+<script>
+const I={seal:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M12 2.5 19 5v6c0 4.8-3.3 8.1-7 10-3.7-1.9-7-5.2-7-10V5l7-2.5Z"/><path d="m8.7 11.8 2.3 2.3 4.4-4.6" stroke-linecap="round"/></svg>`,
+  flame:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3s5 4 5 8.5A5 5 0 0 1 7 12c0-1.5.8-2.8.8-2.8S9 11 10.5 11C11.6 11 9.5 6.5 12 3Z"/></svg>`};
+document.getElementById('hseal').innerHTML=I.seal;
+const qrDots=()=>Array.from({length:49}).map((_,i)=>`<i class="${[8,9,10,12,16,18,22,24,26,30,32,38,39,40].includes(i)?'o':''}"></i>`).join('');
+const photo=`background:
+  radial-gradient(130% 90% at 28% 18%, #f0b072 0%, rgba(240,176,114,0) 46%),
+  radial-gradient(120% 120% at 82% 96%, #6e2a18 0%, rgba(110,42,24,0) 55%),
+  radial-gradient(80% 60% at 60% 40%, rgba(255,255,255,.18), rgba(255,255,255,0) 60%),
+  linear-gradient(155deg, #d27a36 0%, #a8431f 52%, #5c241a 100%);`;
+const photoCool=`background:
+  radial-gradient(130% 90% at 26% 16%, #8fd9b6 0%, rgba(143,217,182,0) 46%),
+  radial-gradient(120% 120% at 84% 96%, #123b2c 0%, rgba(18,59,44,0) 55%),
+  linear-gradient(155deg, #2f9e72 0%, #15613f 60%, #0c2c20 100%);`;
+const photoCal=`background:
+  radial-gradient(120% 90% at 30% 18%, #3a4150 0%, rgba(58,65,80,0) 50%),
+  linear-gradient(155deg, #20242d 0%, #14161c 70%);`;
+const vignette=`<div style="position:absolute;inset:0;background:radial-gradient(120% 100% at 50% 30%, transparent 42%, rgba(20,10,6,.45) 100%)"></div>`;
+
+// ---- the refined cinematic card (generic) ----
+const card=(bg,{eyebrow,title,big,unit,p,c,f,foot})=>`<div class="story" style="${bg}">
+  <div class="grain"></div>${vignette}
+  <div style="position:absolute;left:0;right:0;bottom:0;padding:28px 22px 18px;background:linear-gradient(to top, rgba(10,7,6,.95) 0%, rgba(10,7,6,.78) 48%, rgba(10,7,6,0) 100%)">
+    <div class="eyebrow" style="color:#67e0ad">${eyebrow}</div>
+    <div style="font-family:var(--font-display);font-weight:600;font-size:27px;letter-spacing:-.025em;line-height:1.05;color:#fff;margin-top:9px">${title}</div>
+    <div style="display:flex;align-items:flex-end;gap:11px;margin-top:24px"><span class="num" style="font-size:46px;font-weight:500;letter-spacing:-.03em;color:#fff;line-height:.9">${big}</span><span class="num" style="font-size:12px;color:rgba(255,255,255,.66);margin-bottom:6px">${unit}</span></div>
+    <div class="mbar" style="margin-top:18px"><span style="width:38%;background:var(--protein)"></span><span style="width:44%;background:var(--carbs)"></span><span style="width:18%;background:var(--fat)"></span></div>
+    <div style="display:flex;gap:18px;margin-top:12px;color:#fff">
+      <span class="macrochip"><i style="background:var(--protein)"></i>${p} <span style="color:rgba(255,255,255,.6)">protein</span></span>
+      <span class="macrochip"><i style="background:var(--carbs)"></i>${c} <span style="color:rgba(255,255,255,.6)">carbs</span></span>
+      <span class="macrochip"><i style="background:var(--fat)"></i>${f} <span style="color:rgba(255,255,255,.6)">fat</span></span>
+    </div>
+    <div style="height:1px;background:rgba(255,255,255,.14);margin:18px 0 14px"></div>
+    <div style="display:flex;align-items:center;gap:12px">
+      <div class="qr">${qrDots()}</div>
+      <div style="flex:1"><div style="font-family:var(--font-display);font-weight:700;font-size:15px;color:#fff;letter-spacing:-.01em">MacroLens</div><div style="font-family:var(--font-mono);font-size:9px;color:rgba(255,255,255,.6);text-transform:uppercase;letter-spacing:.06em;margin-top:2px">${foot}</div></div>
+    </div>
+  </div>
+</div>`;
+
+const recipe=card(photo,{eyebrow:'Recipe · 1 serving',title:'Chicken teriyaki bowl',big:'508',unit:'kcal',p:'52g',c:'56g',f:'6g',foot:'Scan → get the app'});
+const ownRecipe=card(photoCool,{eyebrow:'My recipe',title:'High-protein<br>green curry',big:'472',unit:'kcal',p:'44g',c:'38g',f:'14g',foot:'Made with MacroLens'});
+const meal=card(photoCal,{eyebrow:"Today's meal",title:'Salmon, rice<br>& avocado',big:'612',unit:'kcal',p:'41g',c:'38g',f:'28g',foot:'Scan your plate'});
+
+// progress card (style A, dark)
+const progress=`<div class="story" style="background:#14161c">
+  <div style="position:absolute;inset:0;${photoCool};opacity:.32"></div><div class="grain"></div>${vignette}
+  <div style="position:absolute;left:0;right:0;bottom:0;padding:28px 22px 18px;background:linear-gradient(to top, rgba(8,10,12,.96) 0%, rgba(8,10,12,.8) 50%, rgba(8,10,12,0) 100%)">
+    <div class="eyebrow" style="color:#67e0ad">My streak</div>
+    <div style="display:flex;align-items:center;gap:11px;margin-top:9px"><span style="width:28px;height:28px;color:var(--carbs)">${I.flame}</span><span class="num" style="font-size:44px;font-weight:600;color:#fff;line-height:.9">21</span><span style="color:rgba(255,255,255,.7);font-size:14px;margin-bottom:5px">days logged</span></div>
+    <svg viewBox="0 0 250 60" style="width:100%;height:58px;margin-top:18px"><polyline points="0,10 42,16 84,14 126,28 168,32 210,46 250,50" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/><circle cx="250" cy="50" r="3.5" fill="var(--accent)"/></svg>
+    <div style="display:flex;justify-content:space-between;margin-top:14px;color:#fff"><div><div class="eyebrow" style="color:rgba(255,255,255,.55)">Weight</div><div class="num" style="font-weight:600;font-size:22px;margin-top:3px">−5.3 <span style="font-size:12px;color:rgba(255,255,255,.6)">lb</span></div></div><div style="text-align:right"><div class="eyebrow" style="color:rgba(255,255,255,.55)">Meals</div><div class="num" style="font-weight:600;font-size:22px;margin-top:3px">128</div></div></div>
+    <div style="height:1px;background:rgba(255,255,255,.14);margin:18px 0 14px"></div>
+    <div style="display:flex;align-items:center;gap:12px"><div class="qr">${qrDots()}</div><div style="flex:1"><div style="font-family:var(--font-display);font-weight:700;font-size:15px;color:#fff">MacroLens</div><div style="font-family:var(--font-mono);font-size:9px;color:rgba(255,255,255,.6);text-transform:uppercase;letter-spacing:.06em;margin-top:2px">Scan → get the app</div></div></div>
+  </div>
+</div>`;
+
+// share sheet phone
+const plats=[
+  ['IG','Instagram','background:linear-gradient(45deg,#f9ce34,#ee2a7b,#6228d7)'],
+  ['TT','TikTok','background:#010101;box-shadow:inset 0 0 0 1px #25f4ee'],
+  ['SC','Snapchat','background:#FFFC00;color:#111'],
+  ['Me','Messenger','background:linear-gradient(45deg,#0084ff,#a033ff)'],
+  ['f','Facebook','background:#1877F2']
+];
+const sheet=`<div class="phone">
+  <div style="position:absolute;inset:0;${photo};opacity:.5"></div>
+  <div style="position:absolute;left:50%;top:54px;transform:translateX(-50%);width:120px;height:213px;border-radius:14px;${photo};box-shadow:0 14px 30px rgba(0,0,0,.5),0 0 0 1px rgba(255,255,255,.1);overflow:hidden"><div style="position:absolute;left:0;right:0;bottom:0;height:54%;background:linear-gradient(to top,rgba(10,7,6,.94),transparent);padding:8px"><div style="position:absolute;bottom:8px;left:8px;right:8px;color:#fff"><div class="num" style="font-size:17px;font-weight:600">508</div><div style="font-family:var(--font-display);font-weight:600;font-size:10px">MacroLens</div></div></div></div>
+  <div class="sheet"><div class="grab"></div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin:0 4px 14px"><span class="eyebrow" style="color:var(--muted)">Share your card</span></div>
+    <div style="display:flex;gap:6px;margin-bottom:8px">${plats.map(([g,n,s])=>`<div class="plat"><div class="ic" style="${s}">${g}</div><div class="nm">${n}</div></div>`).join('')}</div>
+    <div style="display:flex;gap:6px;margin-top:10px">
+      <div class="plat" style="flex:0 0 25%"><div class="ic" style="background:var(--paper-2);background:#ECECE9;color:var(--ink)">⋯</div><div class="nm">More</div></div>
+      <div style="flex:1"></div>
+    </div>
+    <div style="text-align:center;font-family:var(--font-mono);font-size:9px;color:var(--muted-2);text-transform:uppercase;letter-spacing:.05em;margin-top:14px">iOS share sheet · 1 tap to Stories</div>
+  </div>
+</div>`;
+
+document.getElementById('board').innerHTML=
+  `<div class="col"><div class="tag"><span class="k">1</span><b>Recipe</b> — imported</div>${recipe}<div class="desc">La hero, corrigée : top photo nu, 508 aéré, QR + MacroLens en bas. Anglais.</div></div>`
+  +`<div class="col"><div class="tag"><span class="k">2</span><b>My recipe</b> — créée par l'user</div>${ownRecipe}<div class="desc">Même carte pour les recettes <b>persos</b> → tout le monde peut partager.</div></div>`
+  +`<div class="col"><div class="tag"><span class="k">3</span><b>Meal</b> — scan</div>${meal}<div class="desc">Le repas scanné du jour. Le « flex » quotidien.</div></div>`
+  +`<div class="col"><div class="tag"><span class="k">4</span><b>Progress</b> — streak</div>${progress}<div class="desc">Série + poids. La preuve sociale qui se partage le plus.</div></div>`
+  +`<div class="col"><div class="tag"><span class="k">5</span><b>Share sheet</b></div>${sheet}<div class="desc">Insta · TikTok · Snap · Messenger · FB + More. QR de la carte → App Store.</div></div>`;
+</script>
+</body>
+</html>

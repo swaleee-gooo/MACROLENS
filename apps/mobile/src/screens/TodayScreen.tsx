@@ -10,6 +10,8 @@ import { buildDayReviewViewModel } from '../ui/dayReviewViewModel';
 import { buildPremiumDashboardViewModel } from '../ui/premiumDashboardViewModel';
 import { Card, Eyebrow, Num } from '../ui/primitives';
 import { colors, fonts, radius, spacing, typography } from '../ui/theme';
+import { ShareCardButton } from '../share/ShareCardButton';
+import { cardDataFromProgress } from '../share/shareCardContent';
 
 type Props = {
   meals: Meal[];
@@ -34,6 +36,8 @@ const STR = {
     fat: 'Fat',
     weighIn: 'Weigh-in',
     report: 'Report',
+    share: 'Share',
+    sharing: 'Preparing...',
     goalKcal: (n: number) => `Goal ${n} kcal`,
   },
   fr: {
@@ -48,6 +52,8 @@ const STR = {
     fat: 'Lipides',
     weighIn: 'Pesée',
     report: 'Rapport',
+    share: 'Partager',
+    sharing: 'Preparation...',
     goalKcal: (n: number) => `Objectif ${n} kcal`,
   },
 };
@@ -172,6 +178,7 @@ export function TodayScreen({ meals, targets, profile, onAddWeighIn, onOpenWeekl
   const consumed = dayReview.calories.consumed;
   const remaining = Math.max(0, calorieTarget - consumed);
   const calorieProgress = clampProgress(consumed, calorieTarget);
+  const shareCardData = cardDataFromProgress({ meals, targets, profile, isoDate: selectedIsoDate });
 
   return (
     <ScrollView style={{ backgroundColor: colors.background, flex: 1 }} contentContainerStyle={{ gap: spacing.md, padding: spacing.xl, paddingBottom: 116 }} showsVerticalScrollIndicator={false}>
@@ -208,6 +215,7 @@ export function TodayScreen({ meals, targets, profile, onAddWeighIn, onOpenWeekl
         <ActionButton variant="dark" icon={<Scale color="#FFFFFF" size={17} strokeWidth={2} />} label={t.weighIn} onPress={onAddWeighIn} />
         <ActionButton variant="ghost" icon={<FileText color={colors.ink} size={17} strokeWidth={2} />} label={t.report} onPress={onOpenWeeklyReport} />
       </View>
+      <ShareCardButton data={shareCardData} label={t.share} sharingLabel={t.sharing} />
     </ScrollView>
   );
 }

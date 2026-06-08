@@ -7,6 +7,8 @@ import { colors, fonts, radius, spacing, typography } from '../ui/theme';
 import { recipePlatformLabel } from '../recipeImport/recipeUrl';
 import { computeRecipeTotals, perServingTotals } from '../recipeImport/recipeNutrition';
 import type { ImportedRecipe, ImportedRecipeIngredient } from '../recipeImport/recipeSchema';
+import { ShareCardButton } from '../share/ShareCardButton';
+import { cardDataFromImportedRecipe } from '../share/shareCardContent';
 
 type Props = {
   recipe: ImportedRecipe;
@@ -32,6 +34,8 @@ const STR = {
     fat: 'Fat',
     steps: 'Steps',
     save: 'Save recipe',
+    shareMyCard: 'Share my card',
+    sharingCard: 'Preparing card...',
     note: 'Estimated from the post. Adjust grams and servings to match what you actually ate.',
     kcalPer100: 'kcal/100g',
   },
@@ -50,6 +54,8 @@ const STR = {
     fat: 'Lipides',
     steps: 'Étapes',
     save: 'Enregistrer la recette',
+    shareMyCard: 'Partager ma carte',
+    sharingCard: 'Preparation...',
     note: 'Estimé depuis la publication. Ajuste les grammes et les portions selon ce que tu as réellement mangé.',
     kcalPer100: 'kcal/100g',
   },
@@ -119,18 +125,20 @@ export function RecipeReviewScreen({ recipe, onBack, onSave }: Props) {
   ];
 
   const canSave = title.trim().length > 0 && validIngredients.length > 0;
+  const editedRecipe: ImportedRecipe = {
+    ...recipe,
+    title: title.trim() || recipe.title,
+    servings,
+    ingredients: validIngredients,
+  };
+  const shareCardData = cardDataFromImportedRecipe(editedRecipe);
 
   function save() {
     if (!canSave) {
       return;
     }
 
-    onSave({
-      ...recipe,
-      title: title.trim(),
-      servings,
-      ingredients: validIngredients,
-    });
+    onSave(editedRecipe);
   }
 
   const showImage = hasHttpImage(recipe.imageUrl);
@@ -302,6 +310,7 @@ export function RecipeReviewScreen({ recipe, onBack, onSave }: Props) {
           variant="dark"
           icon={<Bookmark color="#FFFFFF" size={17} strokeWidth={2} />}
         />
+        <ShareCardButton data={shareCardData} label={t.shareMyCard} sharingLabel={t.sharingCard} disabled={!canSave} />
         <Text style={{ color: colors.muted, fontSize: typography.tiny, lineHeight: 16, textAlign: 'center' }}>{t.note}</Text>
       </View>
     </ScrollView>

@@ -9,6 +9,7 @@ export type AppEnv = {
   revenueCatAppleApiKey: string;
   revenueCatMonthlyProductId: string;
   revenueCatAnnualProductId: string;
+  facebookAppId: string;
   usdaFdcApiKey: string;
   geminiApiKey: string;
   openAiApiKey: string;
@@ -26,6 +27,7 @@ export function resolveAppEnv(input: EnvInput): AppEnv {
   const revenueCatAppleApiKey = input.EXPO_PUBLIC_REVENUECAT_APPLE_API_KEY?.trim() ?? '';
   const revenueCatMonthlyProductId = input.EXPO_PUBLIC_REVENUECAT_MONTHLY_PRODUCT_ID?.trim() || 'prod03d96b4e28';
   const revenueCatAnnualProductId = input.EXPO_PUBLIC_REVENUECAT_ANNUAL_PRODUCT_ID?.trim() || 'prod0ef75e0b34';
+  const facebookAppId = input.EXPO_PUBLIC_FACEBOOK_APP_ID?.trim() ?? '';
   const usdaFdcApiKey = input.EXPO_PUBLIC_USDA_FDC_API_KEY?.trim() ?? '';
   const geminiApiKey = input.EXPO_PUBLIC_GEMINI_API_KEY?.trim() ?? '';
   const openAiApiKey = input.EXPO_PUBLIC_OPENAI_API_KEY?.trim() ?? '';
@@ -42,6 +44,7 @@ export function resolveAppEnv(input: EnvInput): AppEnv {
     revenueCatAppleApiKey,
     revenueCatMonthlyProductId,
     revenueCatAnnualProductId,
+    facebookAppId,
     usdaFdcApiKey,
     geminiApiKey,
     openAiApiKey,
@@ -58,6 +61,7 @@ export const appEnv = resolveAppEnv({
   EXPO_PUBLIC_REVENUECAT_APPLE_API_KEY: process.env.EXPO_PUBLIC_REVENUECAT_APPLE_API_KEY,
   EXPO_PUBLIC_REVENUECAT_MONTHLY_PRODUCT_ID: process.env.EXPO_PUBLIC_REVENUECAT_MONTHLY_PRODUCT_ID,
   EXPO_PUBLIC_REVENUECAT_ANNUAL_PRODUCT_ID: process.env.EXPO_PUBLIC_REVENUECAT_ANNUAL_PRODUCT_ID,
+  EXPO_PUBLIC_FACEBOOK_APP_ID: process.env.EXPO_PUBLIC_FACEBOOK_APP_ID,
   EXPO_PUBLIC_USDA_FDC_API_KEY: process.env.EXPO_PUBLIC_USDA_FDC_API_KEY,
   EXPO_PUBLIC_GEMINI_API_KEY: process.env.EXPO_PUBLIC_GEMINI_API_KEY,
   EXPO_PUBLIC_OPENAI_API_KEY: process.env.EXPO_PUBLIC_OPENAI_API_KEY,

@@ -60,12 +60,25 @@ In remote mode the function reads the post caption via oEmbed (TikTok / YouTube)
 
 ### Native share sheet (EAS build required)
 
-Today the app receives links through the `macrolens://import?url=…` deep link. To make **MacroLens appear in TikTok's native share sheet**, add a share extension in a custom dev / EAS build (this cannot run in Expo Go):
+The native share extension is configured through `expo-share-intent`, so MacroLens can receive shared URL/text payloads from TikTok, Safari, Instagram, YouTube, and generic web pages. The JS pipeline forwards the payload to `parseSharedRecipeUrl()` and then into the existing recipe import flow. This requires an EAS/dev-client build; it cannot be shipped by OTA alone because `runtimeVersion` uses the native fingerprint.
 
-1. `npx expo install expo-share-intent`
-2. Register the plugin in `app.config.js` with iOS activation rules for URLs/text and the Android `SEND` intent filter.
-3. Forward the shared payload to `parseSharedRecipeUrl()` — already wired through `Linking`.
-4. Rebuild with EAS (`npm run eas:build:ios:dev`).
+## Shareable Cards
+
+Shareable MacroLens cards live in `src/share`:
+
+- `ShareCard.tsx`: 9:16 branded card rendered off-screen for capture.
+- `shareCardContent.ts`: pure mapping from meals, imported recipes, and progress state into English growth-card content.
+- `ShareCardButton.tsx` / `shareCardService.ts`: capture with `react-native-view-shot`, then share with `react-native-share`.
+
+The QR code encodes `https://apps.apple.com/app/id6774111134`. The caption also includes the App Store link, but Stories do not make image pixels clickable, so the QR is the universal fallback.
+
+Native requirements:
+
+- Rebuild with EAS after installing `react-native-view-shot`, `react-native-share`, and `react-native-qrcode-svg`.
+- iOS URL query schemes are declared in `app.config.js` for Instagram, Snapchat, TikTok, Facebook, and Messenger.
+- Android package queries are configured through the `react-native-share` config plugin.
+- TikTok is not exposed as a direct `react-native-share` target in the installed version, so TikTok uses the system share sheet.
+- Instagram Stories direct share needs `EXPO_PUBLIC_FACEBOOK_APP_ID`; without it, the app falls back to the system share sheet.
 
 ## Configuration
 
