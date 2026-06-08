@@ -42,7 +42,25 @@ module.exports = {
     name: variant.name,
     slug: 'macrolens',
     scheme: 'macrolens',
-    plugins: ['expo-font'],
+    plugins: [
+      'expo-font',
+      [
+        'expo-share-intent',
+        {
+          iosShareExtensionName: 'MacroLens Share',
+          iosActivationRules: {
+            NSExtensionActivationSupportsAttachmentsWithMatchingTypeIdentifiers: [
+              'public.url',
+              'public.text',
+              'public.plain-text',
+            ],
+            NSExtensionActivationSupportsWebURLWithMaxCount: 1,
+            NSExtensionActivationSupportsWebPageWithMaxCount: 1,
+            NSExtensionActivationSupportsText: true,
+          },
+        },
+      ],
+    ],
     version: '1.0.0',
     orientation: 'portrait',
     icon: './assets/icon.png',
@@ -52,6 +70,7 @@ module.exports = {
       policy: 'fingerprint',
     },
     updates: {
+      enabled: false,
       url: `https://u.expo.dev/${projectId}`,
     },
     ios: {

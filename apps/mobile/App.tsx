@@ -4,6 +4,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import Constants from 'expo-constants';
 import { useFonts } from 'expo-font';
+import { useShareIntent } from 'expo-share-intent';
 import { SpaceGrotesk_600SemiBold, SpaceGrotesk_700Bold } from '@expo-google-fonts/space-grotesk';
 import { IBMPlexMono_400Regular, IBMPlexMono_500Medium, IBMPlexMono_600SemiBold } from '@expo-google-fonts/ibm-plex-mono';
 import { StatusBar } from 'expo-status-bar';
@@ -307,6 +308,7 @@ function MacroLensApp() {
     });
   }, [supabaseClient]);
   const recipeImportService = useMemo(() => createRecipeImportService(appEnv), []);
+  const { hasShareIntent, shareIntent, resetShareIntent } = useShareIntent({ resetOnBackground: true, disabled: Platform.OS === 'web' });
   const nutritionLabelOcrService = useMemo(() => {
     if (!supabaseClient || !appEnv.supabaseUrl || !appEnv.supabaseAnonKey) {
       return null;
@@ -423,6 +425,22 @@ function MacroLensApp() {
     // importRecipeFromUrl is hoisted and stable for the lifetime of the screen.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  useEffect(() => {
+    if (!hasShareIntent) {
+      return;
+    }
+
+    const payload = shareIntent?.webUrl ?? shareIntent?.text ?? null;
+    const parsed = parseSharedRecipeUrl(payload);
+    if (parsed) {
+      importRecipeFromUrl(parsed.url, 'share');
+    }
+
+    resetShareIntent();
+    // importRecipeFromUrl is hoisted and stable for the lifetime of the screen.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [hasShareIntent]);
 
   async function persistAuthSession(nextSession: MacroLensSession) {
     if (!nextSession || !supabaseClient) {
