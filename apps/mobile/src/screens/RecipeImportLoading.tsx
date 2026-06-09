@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState } from 'react';
-import { Animated, Easing, Text, View } from 'react-native';
+import { Animated, Easing, StyleSheet, Text, View } from 'react-native';
 import Svg, { Circle, Defs, Line, LinearGradient, Rect, Stop } from 'react-native-svg';
 import { Check } from 'lucide-react-native';
 import { useLang } from '../i18n/LanguageContext';
+import { fetchRecipeThumbnailUrl } from '../recipeImport/recipeThumbnail';
 import { Eyebrow } from '../ui/primitives';
 import { colors, fonts, radius, spacing, typography } from '../ui/theme';
 
@@ -82,7 +83,7 @@ function StepRow({ label, state, activePulse }: { label: string; state: StepStat
   );
 }
 
-export function RecipeImportLoading({ platformLabel }: { platformLabel?: string | null }) {
+export function RecipeImportLoading({ platformLabel, sourceUrl }: { platformLabel?: string | null; sourceUrl?: string | null }) {
   const { lang } = useLang();
   const t = STR[lang];
 
@@ -91,10 +92,38 @@ export function RecipeImportLoading({ platformLabel }: { platformLabel?: string 
   const pulse = useRef(new Animated.Value(0)).current;
   const activePulse = useRef(new Animated.Value(0)).current;
   const captionOpacity = useRef(new Animated.Value(1)).current;
+  const photoOpacity = useRef(new Animated.Value(0)).current;
   const macroDots = useRef([new Animated.Value(0), new Animated.Value(0), new Animated.Value(0)]).current;
 
   const [step, setStep] = useState(0);
   const [captionIdx, setCaptionIdx] = useState(0);
+  const [thumbnail, setThumbnail] = useState<string | null>(null);
+
+  // Fetch the source post's dish photo in parallel — purely cosmetic, fails to null.
+  useEffect(() => {
+    if (!sourceUrl) {
+      return undefined;
+    }
+
+    let cancelled = false;
+    fetchRecipeThumbnailUrl(sourceUrl)
+      .then((uri) => {
+        if (!cancelled && uri) {
+          setThumbnail(uri);
+        }
+      })
+      .catch(() => undefined);
+
+    return () => {
+      cancelled = true;
+    };
+  }, [sourceUrl]);
+
+  useEffect(() => {
+    if (thumbnail) {
+      Animated.timing(photoOpacity, { toValue: 1, duration: 420, easing: Easing.out(Easing.ease), useNativeDriver: true }).start();
+    }
+  }, [thumbnail, photoOpacity]);
 
   useEffect(() => {
     const animations: Animated.CompositeAnimation[] = [
@@ -220,6 +249,18 @@ export function RecipeImportLoading({ platformLabel }: { platformLabel?: string 
 
         {/* The scanned target */}
         <View style={{ backgroundColor: colors.ink, borderRadius: radius.lg, height: TARGET, overflow: 'hidden', width: TARGET }}>
+          {/* The actual dish photo from the post (fades in when fetched), else the brand mark */}
+          {thumbnail ? (
+            <>
+              <Animated.Image source={{ uri: thumbnail }} resizeMode="cover" style={[StyleSheet.absoluteFill, { opacity: photoOpacity }]} />
+              <View style={[StyleSheet.absoluteFill, { backgroundColor: 'rgba(8,8,8,0.28)' }]} />
+            </>
+          ) : (
+            <View style={{ alignItems: 'center', height: TARGET, justifyContent: 'center', width: TARGET }}>
+              <Text style={{ color: 'rgba(255,255,255,0.16)', fontFamily: fonts.display, fontSize: 52, fontWeight: '700', letterSpacing: -2 }}>ML</Text>
+            </View>
+          )}
+
           {/* Reticle grid */}
           <Svg width={TARGET} height={TARGET} style={{ position: 'absolute' }}>
             {[0.33, 0.66].map((fraction) => (
@@ -229,11 +270,6 @@ export function RecipeImportLoading({ platformLabel }: { platformLabel?: string 
               <Line key={`h-${fraction}`} x1={0} y1={TARGET * fraction} x2={TARGET} y2={TARGET * fraction} stroke="#FFFFFF" strokeOpacity={0.08} strokeWidth={1} />
             ))}
           </Svg>
-
-          {/* Faint brand mark at the core */}
-          <View style={{ alignItems: 'center', height: TARGET, justifyContent: 'center', width: TARGET }}>
-            <Text style={{ color: 'rgba(255,255,255,0.16)', fontFamily: fonts.display, fontSize: 52, fontWeight: '700', letterSpacing: -2 }}>ML</Text>
-          </View>
 
           {/* Sweeping scan beam */}
           <Animated.View style={{ height: BEAM_H, left: 0, position: 'absolute', right: 0, transform: [{ translateY: beamTranslate }] }}>

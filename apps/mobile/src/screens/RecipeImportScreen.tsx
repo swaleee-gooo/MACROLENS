@@ -79,7 +79,12 @@ export function RecipeImportScreen({ initialUrl, importing, errorMessage, onBack
   }
 
   if (importing) {
-    return <RecipeImportLoading platformLabel={normalized ? recipePlatformLabel(normalized.platform) : null} />;
+    return (
+      <RecipeImportLoading
+        platformLabel={normalized ? recipePlatformLabel(normalized.platform) : null}
+        sourceUrl={normalized ? normalized.url : null}
+      />
+    );
   }
 
   return (
