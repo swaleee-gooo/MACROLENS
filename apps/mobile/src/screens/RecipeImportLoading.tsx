@@ -3,7 +3,7 @@ import { Animated, Easing, Image, Pressable, StyleSheet, Text, View } from 'reac
 import Svg, { Circle } from 'react-native-svg';
 import { ArrowRight } from 'lucide-react-native';
 import { fetchRecipeThumbnailUrl } from '../recipeImport/recipeThumbnail';
-import { computeRecipeTotals, perServingTotals } from '../recipeImport/recipeNutrition';
+import { recipeServingMacros } from '../recipeImport/recipeNutrition';
 import type { ImportedRecipe } from '../recipeImport/recipeSchema';
 import { macroBarSegments } from '../share/shareCardContent';
 import { Eyebrow } from '../ui/primitives';
@@ -74,8 +74,8 @@ export function RecipeImportLoading({ platformLabel, sourceUrl, result, onReveal
 
   const revealStarted = useRef(false);
 
-  // Per-serving target for the reveal counters.
-  const serving = result ? perServingTotals(computeRecipeTotals(result.ingredients), result.servings) : null;
+  // Per-serving target for the reveal counters (creator-stated macros win exactly).
+  const serving = result ? recipeServingMacros(result) : null;
   const segments = serving ? macroBarSegments({ proteinG: serving.proteinG, carbsG: serving.carbsG, fatG: serving.fatG }) : null;
   const photoUri = thumbnail ?? (result && isHttp(result.imageUrl) ? result.imageUrl : null);
 
@@ -140,7 +140,7 @@ export function RecipeImportLoading({ platformLabel, sourceUrl, result, onReveal
     }
     revealStarted.current = true;
 
-    const servingLocal = perServingTotals(computeRecipeTotals(result.ingredients), result.servings);
+    const servingLocal = recipeServingMacros(result);
     const target = { kcal: servingLocal.kcal, proteinG: Math.round(servingLocal.proteinG), carbsG: Math.round(servingLocal.carbsG), fatG: Math.round(servingLocal.fatG) };
     const countListener = count.addListener(({ value }) => {
       setNumbers({

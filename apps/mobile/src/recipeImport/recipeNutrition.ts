@@ -114,6 +114,47 @@ export function perServingTotals(totals: RecipeTotals, servings: number): Recipe
   };
 }
 
+function isStatedNumber(value: number | null | undefined): value is number {
+  return typeof value === 'number' && Number.isFinite(value) && value >= 0;
+}
+
+/** True when the creator stated any per-serving macro or calorie value. */
+export function hasStatedMacros(recipe: ImportedRecipe): boolean {
+  return (
+    isStatedNumber(recipe.statedCaloriesPerServing) ||
+    isStatedNumber(recipe.statedProteinPerServing) ||
+    isStatedNumber(recipe.statedCarbsPerServing) ||
+    isStatedNumber(recipe.statedFatPerServing)
+  );
+}
+
+/**
+ * Overlay creator-stated per-serving values onto a computed serving: each macro the
+ * creator wrote wins exactly, the rest fall back to the computed value. Calories use
+ * the stated number if given, else are derived from the (stated) macros, else computed.
+ */
+export function applyStatedMacros(computed: RecipeTotals, recipe: ImportedRecipe): RecipeTotals {
+  const proteinG = isStatedNumber(recipe.statedProteinPerServing) ? roundMacro(recipe.statedProteinPerServing) : computed.proteinG;
+  const carbsG = isStatedNumber(recipe.statedCarbsPerServing) ? roundMacro(recipe.statedCarbsPerServing) : computed.carbsG;
+  const fatG = isStatedNumber(recipe.statedFatPerServing) ? roundMacro(recipe.statedFatPerServing) : computed.fatG;
+  const statedMacro =
+    isStatedNumber(recipe.statedProteinPerServing) ||
+    isStatedNumber(recipe.statedCarbsPerServing) ||
+    isStatedNumber(recipe.statedFatPerServing);
+  const kcal = isStatedNumber(recipe.statedCaloriesPerServing)
+    ? roundWhole(recipe.statedCaloriesPerServing)
+    : statedMacro
+      ? roundWhole(proteinG * 4 + carbsG * 4 + fatG * 9)
+      : computed.kcal;
+
+  return { grams: computed.grams, kcal, proteinG, carbsG, fatG };
+}
+
+/** Effective per-serving nutrition for a recipe (creator-stated values win exactly). */
+export function recipeServingMacros(recipe: ImportedRecipe): RecipeTotals {
+  return applyStatedMacros(perServingTotals(computeRecipeTotals(recipe.ingredients), recipe.servings), recipe);
+}
+
 function slugify(value: string): string {
   return value
     .toLowerCase()
@@ -175,8 +216,24 @@ export function buildMealFromImportedRecipe({
   });
 
   const sourceLabel = recipe.sourceAuthor ? `${recipe.sourceAuthor} · ${recipe.sourceUrl}` : recipe.sourceUrl;
+  const notes = `Recette importée depuis ${sourceLabel}`.trim();
+
+  // When the creator stated macros/calories, those exact numbers win over the
+  // per-ingredient computation — that is what the user saw in the video.
+  if (!hasStatedMacros(recipe)) {
+    return { ...meal, notes };
+  }
+
+  const stated = recipeServingMacros(recipe);
   return {
     ...meal,
-    notes: `Recette importée depuis ${sourceLabel}`.trim(),
+    caloriesEstimate: stated.kcal,
+    caloriesLow: stated.kcal,
+    caloriesHigh: stated.kcal,
+    proteinG: stated.proteinG,
+    carbsG: stated.carbsG,
+    fatG: stated.fatG,
+    proof: meal.proof ? { ...meal.proof, kcalRange: { min: stated.kcal, max: stated.kcal } } : meal.proof,
+    notes,
   };
 }

@@ -20,6 +20,9 @@ export type ExtractedRecipe = {
   imageUrl: string | null;
   servings: number;
   statedCaloriesPerServing: number | null;
+  statedProteinPerServing: number | null;
+  statedCarbsPerServing: number | null;
+  statedFatPerServing: number | null;
   ingredients: ExtractedRecipeIngredient[];
   steps: string[];
 };
@@ -35,6 +38,9 @@ type RawRecipeExtraction = {
   summary: string;
   servings: number;
   statedCaloriesPerServing: number | null;
+  statedProteinPerServing: number | null;
+  statedCarbsPerServing: number | null;
+  statedFatPerServing: number | null;
   ingredients: ExtractedRecipeIngredient[];
   steps: string[];
 };
@@ -179,7 +185,7 @@ function nullableTrimmedString(value: unknown): string | null {
 }
 
 function httpImageUrl(value: unknown): string | null {
-  const trimmed = trimmedString(value);
+  const trimmed = decodeHtmlEntities(trimmedString(value));
   return trimmed.length > 0 && isHttpUrl(trimmed) ? trimmed : null;
 }
 
@@ -307,8 +313,9 @@ const SYSTEM_PROMPT =
   'and the full ingredient list. For each ingredient estimate the TOTAL grams used in the whole recipe (all servings) and ' +
   'realistic per-100g nutrition (kcal, protein, carbs, fat) from standard food databases. When the caption omits a quantity, ' +
   'estimate a typical amount for the dish rather than skipping the ingredient. Include preparation steps when present. ' +
-  'If the creator explicitly states a calorie number (per serving or total), report it in statedCaloriesPerServing as a ' +
-  'per-serving value (divide a stated total by the number of servings); otherwise set statedCaloriesPerServing to null and never guess it. ' +
+  'If the creator explicitly states calories or macros (protein/carbs/fat), report each one the creator actually wrote in ' +
+  'statedCaloriesPerServing / statedProteinPerServing / statedCarbsPerServing / statedFatPerServing as PER-SERVING values ' +
+  '(divide a stated total by the number of servings). Set any value the creator did NOT state to null — never compute or guess it. ' +
   'Do not invent ingredients that are not implied by the dish. Quantities are estimates the user will review and adjust.';
 
 function nonNegativeNumber(value: unknown): number {
@@ -321,6 +328,10 @@ function positiveGrams(value: unknown): number | null {
 
 function positiveNumberOrNull(value: unknown): number | null {
   return typeof value === 'number' && Number.isFinite(value) && value > 0 ? value : null;
+}
+
+function nonNegativeNumberOrNull(value: unknown): number | null {
+  return typeof value === 'number' && Number.isFinite(value) && value >= 0 ? value : null;
 }
 
 function normalizedServings(value: unknown): number {
@@ -384,12 +395,15 @@ function normalizeRawRecipe(
     imageUrl: context.imageUrl,
     servings: normalizedServings(raw.servings),
     statedCaloriesPerServing: positiveNumberOrNull(raw.statedCaloriesPerServing),
+    statedProteinPerServing: nonNegativeNumberOrNull(raw.statedProteinPerServing),
+    statedCarbsPerServing: nonNegativeNumberOrNull(raw.statedCarbsPerServing),
+    statedFatPerServing: nonNegativeNumberOrNull(raw.statedFatPerServing),
     ingredients,
     steps: normalizedStepList(raw.steps),
   };
 }
 
-async function callOpenAi(context: SourceContext, url: string, openAiKey: string): Promise<RawRecipeExtraction> {
+async function requestOpenAi(context: SourceContext, url: string, openAiKey: string): Promise<RawRecipeExtraction> {
   const content: Array<Record<string, unknown>> = [
     {
       type: 'input_text',
@@ -429,6 +443,18 @@ async function callOpenAi(context: SourceContext, url: string, openAiKey: string
   }
 
   return JSON.parse(extractOutputText(await response.json())) as RawRecipeExtraction;
+}
+
+async function callOpenAi(context: SourceContext, url: string, openAiKey: string): Promise<RawRecipeExtraction> {
+  try {
+    return await requestOpenAi(context, url, openAiKey);
+  } catch (error) {
+    const status = error instanceof Error ? Number(error.message.match(/^openai_request_failed_(\d+)$/)?.[1]) : NaN;
+    if (context.imageUrl && (status === 400 || status === 422)) {
+      return requestOpenAi({ ...context, imageUrl: null }, url, openAiKey);
+    }
+    throw error;
+  }
 }
 
 export async function extractRecipeWithOpenAI(url: string, openAiKey: string): Promise<RecipeExtractionResult> {

@@ -28,6 +28,9 @@ function okResult(): RecipeExtractionResult {
       imageUrl: 'https://cdn.example/thumb.jpg',
       servings: 2,
       statedCaloriesPerServing: 480,
+      statedProteinPerServing: 45,
+      statedCarbsPerServing: 30,
+      statedFatPerServing: 12,
       ingredients: [{ name: 'Poulet', grams: 300, kcalPer100g: 165, proteinPer100g: 31, carbsPer100g: 0, fatPer100g: 3.6 }],
       steps: ['Cuire le poulet'],
     },
@@ -81,6 +84,9 @@ describe('handleExtractRecipeRequest', () => {
     expect(body.title).toBe('Bol de poulet teriyaki');
     expect(body.sourceAuthor).toBe('@chef');
     expect(body.statedCaloriesPerServing).toBe(480);
+    expect(body.statedProteinPerServing).toBe(45);
+    expect(body.statedCarbsPerServing).toBe(30);
+    expect(body.statedFatPerServing).toBe(12);
   });
 
   it('filters invalid ingredient grams and empty steps before returning a recipe', async () => {

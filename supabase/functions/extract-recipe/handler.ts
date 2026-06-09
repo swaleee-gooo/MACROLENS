@@ -54,6 +54,10 @@ function positiveNumberOrNull(value: unknown): number | null {
   return typeof value === 'number' && Number.isFinite(value) && value > 0 ? value : null;
 }
 
+function nonNegativeNumberOrNull(value: unknown): number | null {
+  return typeof value === 'number' && Number.isFinite(value) && value >= 0 ? value : null;
+}
+
 function trimmedString(value: unknown): string {
   return typeof value === 'string' ? value.trim() : '';
 }
@@ -122,6 +126,9 @@ function recipeResponse(recipe: ExtractedRecipe, requestedUrl: string): Extracte
     imageUrl: httpImageUrl(recipe.imageUrl),
     servings: normalizedServings(recipe.servings),
     statedCaloriesPerServing: positiveNumberOrNull(recipe.statedCaloriesPerServing),
+    statedProteinPerServing: nonNegativeNumberOrNull(recipe.statedProteinPerServing),
+    statedCarbsPerServing: nonNegativeNumberOrNull(recipe.statedCarbsPerServing),
+    statedFatPerServing: nonNegativeNumberOrNull(recipe.statedFatPerServing),
     ingredients,
     steps: normalizedSteps(recipe.steps),
   };
@@ -137,6 +144,9 @@ function mockRecipeResponse(url: string) {
     imageUrl: null,
     servings: 2,
     statedCaloriesPerServing: null,
+    statedProteinPerServing: null,
+    statedCarbsPerServing: null,
+    statedFatPerServing: null,
     ingredients: [
       { name: 'Blanc de poulet', grams: 300, kcalPer100g: 165, proteinPer100g: 31, carbsPer100g: 0, fatPer100g: 3.6 },
       { name: 'Riz cuit', grams: 400, kcalPer100g: 130, proteinPer100g: 2.7, carbsPer100g: 28, fatPer100g: 0.3 },

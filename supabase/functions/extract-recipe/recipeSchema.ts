@@ -8,7 +8,18 @@
 export const recipeExtractionJsonSchema = {
   type: 'object',
   additionalProperties: false,
-  required: ['recipeFound', 'title', 'summary', 'servings', 'statedCaloriesPerServing', 'ingredients', 'steps'],
+  required: [
+    'recipeFound',
+    'title',
+    'summary',
+    'servings',
+    'statedCaloriesPerServing',
+    'statedProteinPerServing',
+    'statedCarbsPerServing',
+    'statedFatPerServing',
+    'ingredients',
+    'steps',
+  ],
   properties: {
     recipeFound: {
       type: 'boolean',
@@ -21,6 +32,21 @@ export const recipeExtractionJsonSchema = {
       type: ['number', 'null'],
       description:
         'Calories PER SERVING explicitly stated by the creator in the caption/post/video (e.g. "508 kcal per bowl", "2000 cal total for 4"). Convert a stated total to per-serving by dividing by servings. Use null when no calorie number is stated — never compute or guess it from the ingredients.',
+    },
+    statedProteinPerServing: {
+      type: ['number', 'null'],
+      description:
+        'Grams of PROTEIN per serving explicitly stated by the creator (e.g. "52g protein"). Convert a stated total to per-serving by dividing by servings. Use null when protein is not stated — never compute or guess it.',
+    },
+    statedCarbsPerServing: {
+      type: ['number', 'null'],
+      description:
+        'Grams of CARBS per serving explicitly stated by the creator (e.g. "56g carbs"). Convert a stated total to per-serving by dividing by servings. Use null when carbs are not stated — never compute or guess them.',
+    },
+    statedFatPerServing: {
+      type: ['number', 'null'],
+      description:
+        'Grams of FAT per serving explicitly stated by the creator (e.g. "6g fat"). Convert a stated total to per-serving by dividing by servings. Use null when fat is not stated — never compute or guess it.',
     },
     ingredients: {
       type: 'array',

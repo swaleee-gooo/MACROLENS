@@ -123,14 +123,15 @@ describe('extractRecipeWithOpenAI', () => {
   });
 
   it('extracts an Instagram recipe from the /embed/captioned/ page (caption + image + author)', async () => {
+    const imageUrl = 'https://scontent.cdninstagram.com/dish.jpg?token=abc&expires=123';
     const embedHtml = `<!doctype html><html><head>
-      <meta property="og:image" content="https://scontent.cdninstagram.com/dish.jpg" />
     </head><body>
       <div class="Caption">
         <a class="CaptionUsername" href="https://instagram.com/chef_marco">chef_marco</a>
         High protein pasta. Ingredients: 200g pasta, 150g chicken breast, 50g parmesan.
         <div class="CaptionComments">View all 12 comments</div>
       </div>
+      <img class="EmbeddedMediaImage" src="https://scontent.cdninstagram.com/dish.jpg?token=abc&amp;expires=123" />
     </body></html>`;
 
     const fetchMock = vi.fn(async (input: FetchInput) => {
@@ -139,6 +140,11 @@ describe('extractRecipeWithOpenAI', () => {
         return { ok: true, text: async () => embedHtml } as Response;
       }
       if (url === 'https://api.openai.com/v1/responses') {
+        const openAiCalls = fetchMock.mock.calls.filter(([callInput]) => String(callInput) === 'https://api.openai.com/v1/responses');
+        if (openAiCalls.length === 1) {
+          return { ok: false, status: 400 } as Response;
+        }
+
         return openAiJson({
           recipeFound: true,
           title: 'High protein pasta',
@@ -162,11 +168,15 @@ describe('extractRecipeWithOpenAI', () => {
     expect(result.recipe).toMatchObject({
       sourcePlatform: 'instagram',
       sourceAuthor: 'chef_marco',
-      imageUrl: 'https://scontent.cdninstagram.com/dish.jpg',
+      imageUrl,
     });
 
-    const openAiCall = fetchMock.mock.calls.find(([input]) => String(input) === 'https://api.openai.com/v1/responses');
-    const body = JSON.parse(String(openAiCall?.[1]?.body));
-    expect(body.input[1].content[0].text).toContain('200g pasta');
+    const openAiCalls = fetchMock.mock.calls.filter(([input]) => String(input) === 'https://api.openai.com/v1/responses');
+    expect(openAiCalls).toHaveLength(2);
+    const firstBody = JSON.parse(String(openAiCalls[0]?.[1]?.body));
+    expect(firstBody.input[1].content[1]).toMatchObject({ type: 'input_image', image_url: imageUrl });
+    const retryBody = JSON.parse(String(openAiCalls[1]?.[1]?.body));
+    expect(retryBody.input[1].content).toHaveLength(1);
+    expect(retryBody.input[1].content[0].text).toContain('200g pasta');
   });
 });

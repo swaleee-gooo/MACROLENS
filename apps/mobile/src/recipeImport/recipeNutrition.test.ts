@@ -5,6 +5,7 @@ import {
   computeRecipeTotals,
   importedRecipeToMealItems,
   perServingTotals,
+  recipeServingMacros,
 } from './recipeNutrition';
 import type { ImportedRecipe } from './recipeSchema';
 
@@ -18,6 +19,9 @@ function recipe(overrides: Partial<ImportedRecipe> = {}): ImportedRecipe {
     imageUrl: 'https://cdn.example/thumb.jpg',
     servings: 2,
     statedCaloriesPerServing: null,
+    statedProteinPerServing: null,
+    statedCarbsPerServing: null,
+    statedFatPerServing: null,
     ingredients: [
       { name: 'Blanc de poulet', grams: 300, kcalPer100g: 165, proteinPer100g: 31, carbsPer100g: 0, fatPer100g: 3.6 },
       { name: 'Riz cuit', grams: 400, kcalPer100g: 130, proteinPer100g: 2.7, carbsPer100g: 28, fatPer100g: 0.3 },
@@ -71,6 +75,51 @@ describe('anchorRecipeToStatedCalories', () => {
   it('ignores a non-positive stated value', () => {
     const base = recipe({ statedCaloriesPerServing: 0 });
     expect(anchorRecipeToStatedCalories(base)).toBe(base);
+  });
+});
+
+describe('recipeServingMacros', () => {
+  it('uses the creator-stated macros exactly, not the computed ones', () => {
+    const macros = recipeServingMacros(
+      recipe({ statedCaloriesPerServing: 508, statedProteinPerServing: 52, statedCarbsPerServing: 56, statedFatPerServing: 6 }),
+    );
+    expect(macros).toMatchObject({ kcal: 508, proteinG: 52, carbsG: 56, fatG: 6 });
+  });
+
+  it('overrides only the stated fields and computes the rest', () => {
+    // Only protein is stated → protein is exact, carbs/fat stay computed (per serving).
+    const macros = recipeServingMacros(recipe({ statedProteinPerServing: 80 }));
+    expect(macros.proteinG).toBe(80);
+    expect(macros.carbsG).toBeCloseTo(56, 1);
+    expect(macros.fatG).toBeCloseTo(6, 1);
+  });
+
+  it('derives calories from stated macros when only macros are given', () => {
+    const macros = recipeServingMacros(recipe({ statedProteinPerServing: 50, statedCarbsPerServing: 50, statedFatPerServing: 10 }));
+    // 50*4 + 50*4 + 10*9 = 490
+    expect(macros.kcal).toBe(490);
+  });
+
+  it('falls back to the computed serving when nothing is stated', () => {
+    expect(recipeServingMacros(recipe())).toEqual(perServingTotals(computeRecipeTotals(recipe().ingredients), 2));
+  });
+});
+
+describe('buildMealFromImportedRecipe with stated macros', () => {
+  it('locks the meal totals to the creator-stated values', () => {
+    const meal = buildMealFromImportedRecipe({
+      recipe: recipe({ statedCaloriesPerServing: 420, statedProteinPerServing: 40, statedCarbsPerServing: 45, statedFatPerServing: 9 }),
+      userId: 'user-1',
+      mealId: 'meal-stated',
+      capturedAt: '2026-06-09T10:00:00.000Z',
+    });
+
+    expect(meal.caloriesEstimate).toBe(420);
+    expect(meal.proteinG).toBe(40);
+    expect(meal.carbsG).toBe(45);
+    expect(meal.fatG).toBe(9);
+    expect(meal.caloriesLow).toBe(420);
+    expect(meal.caloriesHigh).toBe(420);
   });
 });
 

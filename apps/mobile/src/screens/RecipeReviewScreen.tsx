@@ -5,7 +5,7 @@ import { useLang } from '../i18n/LanguageContext';
 import { Card, Eyebrow, MacroBar, Num, PrimaryButton, ProofChip } from '../ui/primitives';
 import { colors, fonts, radius, spacing, typography } from '../ui/theme';
 import { recipePlatformLabel } from '../recipeImport/recipeUrl';
-import { computeRecipeTotals, perServingTotals } from '../recipeImport/recipeNutrition';
+import { applyStatedMacros, computeRecipeTotals, perServingTotals } from '../recipeImport/recipeNutrition';
 import type { ImportedRecipe, ImportedRecipeIngredient } from '../recipeImport/recipeSchema';
 import { ShareCardButton } from '../share/ShareCardButton';
 import { cardDataFromImportedRecipe } from '../share/shareCardContent';
@@ -112,7 +112,8 @@ export function RecipeReviewScreen({ recipe, onBack, onSave }: Props) {
   );
 
   const recipeTotals = useMemo(() => computeRecipeTotals(validIngredients), [validIngredients]);
-  const serving = useMemo(() => perServingTotals(recipeTotals, servings), [recipeTotals, servings]);
+  // Creator-stated macros/calories win exactly over the computed per-serving values.
+  const serving = useMemo(() => applyStatedMacros(perServingTotals(recipeTotals, servings), recipe), [recipeTotals, servings, recipe]);
 
   const proteinKcal = serving.proteinG * 4;
   const carbsKcal = serving.carbsG * 4;

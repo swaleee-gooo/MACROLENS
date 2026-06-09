@@ -1,6 +1,6 @@
 import { calculateMealStreak } from '../domain/streaks';
 import type { MacroTargets, Meal, UserProfile } from '../domain/types';
-import { computeRecipeTotals, perServingTotals } from '../recipeImport/recipeNutrition';
+import { recipeServingMacros } from '../recipeImport/recipeNutrition';
 import type { ImportedRecipe } from '../recipeImport/recipeSchema';
 
 /**
@@ -70,8 +70,7 @@ export function cardDataFromMeal(meal: Meal, kind: 'recipe' | 'meal' = 'meal'): 
 }
 
 export function cardDataFromImportedRecipe(recipe: ImportedRecipe): ShareCardData {
-  const totals = computeRecipeTotals(recipe.ingredients);
-  const serving = perServingTotals(totals, recipe.servings);
+  const serving = recipeServingMacros(recipe);
 
   return {
     kind: 'recipe',
