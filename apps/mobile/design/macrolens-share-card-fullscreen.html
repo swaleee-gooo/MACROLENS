@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--protein:#C75A45;--carbs:#D6A24A;--fat:#5C7CC2;--accent:#149E6E;--ink:#16181C;
+--fd:'Space Grotesk',sans-serif;--fm:'IBM Plex Mono',monospace;--la:#67E0AD;--scrim:#0A0706}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0f1115;background-image:radial-gradient(900px 500px at 50% -10%,#1b1f27,#0f1115 70%);min-height:100vh;display:flex;flex-direction:column;align-items:center;gap:18px;padding:34px;font-family:var(--fm);color:#aeb4bf}
+.lab{font-size:11px;letter-spacing:.06em;color:#8b919c;text-align:center;max-width:360px;line-height:1.6}
+.wrap{display:flex;gap:40px;flex-wrap:wrap;justify-content:center;align-items:flex-start}
+.col{display:flex;flex-direction:column;align-items:center;gap:13px}
+.tag{font-size:11px;color:#cdd2da;letter-spacing:.05em}.tag b{color:var(--accent)}
+/* phone: the card fills the screen (full-screen Story view) */
+.phone{width:330px;height:587px;border-radius:36px;overflow:hidden;position:relative;box-shadow:0 30px 70px rgba(0,0,0,.5),0 0 0 1px rgba(255,255,255,.06)}
+.num{font-family:var(--fm);font-variant-numeric:tabular-nums}
+.photo{position:absolute;inset:0;background:
+ radial-gradient(130% 90% at 28% 16%,#f0b072 0%,rgba(240,176,114,0) 46%),
+ radial-gradient(120% 120% at 82% 96%,#6e2a18 0%,rgba(110,42,24,0) 55%),
+ linear-gradient(155deg,#d27a36 0%,#a8431f 52%,#5c241a 100%)}
+.scrim{position:absolute;inset:0;background:linear-gradient(to top,rgba(10,7,6,.97) 0%,rgba(10,7,6,.86) 42%,rgba(10,7,6,.34) 72%,rgba(10,7,6,0) 100%)}
+.content{position:absolute;left:0;right:0;bottom:0;padding:21.8px;padding-bottom:24.7px}
+.eyebrow{color:var(--la);font-family:var(--fm);font-weight:600;font-size:11.5px;letter-spacing:.13em;text-transform:uppercase}
+.title{color:#fff;font-family:var(--fd);font-weight:700;font-size:39px;line-height:40.3px;letter-spacing:-1px;margin-top:9.9px}
+.kcalrow{display:flex;align-items:flex-end;gap:9.2px;margin-top:28px}
+.kcal{color:#fff;font-family:var(--fm);font-weight:500;font-size:79px;line-height:71px;letter-spacing:-2px}
+.kcalu{color:rgba(255,255,255,.7);font-family:var(--fm);font-weight:500;font-size:14.5px;margin-bottom:7.3px}
+.mbar{display:flex;gap:2px;height:8.6px;border-radius:999px;overflow:hidden;margin-top:19.8px}.mbar span{height:100%}
+.macros{display:flex;gap:9.9px;margin-top:13.2px}.mcol{flex:1}
+.mhead{display:flex;align-items:center;gap:5.3px}.mdot{width:8px;height:8px;border-radius:2.3px}
+.mlab{color:rgba(255,255,255,.62);font-family:var(--fm);font-weight:500;font-size:9.9px;letter-spacing:.05em;text-transform:uppercase}
+.mval{color:#fff;font-family:var(--fm);font-weight:600;font-size:23.8px;margin-top:5.9px}
+.divider{height:1.4px;background:rgba(255,255,255,.16);margin:19.8px 0}
+.brand{display:flex;align-items:center;gap:11.5px}
+.qr{width:61px;height:61px;border-radius:11px;background:#fff;display:grid;grid-template-columns:repeat(7,1fr);grid-template-rows:repeat(7,1fr);gap:1.6px;padding:6px}
+.qr i{background:var(--ink);border-radius:1px}.qr i.o{opacity:0}
+.wm{color:#fff;font-family:var(--fd);font-weight:700;font-size:19.1px;letter-spacing:-.3px}
+.foot{color:rgba(255,255,255,.62);font-family:var(--fm);font-weight:500;font-size:10.6px;letter-spacing:.06em;text-transform:uppercase;margin-top:3.3px}
+</style></head>
+<body>
+<div class="lab">Aperçu <b style="color:#fff">plein écran</b> (comme une Story Instagram) — proportions BOLD. La carte remplit tout l'écran, gros titre + kcal géant.</div>
+<div class="wrap">
+  <div class="col"><div class="tag"><b>Recipe</b> — full-screen story</div>
+  <div class="phone">
+    <div class="photo"></div><div class="scrim"></div>
+    <div class="content">
+      <div class="eyebrow">Recipe · 1 serving</div>
+      <div class="title">Chicken<br>teriyaki bowl</div>
+      <div class="kcalrow"><span class="kcal">508</span><span class="kcalu">kcal</span></div>
+      <div class="mbar"><span style="width:38%;background:var(--protein)"></span><span style="width:44%;background:var(--carbs)"></span><span style="width:18%;background:var(--fat)"></span></div>
+      <div class="macros">
+        <div class="mcol"><div class="mhead"><span class="mdot" style="background:var(--protein)"></span><span class="mlab">Protein</span></div><div class="mval">52g</div></div>
+        <div class="mcol"><div class="mhead"><span class="mdot" style="background:var(--carbs)"></span><span class="mlab">Carbs</span></div><div class="mval">56g</div></div>
+        <div class="mcol"><div class="mhead"><span class="mdot" style="background:var(--fat)"></span><span class="mlab">Fat</span></div><div class="mval">6g</div></div>
+      </div>
+      <div class="divider"></div>
+      <div class="brand"><div class="qr" id="qr"></div><div style="flex:1"><div class="wm">MacroLens</div><div class="foot">Scan → get the app</div></div></div>
+    </div>
+  </div></div>
+</div>
+<script>document.getElementById('qr').innerHTML=Array.from({length:49}).map((_,i)=>`<i class="${[8,9,10,12,16,18,22,24,26,30,32,38,39,40].includes(i)?'o':''}"></i>`).join('');</script>
+</body></html>

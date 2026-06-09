@@ -7,71 +7,63 @@ import { MACROLENS_APP_STORE_URL, macroBarSegments, type ShareCardData } from '.
 
 /**
  * Branded, share-worthy "Story" card (9:16) — direction A "Cinematic", matching
- * apps/mobile/design/macrolens-share-card-final.html. Rendered off-screen and
- * captured to an image by the native build (react-native-view-shot). English copy.
- *
+ * apps/mobile/design/macrolens-share-card-final.html, but tuned BOLD for full-screen
+ * Stories: huge type, big hero number, large macros. Every size is a fraction of
+ * `width` so it scales identically at the 360 preview and the 1080 capture.
  */
 
+const BASE = 360;
 const LIGHT_ACCENT = '#67E0AD';
 const SCRIM = '#0A0706';
 
 type Props = {
   data: ShareCardData;
-  /** Logical width; height follows a 9:16 ratio. Bump for higher-res capture. */
+  /** Logical width; height follows 9:16. Captured at 1080 for Stories. */
   width?: number;
 };
 
 function AppStoreQr({ size }: { size: number }) {
-  const qrSize = Math.max(24, size - 12);
-
   return (
-    <View style={{ alignItems: 'center', backgroundColor: '#FFFFFF', borderRadius: 9, height: size, justifyContent: 'center', width: size }}>
-      <QRCode
-        value={MACROLENS_APP_STORE_URL}
-        size={qrSize}
-        color={colors.ink}
-        backgroundColor="#FFFFFF"
-        ecl="M"
-        quietZone={0}
-      />
+    <View style={{ alignItems: 'center', backgroundColor: '#FFFFFF', borderRadius: size * 0.18, height: size, justifyContent: 'center', width: size }}>
+      <QRCode value={MACROLENS_APP_STORE_URL} size={Math.max(24, size * 0.84)} color={colors.ink} backgroundColor="#FFFFFF" ecl="M" quietZone={0} />
     </View>
   );
 }
 
-function Chip({ color, value, label }: { color: string; value: string; label: string }) {
-  return (
-    <View style={{ alignItems: 'center', flexDirection: 'row', gap: 6 }}>
-      <View style={{ backgroundColor: color, borderRadius: 2, height: 7, width: 7 }} />
-      <Text style={{ color: '#FFFFFF', fontFamily: fonts.mono, fontSize: 11, fontWeight: '500' }}>
-        {value} <Text style={{ color: 'rgba(255,255,255,0.6)' }}>{label}</Text>
-      </Text>
-    </View>
-  );
-}
-
-function ProgressStat({ value, label }: { value: string; label: string }) {
+function MacroCol({ color, label, grams, u }: { color: string; label: string; grams: string; u: (frac: number) => number }) {
   return (
     <View style={{ flex: 1 }}>
-      <Text style={{ color: '#FFFFFF', fontFamily: fonts.mono, fontSize: 22, fontWeight: '600' }}>{value}</Text>
-      <Text style={{ color: 'rgba(255,255,255,0.58)', fontFamily: fonts.mono, fontSize: 9, letterSpacing: 0.5, marginTop: 4, textTransform: 'uppercase' }}>
+      <View style={{ alignItems: 'center', flexDirection: 'row', gap: u(0.016) }}>
+        <View style={{ backgroundColor: color, borderRadius: u(0.007), height: u(0.024), width: u(0.024) }} />
+        <Text style={{ color: 'rgba(255,255,255,0.62)', fontFamily: fonts.mono, fontSize: u(0.03), fontWeight: '500', letterSpacing: u(0.0015), textTransform: 'uppercase' }}>
+          {label}
+        </Text>
+      </View>
+      <Text style={{ color: '#FFFFFF', fontFamily: fonts.mono, fontSize: u(0.072), fontWeight: '600', letterSpacing: -u(0.001), marginTop: u(0.018) }}>{grams}</Text>
+    </View>
+  );
+}
+
+function ProgressStat({ value, label, u }: { value: string; label: string; u: (frac: number) => number }) {
+  return (
+    <View style={{ flex: 1 }}>
+      <Text style={{ color: '#FFFFFF', fontFamily: fonts.mono, fontSize: u(0.085), fontWeight: '600', letterSpacing: -u(0.002) }}>{value}</Text>
+      <Text style={{ color: 'rgba(255,255,255,0.6)', fontFamily: fonts.mono, fontSize: u(0.03), fontWeight: '500', letterSpacing: u(0.0015), marginTop: u(0.012), textTransform: 'uppercase' }}>
         {label}
       </Text>
     </View>
   );
 }
 
-export const ShareCard = forwardRef<View, Props>(function ShareCard({ data, width = 360 }, ref) {
+export const ShareCard = forwardRef<View, Props>(function ShareCard({ data, width = BASE }, ref) {
+  const u = (frac: number) => width * frac;
   const height = Math.round(width * (16 / 9));
   const segments = macroBarSegments(data.macros);
   const round = (value: number) => Math.round(value);
-  const isProgress = data.kind === 'progress' && data.progress;
+  const isProgress = data.kind === 'progress' && Boolean(data.progress);
 
   return (
-    <View
-      ref={ref}
-      collapsable={false}
-      style={{ backgroundColor: SCRIM, borderRadius: 30, height, overflow: 'hidden', width }}
-    >
+    <View ref={ref} collapsable={false} style={{ backgroundColor: SCRIM, borderRadius: u(0.083), height, overflow: 'hidden', width }}>
       {/* Background: real photo, else warm gradient */}
       {data.imageUrl ? (
         <Image source={{ uri: data.imageUrl }} resizeMode="cover" style={StyleSheet.absoluteFill} />
@@ -88,12 +80,13 @@ export const ShareCard = forwardRef<View, Props>(function ShareCard({ data, widt
         </Svg>
       )}
 
-      {/* Bottom scrim for legibility */}
+      {/* Strong bottom scrim — covers the lower ~62% so the big content stays legible */}
       <Svg style={StyleSheet.absoluteFill} pointerEvents="none">
         <Defs>
           <LinearGradient id="scrim" x1="0" y1="1" x2="0" y2="0">
-            <Stop offset="0" stopColor={SCRIM} stopOpacity="0.95" />
-            <Stop offset="0.5" stopColor={SCRIM} stopOpacity="0.74" />
+            <Stop offset="0" stopColor={SCRIM} stopOpacity="0.97" />
+            <Stop offset="0.42" stopColor={SCRIM} stopOpacity="0.86" />
+            <Stop offset="0.72" stopColor={SCRIM} stopOpacity="0.34" />
             <Stop offset="1" stopColor={SCRIM} stopOpacity="0" />
           </LinearGradient>
         </Defs>
@@ -101,61 +94,62 @@ export const ShareCard = forwardRef<View, Props>(function ShareCard({ data, widt
       </Svg>
 
       {/* Content */}
-      <View style={{ bottom: 0, left: 0, padding: width * 0.061, paddingBottom: width * 0.05, position: 'absolute', right: 0 }}>
-        <Text style={{ color: LIGHT_ACCENT, fontFamily: fonts.mono, fontSize: 10, fontWeight: '500', letterSpacing: 1.6, textTransform: 'uppercase' }}>
+      <View style={{ bottom: 0, left: 0, padding: u(0.066), paddingBottom: u(0.075), position: 'absolute', right: 0 }}>
+        <Text style={{ color: LIGHT_ACCENT, fontFamily: fonts.mono, fontSize: u(0.035), fontWeight: '600', letterSpacing: u(0.004), textTransform: 'uppercase' }}>
           {data.eyebrow}
         </Text>
-        <Text style={{ color: '#FFFFFF', fontFamily: fonts.display, fontSize: width * 0.082, fontWeight: '600', letterSpacing: -0.7, lineHeight: width * 0.088, marginTop: 9 }}>
+        <Text style={{ color: '#FFFFFF', fontFamily: fonts.display, fontSize: u(0.118), fontWeight: '700', letterSpacing: -u(0.003), lineHeight: u(0.122), marginTop: u(0.03) }}>
           {data.title}
         </Text>
 
         {isProgress ? (
-          <View style={{ gap: 16, marginTop: width * 0.066 }}>
-            <View style={{ flexDirection: 'row', gap: 12 }}>
-              <ProgressStat value={`${data.progress?.streakDays ?? 0}`} label="day streak" />
-              <ProgressStat value={data.progress?.weightKg ? `${round(data.progress.weightKg)}kg` : '--'} label="weight" />
-              <ProgressStat value={`${round(data.calories)}`} label="kcal today" />
+          <View style={{ gap: u(0.05), marginTop: u(0.07) }}>
+            <View style={{ flexDirection: 'row', gap: u(0.03) }}>
+              <ProgressStat value={`${data.progress?.streakDays ?? 0}`} label="day streak" u={u} />
+              <ProgressStat value={data.progress?.weightKg ? `${round(data.progress.weightKg)}kg` : '--'} label="weight" u={u} />
+              <ProgressStat value={`${round(data.calories)}`} label="kcal today" u={u} />
             </View>
-            <View style={{ gap: 8 }}>
-              <View style={{ backgroundColor: 'rgba(255,255,255,0.18)', borderRadius: 999, height: 8, overflow: 'hidden' }}>
-                <View style={{ backgroundColor: LIGHT_ACCENT, height: 8, width: `${data.progress?.calorieProgressPct ?? 0}%` }} />
+            <View style={{ gap: u(0.022) }}>
+              <View style={{ backgroundColor: 'rgba(255,255,255,0.18)', borderRadius: 999, height: u(0.026), overflow: 'hidden' }}>
+                <View style={{ backgroundColor: LIGHT_ACCENT, height: u(0.026), width: `${data.progress?.calorieProgressPct ?? 0}%` }} />
               </View>
-              <Text style={{ color: 'rgba(255,255,255,0.62)', fontFamily: fonts.mono, fontSize: 10, letterSpacing: 0.6, textTransform: 'uppercase' }}>
+              <Text style={{ color: 'rgba(255,255,255,0.62)', fontFamily: fonts.mono, fontSize: u(0.032), fontWeight: '500', letterSpacing: u(0.0015), textTransform: 'uppercase' }}>
                 {round(data.progress?.calorieProgressPct ?? 0)}% calorie target
               </Text>
             </View>
           </View>
         ) : (
           <>
-            {/* kcal - generous breathing room above */}
-            <View style={{ alignItems: 'flex-end', flexDirection: 'row', gap: 10, marginTop: width * 0.066 }}>
-              <Text style={{ color: '#FFFFFF', fontFamily: fonts.mono, fontSize: width * 0.13, fontWeight: '500', letterSpacing: -1.4, lineHeight: width * 0.12 }}>
+            {/* kcal — giant hero number */}
+            <View style={{ alignItems: 'flex-end', flexDirection: 'row', gap: u(0.028), marginTop: u(0.085) }}>
+              <Text style={{ color: '#FFFFFF', fontFamily: fonts.mono, fontSize: u(0.24), fontWeight: '500', letterSpacing: -u(0.006), lineHeight: u(0.215) }}>
                 {round(data.calories)}
               </Text>
-              <Text style={{ color: 'rgba(255,255,255,0.66)', fontFamily: fonts.mono, fontSize: 12, marginBottom: 6 }}>kcal</Text>
+              <Text style={{ color: 'rgba(255,255,255,0.7)', fontFamily: fonts.mono, fontSize: u(0.044), fontWeight: '500', marginBottom: u(0.022) }}>kcal</Text>
             </View>
 
             {/* Macro bar */}
-            <View style={{ borderRadius: 999, flexDirection: 'row', gap: 2, height: 7, marginTop: width * 0.05, overflow: 'hidden' }}>
+            <View style={{ borderRadius: 999, flexDirection: 'row', gap: u(0.006), height: u(0.026), marginTop: u(0.06), overflow: 'hidden' }}>
               <View style={{ backgroundColor: colors.protein, width: `${segments.proteinPct}%` }} />
               <View style={{ backgroundColor: colors.carbs, width: `${segments.carbsPct}%` }} />
               <View style={{ backgroundColor: colors.fat, width: `${segments.fatPct}%` }} />
             </View>
-            <View style={{ flexDirection: 'row', gap: 18, marginTop: 12 }}>
-              <Chip color={colors.protein} value={`${round(data.macros.proteinG)}g`} label="protein" />
-              <Chip color={colors.carbs} value={`${round(data.macros.carbsG)}g`} label="carbs" />
-              <Chip color={colors.fat} value={`${round(data.macros.fatG)}g`} label="fat" />
+            {/* Macros — big columns */}
+            <View style={{ flexDirection: 'row', gap: u(0.03), marginTop: u(0.04) }}>
+              <MacroCol color={colors.protein} label="Protein" grams={`${round(data.macros.proteinG)}g`} u={u} />
+              <MacroCol color={colors.carbs} label="Carbs" grams={`${round(data.macros.carbsG)}g`} u={u} />
+              <MacroCol color={colors.fat} label="Fat" grams={`${round(data.macros.fatG)}g`} u={u} />
             </View>
           </>
         )}
 
         {/* Brand + App Store QR */}
-        <View style={{ backgroundColor: 'rgba(255,255,255,0.14)', height: 1, marginVertical: width * 0.05 }} />
-        <View style={{ alignItems: 'center', flexDirection: 'row', gap: 12 }}>
-          <AppStoreQr size={width * 0.13} />
+        <View style={{ backgroundColor: 'rgba(255,255,255,0.16)', height: u(0.004), marginVertical: u(0.06) }} />
+        <View style={{ alignItems: 'center', flexDirection: 'row', gap: u(0.035) }}>
+          <AppStoreQr size={u(0.185)} />
           <View style={{ flex: 1 }}>
-            <Text style={{ color: '#FFFFFF', fontFamily: fonts.display, fontSize: 16, fontWeight: '700', letterSpacing: -0.2 }}>MacroLens</Text>
-            <Text style={{ color: 'rgba(255,255,255,0.6)', fontFamily: fonts.mono, fontSize: 9, letterSpacing: 0.6, marginTop: 2, textTransform: 'uppercase' }}>
+            <Text style={{ color: '#FFFFFF', fontFamily: fonts.display, fontSize: u(0.058), fontWeight: '700', letterSpacing: -u(0.001) }}>MacroLens</Text>
+            <Text style={{ color: 'rgba(255,255,255,0.62)', fontFamily: fonts.mono, fontSize: u(0.032), fontWeight: '500', letterSpacing: u(0.0018), marginTop: u(0.01), textTransform: 'uppercase' }}>
               Scan → get the app
             </Text>
           </View>
