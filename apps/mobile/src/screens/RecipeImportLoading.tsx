@@ -1,13 +1,12 @@
 import { useEffect, useRef, useState } from 'react';
-import { Animated, Easing, Image, StyleSheet, Text, View } from 'react-native';
+import { Animated, Easing, Image, Pressable, StyleSheet, Text, View } from 'react-native';
 import Svg, { Circle } from 'react-native-svg';
 import { ArrowRight } from 'lucide-react-native';
-import { useLang } from '../i18n/LanguageContext';
 import { fetchRecipeThumbnailUrl } from '../recipeImport/recipeThumbnail';
 import { computeRecipeTotals, perServingTotals } from '../recipeImport/recipeNutrition';
 import type { ImportedRecipe } from '../recipeImport/recipeSchema';
 import { macroBarSegments } from '../share/shareCardContent';
-import { Eyebrow, PrimaryButton } from '../ui/primitives';
+import { Eyebrow } from '../ui/primitives';
 import { colors, fonts, spacing, typography } from '../ui/theme';
 
 /**
@@ -32,29 +31,17 @@ const HERO_REVEAL = 248;
 const PHOTO_SCAN = 130;
 const PHOTO_REVEAL = 248;
 
-const STR = {
-  en: {
-    brand: 'MacroLens',
-    scanTitle: 'Cooking up your recipe',
-    revealTitle: 'Crunching your macros 🔥',
-    revealCaption: 'Locking in your macros ✨',
-    captions: ['Reading the post 🔍', 'Spotting ingredients 🥢', 'Estimating portions ⚖️'],
-    protein: 'Protein',
-    carbs: 'Carbs',
-    fat: 'Fat',
-    seeRecipe: 'See the recipe',
-  },
-  fr: {
-    brand: 'MacroLens',
-    scanTitle: 'On prépare ta recette',
-    revealTitle: 'On calcule tes macros 🔥',
-    revealCaption: 'On verrouille tes macros ✨',
-    captions: ['Lecture du post 🔍', 'Repérage des ingrédients 🥢', 'Estimation des portions ⚖️'],
-    protein: 'Protéines',
-    carbs: 'Glucides',
-    fat: 'Lipides',
-    seeRecipe: 'Voir la recette',
-  },
+// English-only, like the share cards — this is a US-market growth moment.
+const COPY = {
+  brand: 'MacroLens',
+  scanTitle: 'Cooking up your recipe',
+  revealTitle: 'Crunching your macros 🔥',
+  revealCaption: 'Locking in your macros ✨',
+  captions: ['Reading the post 🔍', 'Spotting ingredients 🥢', 'Estimating portions ⚖️'],
+  protein: 'Protein',
+  carbs: 'Carbs',
+  fat: 'Fat',
+  seeRecipe: 'See the recipe',
 };
 
 function isHttp(value: string | null | undefined): value is string {
@@ -69,8 +56,7 @@ type Props = {
 };
 
 export function RecipeImportLoading({ platformLabel, sourceUrl, result, onRevealComplete }: Props) {
-  const { lang } = useLang();
-  const t = STR[lang];
+  const t = COPY;
 
   const ringFill = useRef(new Animated.Value(0)).current;
   const morph = useRef(new Animated.Value(0)).current;
@@ -292,15 +278,25 @@ export function RecipeImportLoading({ platformLabel, sourceUrl, result, onReveal
         )}
       </View>
 
-      {/* User-controlled hand-off to the review screen */}
+      {/* User-controlled hand-off to the review screen — compact centered pill */}
       {phase === 'reveal' && result ? (
-        <Animated.View style={{ marginTop: spacing.xl, opacity: revealOpacity, width: '100%' }}>
-          <PrimaryButton
-            label={t.seeRecipe}
+        <Animated.View style={{ alignItems: 'center', marginTop: spacing.lg, opacity: revealOpacity }}>
+          <Pressable
             onPress={() => onRevealComplete?.(result)}
-            variant="accent"
-            icon={<ArrowRight color="#FFFFFF" size={18} strokeWidth={2.2} />}
-          />
+            style={({ pressed }) => ({
+              alignItems: 'center',
+              backgroundColor: colors.accent,
+              borderRadius: 999,
+              flexDirection: 'row',
+              gap: 7,
+              opacity: pressed ? 0.85 : 1,
+              paddingHorizontal: 22,
+              paddingVertical: 12,
+            })}
+          >
+            <Text style={{ color: '#FFFFFF', fontFamily: fonts.display, fontSize: 14, fontWeight: '700' }}>{t.seeRecipe}</Text>
+            <ArrowRight color="#FFFFFF" size={16} strokeWidth={2.4} />
+          </Pressable>
         </Animated.View>
       ) : null}
     </View>
