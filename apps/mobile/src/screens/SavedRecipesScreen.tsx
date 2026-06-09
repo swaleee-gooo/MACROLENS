@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Image, Pressable, ScrollView, Text, View } from 'react-native';
-import { ArrowLeft, ChefHat, Trash2 } from 'lucide-react-native';
+import { ArrowLeft, ChefHat, ShoppingCart, Trash2 } from 'lucide-react-native';
 import { useLang } from '../i18n/LanguageContext';
 import { recipeServingMacros } from '../recipeImport/recipeNutrition';
 import { recipePlatformLabel } from '../recipeImport/recipeUrl';
@@ -13,6 +13,7 @@ type Props = {
   repository: RecipeRepository;
   onBack: () => void;
   onOpen: (recipe: ImportedRecipe) => void;
+  onShoppingList: (recipe: ImportedRecipe) => void;
 };
 
 const STR = {
@@ -40,7 +41,7 @@ function hasHttpImage(value: string | null): value is string {
   return typeof value === 'string' && /^https?:\/\//i.test(value);
 }
 
-export function SavedRecipesScreen({ repository, onBack, onOpen }: Props) {
+export function SavedRecipesScreen({ repository, onBack, onOpen, onShoppingList }: Props) {
   const { lang } = useLang();
   const t = STR[lang];
   const [recipes, setRecipes] = useState<SavedRecipe[]>([]);
@@ -121,6 +122,12 @@ export function SavedRecipesScreen({ repository, onBack, onOpen }: Props) {
                     </Num>
                     <Eyebrow color={colors.accentInk}>{recipePlatformLabel(entry.recipe.sourcePlatform)}</Eyebrow>
                   </View>
+                </Pressable>
+                <Pressable
+                  onPress={() => onShoppingList(entry.recipe)}
+                  style={({ pressed }) => ({ alignItems: 'center', backgroundColor: colors.accentWash, borderColor: colors.accentLine, borderRadius: radius.sm, borderWidth: 1, height: 34, justifyContent: 'center', opacity: pressed ? 0.6 : 1, width: 34 })}
+                >
+                  <ShoppingCart color={colors.accentInk} size={15} strokeWidth={2} />
                 </Pressable>
                 <Pressable
                   onPress={() => remove(entry.id)}

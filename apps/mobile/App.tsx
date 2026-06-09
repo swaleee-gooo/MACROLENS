@@ -121,7 +121,7 @@ type ScreenState =
   | { name: 'recipeImport'; initialUrl?: string; importing: boolean; errorMessage?: string; result?: ImportedRecipe | null }
   | { name: 'recipeReview'; recipe: ImportedRecipe; origin?: 'import' | 'library' }
   | { name: 'savedRecipes' }
-  | { name: 'shoppingList'; title: string; sourceItems: ShoppingListSource[]; recipe: ImportedRecipe; origin: 'import' | 'library' }
+  | { name: 'shoppingList'; title: string; sourceItems: ShoppingListSource[]; recipe: ImportedRecipe; back: 'review-import' | 'review-library' | 'library' }
   | { name: 'calibration' }
   | { name: 'benchmarkDev' }
   | { name: 'scanError'; variant: 'non_food' | 'low_light' | 'label' }
@@ -854,13 +854,13 @@ function MacroLensApp() {
     setScreen({ name: 'result', meal, isSaved: false });
   }
 
-  function openShoppingList(recipe: ImportedRecipe, origin: 'import' | 'library') {
+  function openShoppingList(recipe: ImportedRecipe, back: 'review-import' | 'review-library' | 'library') {
     setScreen({
       name: 'shoppingList',
       title: recipe.title,
       sourceItems: recipe.ingredients.map((ingredient) => ({ name: ingredient.name, grams: ingredient.grams })),
       recipe,
-      origin,
+      back,
     });
   }
 
@@ -1167,7 +1167,7 @@ function MacroLensApp() {
         recipe={screen.recipe}
         onBack={() => (reviewOrigin === 'library' ? setScreen({ name: 'savedRecipes' }) : openRecipeImport(screen.recipe.sourceUrl))}
         onSave={saveImportedRecipe}
-        onShoppingList={(recipe) => openShoppingList(recipe, reviewOrigin)}
+        onShoppingList={(recipe) => openShoppingList(recipe, reviewOrigin === 'library' ? 'review-library' : 'review-import')}
       />
     );
   }
@@ -1178,6 +1178,7 @@ function MacroLensApp() {
         repository={recipeRepository}
         onBack={() => setScreen({ name: 'settings' })}
         onOpen={(recipe) => setScreen({ name: 'recipeReview', recipe, origin: 'library' })}
+        onShoppingList={(recipe) => openShoppingList(recipe, 'library')}
       />
     );
   }
@@ -1187,7 +1188,11 @@ function MacroLensApp() {
       <ShoppingListScreen
         title={screen.title}
         sourceItems={screen.sourceItems}
-        onBack={() => setScreen({ name: 'recipeReview', recipe: screen.recipe, origin: screen.origin })}
+        onBack={() =>
+          screen.back === 'library'
+            ? setScreen({ name: 'savedRecipes' })
+            : setScreen({ name: 'recipeReview', recipe: screen.recipe, origin: screen.back === 'review-library' ? 'library' : 'import' })
+        }
       />
     );
   }
