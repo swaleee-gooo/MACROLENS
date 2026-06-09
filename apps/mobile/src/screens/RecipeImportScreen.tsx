@@ -5,14 +5,17 @@ import { useLang } from '../i18n/LanguageContext';
 import { Card, Eyebrow, PrimaryButton } from '../ui/primitives';
 import { colors, fonts, radius, spacing, typography } from '../ui/theme';
 import { normalizeRecipeUrl, recipePlatformLabel } from '../recipeImport/recipeUrl';
+import type { ImportedRecipe } from '../recipeImport/recipeSchema';
 import { RecipeImportLoading } from './RecipeImportLoading';
 
 type Props = {
   initialUrl?: string;
   importing: boolean;
   errorMessage?: string | null;
+  result?: ImportedRecipe | null;
   onBack: () => void;
   onSubmit: (url: string) => void;
+  onRevealComplete?: (recipe: ImportedRecipe) => void;
 };
 
 const STR = {
@@ -64,7 +67,7 @@ function HowToStep({ index, icon: Icon, label }: { index: number; icon: typeof S
   );
 }
 
-export function RecipeImportScreen({ initialUrl, importing, errorMessage, onBack, onSubmit }: Props) {
+export function RecipeImportScreen({ initialUrl, importing, errorMessage, result, onBack, onSubmit, onRevealComplete }: Props) {
   const { lang } = useLang();
   const t = STR[lang];
   const [url, setUrl] = useState(initialUrl ?? '');
@@ -83,6 +86,8 @@ export function RecipeImportScreen({ initialUrl, importing, errorMessage, onBack
       <RecipeImportLoading
         platformLabel={normalized ? recipePlatformLabel(normalized.platform) : null}
         sourceUrl={normalized ? normalized.url : null}
+        result={result ?? null}
+        onRevealComplete={onRevealComplete}
       />
     );
   }

@@ -1,0 +1,203 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>MacroLens — Recipe loading (Mix 1 + 3)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --ink:#16181C; --muted:#6B7280; --muted2:#9AA0AA;
+    --accent:#149E6E; --accentInk:#0C6B4C; --accentWash:#E6F4EE; --accentLine:#CDE8DC;
+    --protein:#C75A45; --carbs:#D6A24A; --fat:#5C7CC2;
+    --bg:#F6F7F7; --surface:#FFFFFF; --line:#E8EAED; --line2:#DEE1E6;
+    --display:'Space Grotesk',sans-serif; --mono:'IBM Plex Mono',monospace;
+    --ease:cubic-bezier(.4,0,.2,1);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:#0c0d0f;min-height:100vh;display:flex;align-items:flex-start;justify-content:center;gap:36px;flex-wrap:wrap;padding:34px;font-family:var(--display)}
+  .col{display:flex;flex-direction:column;align-items:center;gap:14px}
+  .tag{font-family:var(--mono);font-size:12px;font-weight:600;letter-spacing:.5px;color:#cfd2d6;text-transform:uppercase}
+  .tag b{color:#fff}
+  .phone{width:320px;height:680px;background:var(--bg);border-radius:44px;border:9px solid #0a0a0a;box-shadow:0 24px 64px rgba(0,0,0,.5);overflow:hidden;position:relative;display:flex;flex-direction:column}
+  .head{display:flex;align-items:center;justify-content:space-between;padding:18px 20px 4px}
+  .back{width:34px;height:34px;border-radius:999px;border:1px solid var(--line);background:var(--surface);display:flex;align-items:center;justify-content:center;color:var(--ink);font-size:16px}
+  .eyebrow{font-family:var(--mono);font-size:10px;font-weight:600;letter-spacing:1.3px;text-transform:uppercase;color:var(--muted)}
+  .chip{background:var(--accentWash);border:1px solid var(--accentLine);border-radius:7px;padding:3px 9px;font-family:var(--mono);font-size:10.5px;font-weight:600;letter-spacing:.4px;color:var(--accentInk)}
+  .stage{flex:1;display:flex;flex-direction:column;align-items:center;padding:14px 28px;justify-content:center}
+  .title{font-family:var(--display);font-weight:700;font-size:21px;letter-spacing:-.4px;color:var(--ink);text-align:center;transition:opacity .3s}
+  .caption{font-family:var(--mono);font-size:12.5px;color:var(--muted);margin-top:6px;text-align:center;min-height:17px;transition:opacity .26s}
+
+  .kcalbig{font-family:var(--mono);font-weight:600;font-size:50px;letter-spacing:-2px;color:var(--ink);line-height:1;display:flex;align-items:flex-end;gap:6px;justify-content:center}
+  .kcalbig small{font-family:var(--mono);font-size:15px;color:var(--muted);font-weight:500;margin-bottom:7px}
+  .macros3{display:flex;gap:10px;width:100%;margin-top:16px}
+  .mcell{flex:1}
+  .mhead{display:flex;align-items:center;gap:6px;margin-bottom:5px}
+  .mdot{width:8px;height:8px;border-radius:2px}
+  .mname{font-family:var(--mono);font-size:10px;font-weight:600;letter-spacing:.4px;text-transform:uppercase;color:var(--muted)}
+  .mval{font-family:var(--mono);font-size:17px;font-weight:600;color:var(--ink)}
+  .mtrack{height:6px;border-radius:999px;background:var(--line);overflow:hidden;margin-top:6px}
+  .mfill{height:100%;border-radius:999px;width:0%}
+  .spark{position:absolute;font-size:22px;opacity:0;transition:.3s;pointer-events:none}
+
+  /* ============ MIX A — Morph (la photo voyage) ============ */
+  .heroA{position:relative;width:264px;height:300px}
+  .heroA .rng{position:absolute;left:40px;top:58px;transform:rotate(-90deg);transition:opacity .4s;z-index:1}
+  .heroA.reveal .rng{opacity:0}
+  .heroA .pbg{fill:none;stroke:var(--line);stroke-width:7}
+  .heroA .pfg{fill:none;stroke:var(--accent);stroke-width:7;stroke-linecap:round}
+  .heroA .ph{position:absolute;left:67px;top:85px;width:130px;height:130px;border-radius:999px;object-fit:cover;z-index:2;transition:all .6s var(--ease)}
+  .heroA .scr{position:absolute;left:67px;top:85px;width:130px;height:130px;border-radius:999px;background:rgba(8,8,8,.16);z-index:3;transition:all .6s var(--ease)}
+  .heroA.reveal .ph{left:0;top:0;width:264px;height:100px;border-radius:16px}
+  .heroA.reveal .scr{left:0;top:0;width:264px;height:100px;border-radius:16px;background:linear-gradient(to top,rgba(8,8,8,.42),transparent 62%)}
+  .heroA .badge{position:absolute;left:50%;top:198px;transform:translateX(-50%);background:var(--ink);color:#fff;border-radius:999px;padding:6px 14px;font-family:var(--mono);font-weight:600;font-size:15px;box-shadow:0 6px 18px rgba(0,0,0,.25);z-index:4;transition:opacity .3s}
+  .heroA .badge small{opacity:.6;font-size:11px;margin-left:1px}
+  .heroA.reveal .badge{opacity:0}
+  .heroA .rev{position:absolute;left:0;top:124px;width:264px;opacity:0;transform:translateY(14px);transition:opacity .5s .18s,transform .5s .18s;z-index:2}
+  .heroA.reveal .rev{opacity:1;transform:translateY(0)}
+
+  /* ============ MIX B — Stack (la photo reste fixe) ============ */
+  .heroB{position:relative;width:184px;height:184px;margin-bottom:6px}
+  .heroB svg{position:absolute;inset:0;transform:rotate(-90deg)}
+  .heroB .pbg{fill:none;stroke:var(--line);stroke-width:7}
+  .heroB .pfg{fill:none;stroke:var(--accent);stroke-width:7;stroke-linecap:round}
+  .heroB .ph{position:absolute;left:27px;top:27px;width:130px;height:130px;border-radius:999px;object-fit:cover}
+  .heroB .scr{position:absolute;left:27px;top:27px;width:130px;height:130px;border-radius:999px;background:rgba(8,8,8,.16)}
+  .heroB .badge{position:absolute;left:50%;bottom:-6px;transform:translateX(-50%);background:var(--ink);color:#fff;border-radius:999px;padding:6px 14px;font-family:var(--mono);font-weight:600;font-size:14px;box-shadow:0 6px 18px rgba(0,0,0,.25);transition:background .3s}
+  .heroB .badge small{opacity:.6;font-size:11px;margin-left:1px}
+  .stageB.reveal .heroB .badge{background:var(--accent)}
+  .revB{width:100%;max-height:0;opacity:0;overflow:hidden;transition:max-height .55s var(--ease),opacity .45s,margin-top .55s}
+  .stageB.reveal .revB{max-height:220px;opacity:1;margin-top:20px}
+</style>
+</head>
+<body>
+
+  <!-- ============ MIX A ============ -->
+  <div class="col">
+    <div class="tag">Mix A — <b>Morph (la photo voyage)</b></div>
+    <div class="phone">
+      <div class="head"><div class="back">‹</div><div class="eyebrow">MacroLens</div><div style="width:34px"></div></div>
+      <div class="stage">
+        <div class="chip" style="margin-bottom:14px">TikTok</div>
+        <div class="heroA" id="heroA">
+          <svg class="rng" width="184" height="184"><circle class="pbg" cx="92" cy="92" r="82"/><circle id="A_ring" class="pfg" cx="92" cy="92" r="82"/></svg>
+          <img class="ph" src="https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400&q=80&auto=format&fit=crop" alt="dish"/>
+          <div class="scr"></div>
+          <div class="badge"><span id="A_pct">0</span><small>%</small></div>
+          <div class="rev">
+            <div style="position:relative;display:flex;justify-content:center">
+              <div class="spark" id="A_spark" style="top:-12px;right:36px">✨</div>
+              <div class="kcalbig"><span id="A_kcal">0</span><small>kcal</small></div>
+            </div>
+            <div class="macros3">
+              <div class="mcell"><div class="mhead"><span class="mdot" style="background:var(--protein)"></span><span class="mname">Protein</span></div><div class="mval"><span id="A_p">0</span>g</div><div class="mtrack"><div class="mfill" id="A_pf" style="background:var(--protein)"></div></div></div>
+              <div class="mcell"><div class="mhead"><span class="mdot" style="background:var(--carbs)"></span><span class="mname">Carbs</span></div><div class="mval"><span id="A_c">0</span>g</div><div class="mtrack"><div class="mfill" id="A_cf" style="background:var(--carbs)"></div></div></div>
+              <div class="mcell"><div class="mhead"><span class="mdot" style="background:var(--fat)"></span><span class="mname">Fat</span></div><div class="mval"><span id="A_f">0</span>g</div><div class="mtrack"><div class="mfill" id="A_ff" style="background:var(--fat)"></div></div></div>
+            </div>
+          </div>
+        </div>
+        <div class="title" id="A_title" style="margin-top:8px">Cooking up your recipe</div>
+        <div class="caption" id="A_cap">Reading the post 🔍</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ MIX B ============ -->
+  <div class="col">
+    <div class="tag">Mix B — <b>Stack (la photo reste)</b></div>
+    <div class="phone">
+      <div class="head"><div class="back">‹</div><div class="eyebrow">MacroLens</div><div style="width:34px"></div></div>
+      <div class="stage" id="stageB">
+        <div class="chip" style="margin-bottom:18px">TikTok</div>
+        <div class="heroB">
+          <svg width="184" height="184"><circle class="pbg" cx="92" cy="92" r="82"/><circle id="B_ring" class="pfg" cx="92" cy="92" r="82"/></svg>
+          <img class="ph" src="https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400&q=80&auto=format&fit=crop" alt="dish"/>
+          <div class="scr"></div>
+          <div class="badge" id="B_badge"><span id="B_pct">0</span><small>%</small></div>
+        </div>
+        <div class="title" id="B_title" style="margin-top:16px">Cooking up your recipe</div>
+        <div class="caption" id="B_cap">Reading the post 🔍</div>
+        <div class="revB">
+          <div style="position:relative;display:flex;justify-content:center;margin-top:6px">
+            <div class="spark" id="B_spark" style="top:-12px;right:30px">✨</div>
+            <div class="kcalbig"><span id="B_kcal">0</span><small>kcal</small></div>
+          </div>
+          <div class="macros3">
+            <div class="mcell"><div class="mhead"><span class="mdot" style="background:var(--protein)"></span><span class="mname">Protein</span></div><div class="mval"><span id="B_p">0</span>g</div><div class="mtrack"><div class="mfill" id="B_pf" style="background:var(--protein)"></div></div></div>
+            <div class="mcell"><div class="mhead"><span class="mdot" style="background:var(--carbs)"></span><span class="mname">Carbs</span></div><div class="mval"><span id="B_c">0</span>g</div><div class="mtrack"><div class="mfill" id="B_cf" style="background:var(--carbs)"></div></div></div>
+            <div class="mcell"><div class="mhead"><span class="mdot" style="background:var(--fat)"></span><span class="mname">Fat</span></div><div class="mval"><span id="B_f">0</span>g</div><div class="mtrack"><div class="mfill" id="B_ff" style="background:var(--fat)"></div></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<script>
+  const easeOut = (x) => 1 - Math.pow(1 - Math.min(Math.max(x,0),1), 3);
+  const clamp01 = (x) => Math.min(Math.max(x,0),1);
+  const C = 2 * Math.PI * 82;
+  const TARGET = { kcal:512, p:52, c:56, f:6 };
+  const FILL = { p:72, c:78, f:30 };
+  const caps = ['Reading the post 🔍','Spotting ingredients 🥢','Estimating portions ⚖️'];
+
+  ['A_ring','B_ring'].forEach(id => { const e=document.getElementById(id); e.style.strokeDasharray=C; });
+  const $ = (id) => document.getElementById(id);
+
+  const P = 6400, T1 = 2900, REVEAL = 2200;
+  let t0 = null;
+
+  function updatePhase1(prefix, a1, t){
+    const pct = Math.round(a1*100);
+    $(prefix+'pct').textContent = pct;
+    $(prefix+'ring').style.strokeDashoffset = C*(1-a1);
+    const idx = Math.min(2, Math.floor(t/950));
+    const cap = $(prefix+'cap');
+    if (cap.dataset.k !== String(idx)) { cap.dataset.k = String(idx); cap.textContent = caps[idx]; }
+  }
+
+  function updateReveal(prefix, r){
+    $(prefix+'kcal').textContent = Math.round(r*TARGET.kcal);
+    $(prefix+'p').textContent = Math.round(r*TARGET.p);
+    $(prefix+'c').textContent = Math.round(r*TARGET.c);
+    $(prefix+'f').textContent = Math.round(r*TARGET.f);
+    $(prefix+'pf').style.width = (r*FILL.p)+'%';
+    $(prefix+'cf').style.width = (r*FILL.c)+'%';
+    $(prefix+'ff').style.width = (r*FILL.f)+'%';
+    const sp = $(prefix+'spark');
+    sp.style.opacity = r>=0.98 ? 1 : 0;
+    sp.style.transform = r>=0.98 ? 'scale(1.25) rotate(10deg)' : 'scale(.6)';
+  }
+
+  function tick(ts){
+    if (t0===null) t0=ts;
+    const t=(ts-t0)%P;
+    const reveal = t>=T1;
+    const a1 = easeOut(Math.min(t,2700)/2700);
+    const r = reveal ? easeOut((t-T1)/REVEAL) : 0;
+
+    // analyze phase (both rings keep their last value through the reveal)
+    updatePhase1('A_', reveal?1:a1, t);
+    updatePhase1('B_', reveal?1:a1, t);
+
+    // Mix A morph
+    $('heroA').classList.toggle('reveal', reveal);
+    $('A_title').textContent = reveal ? 'Crunching your macros 🔥' : 'Cooking up your recipe';
+    if (reveal){ updateReveal('A_', r); $('A_cap').textContent='Locking in your macros ✨'; }
+
+    // Mix B stack
+    $('stageB').classList.toggle('reveal', reveal);
+    $('B_title').textContent = reveal ? 'Crunching your macros 🔥' : 'Cooking up your recipe';
+    const bBadge=$('B_badge');
+    if (reveal){
+      if(bBadge.dataset.done!=='1'){ bBadge.dataset.done='1'; bBadge.innerHTML='✓ Done'; }
+      updateReveal('B_', r); $('B_cap').textContent='Locking in your macros ✨';
+    } else if(bBadge.dataset.done==='1'){ bBadge.dataset.done='0'; bBadge.innerHTML='<span id="B_pct">0</span><small>%</small>'; }
+
+    requestAnimationFrame(tick);
+  }
+  requestAnimationFrame(tick);
+</script>
+</body>
+</html>

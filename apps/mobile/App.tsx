@@ -114,7 +114,7 @@ type ScreenState =
   | { name: 'weighIn' }
   | { name: 'scanHub' }
   | { name: 'verifiedRecipe' }
-  | { name: 'recipeImport'; initialUrl?: string; importing: boolean; errorMessage?: string }
+  | { name: 'recipeImport'; initialUrl?: string; importing: boolean; errorMessage?: string; result?: ImportedRecipe | null }
   | { name: 'recipeReview'; recipe: ImportedRecipe }
   | { name: 'calibration' }
   | { name: 'benchmarkDev' }
@@ -824,7 +824,8 @@ function MacroLensApp() {
       // Trust creator-stated calories over the per-ingredient sum when the post gives a number.
       const recipe = anchorRecipeToStatedCalories(extracted);
       analytics.track('recipe_import_completed', { platform: recipe.sourcePlatform, ingredientCount: recipe.ingredients.length });
-      setScreen({ name: 'recipeReview', recipe });
+      // Hand the result to the loading screen so it can play the macro reveal before review.
+      setScreen({ name: 'recipeImport', initialUrl: url, importing: true, result: recipe });
     } catch (error) {
       analytics.track('recipe_import_failed', {
         platform,
@@ -1131,8 +1132,10 @@ function MacroLensApp() {
         initialUrl={screen.initialUrl}
         importing={screen.importing}
         errorMessage={screen.errorMessage ?? null}
+        result={screen.result ?? null}
         onBack={() => setScreen({ name: 'scanner', initialMode: 'meal' })}
         onSubmit={(url) => importRecipeFromUrl(url, 'paste')}
+        onRevealComplete={(recipe) => setScreen({ name: 'recipeReview', recipe })}
       />
     );
   }
