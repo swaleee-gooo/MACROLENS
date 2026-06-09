@@ -98,7 +98,21 @@ export const ShareCard = forwardRef<View, Props>(function ShareCard({ data, widt
         <Text style={{ color: LIGHT_ACCENT, fontFamily: fonts.mono, fontSize: u(0.035), fontWeight: '600', letterSpacing: u(0.004), textTransform: 'uppercase' }}>
           {data.eyebrow}
         </Text>
-        <Text style={{ color: '#FFFFFF', fontFamily: fonts.display, fontSize: u(0.118), fontWeight: '700', letterSpacing: -u(0.003), lineHeight: u(0.122), marginTop: u(0.03) }}>
+        <Text
+          numberOfLines={2}
+          style={{
+            color: '#FFFFFF',
+            fontFamily: fonts.display,
+            fontSize: u(0.118),
+            fontWeight: '700',
+            letterSpacing: -u(0.003),
+            lineHeight: u(0.128),
+            marginTop: u(0.03),
+            textShadowColor: 'rgba(0,0,0,0.4)',
+            textShadowOffset: { width: 0, height: u(0.004) },
+            textShadowRadius: u(0.016),
+          }}
+        >
           {data.title}
         </Text>
 
@@ -121,11 +135,28 @@ export const ShareCard = forwardRef<View, Props>(function ShareCard({ data, widt
         ) : (
           <>
             {/* kcal — giant hero number */}
-            <View style={{ alignItems: 'flex-end', flexDirection: 'row', gap: u(0.028), marginTop: u(0.085) }}>
-              <Text style={{ color: '#FFFFFF', fontFamily: fonts.mono, fontSize: u(0.24), fontWeight: '500', letterSpacing: -u(0.006), lineHeight: u(0.215) }}>
+            <View style={{ alignItems: 'flex-end', flexDirection: 'row', gap: u(0.028), marginTop: u(0.08) }}>
+              <Text
+                numberOfLines={1}
+                adjustsFontSizeToFit
+                minimumFontScale={0.6}
+                style={{
+                  color: '#FFFFFF',
+                  flexShrink: 1,
+                  fontFamily: fonts.mono,
+                  fontSize: u(0.215),
+                  fontWeight: '500',
+                  letterSpacing: -u(0.005),
+                  // lineHeight must be >= fontSize or the digits get clipped vertically.
+                  lineHeight: u(0.235),
+                  textShadowColor: 'rgba(0,0,0,0.35)',
+                  textShadowOffset: { width: 0, height: u(0.004) },
+                  textShadowRadius: u(0.012),
+                }}
+              >
                 {round(data.calories)}
               </Text>
-              <Text style={{ color: 'rgba(255,255,255,0.7)', fontFamily: fonts.mono, fontSize: u(0.044), fontWeight: '500', marginBottom: u(0.022) }}>kcal</Text>
+              <Text style={{ color: 'rgba(255,255,255,0.7)', fontFamily: fonts.mono, fontSize: u(0.044), fontWeight: '500', marginBottom: u(0.03) }}>kcal</Text>
             </View>
 
             {/* Macro bar */}
