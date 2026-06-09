@@ -1,5 +1,5 @@
 import { Pressable, ScrollView, Text, View } from 'react-native';
-import { Bell, BookOpen, ChevronLeft, ChevronRight, CreditCard, Download, FileText, Heart, Scale, Target, User } from 'lucide-react-native';
+import { Bell, ChevronLeft, ChevronRight, CreditCard, Download, FileText, Heart, Scale, Target, User } from 'lucide-react-native';
 import { useLang } from '../i18n/LanguageContext';
 import { Card, Eyebrow, Num } from '../ui/primitives';
 import { colors, radius, spacing, typography } from '../ui/theme';
@@ -10,7 +10,6 @@ const STR = {
     language: 'Language',
     account: 'Account',
     profile: 'Edit profile',
-    myRecipes: 'My recipes',
     macroTargets: 'Macro targets',
     subscription: 'Subscription',
     preferences: 'Preferences',
@@ -28,7 +27,6 @@ const STR = {
     language: 'Langue',
     account: 'Compte',
     profile: 'Modifier le profil',
-    myRecipes: 'Mes recettes',
     macroTargets: 'Cibles & macros',
     subscription: 'Abonnement',
     preferences: 'Préférences',
@@ -53,7 +51,6 @@ type Props = {
   onBack: () => void;
   onOpenAuth: () => void;
   onOpenProfile: () => void;
-  onOpenSavedRecipes: () => void;
   onOpenTargets: () => void;
   onOpenSubscription: () => void;
   onOpenReminders: () => void;
@@ -63,11 +60,10 @@ type Props = {
   onOpenLegal: () => void;
 };
 
-type RowIcon = 'profile' | 'recipes' | 'targets' | 'subscription' | 'reminders' | 'export' | 'legal' | 'health' | 'calibration';
+type RowIcon = 'profile' | 'targets' | 'subscription' | 'reminders' | 'export' | 'legal' | 'health' | 'calibration';
 
 function iconForKey(icon: RowIcon) {
   if (icon === 'profile') return User;
-  if (icon === 'recipes') return BookOpen;
   if (icon === 'targets') return Target;
   if (icon === 'subscription') return CreditCard;
   if (icon === 'reminders') return Bell;
@@ -141,7 +137,6 @@ export function SettingsScreen({
   onBack,
   onOpenAuth: _onOpenAuth,
   onOpenProfile,
-  onOpenSavedRecipes,
   onOpenTargets,
   onOpenSubscription,
   onOpenReminders,
@@ -190,7 +185,6 @@ export function SettingsScreen({
       {/* Account section */}
       <SectionCard title={t.account}>
         <SettingsRow label={t.profile} icon="profile" onPress={onOpenProfile} />
-        <SettingsRow label={t.myRecipes} icon="recipes" onPress={onOpenSavedRecipes} />
         {showSubscription ? (
           <>
             <SettingsRow label={t.macroTargets} icon="targets" onPress={onOpenTargets} />

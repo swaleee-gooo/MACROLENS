@@ -932,6 +932,7 @@ function MacroLensApp() {
           profile={profile}
           onEditProfile={() => setScreen({ name: 'editProfile' })}
           onOpenSettings={() => setScreen({ name: 'settings' })}
+          onOpenSavedRecipes={() => setScreen({ name: 'savedRecipes' })}
         />
       ) : (
         <PremiumHomeScreen
@@ -1069,7 +1070,6 @@ function MacroLensApp() {
         onBack={() => setScreen({ name: 'app', tab: 'profile' })}
         onOpenAuth={() => setScreen({ name: 'auth', mode: authSession ? 'login' : 'signup' })}
         onOpenProfile={() => setScreen({ name: 'editProfile' })}
-        onOpenSavedRecipes={() => setScreen({ name: 'savedRecipes' })}
         onOpenTargets={() => setScreen({ name: 'targets' })}
         onOpenSubscription={() => setScreen({ name: 'subscriptionSettings' })}
         showSubscription={appEnv.paywallEnabled}
@@ -1176,7 +1176,7 @@ function MacroLensApp() {
     return (
       <SavedRecipesScreen
         repository={recipeRepository}
-        onBack={() => setScreen({ name: 'settings' })}
+        onBack={() => setScreen({ name: 'app', tab: 'profile' })}
         onOpen={(recipe) => setScreen({ name: 'recipeReview', recipe, origin: 'library' })}
         onShoppingList={(recipe) => openShoppingList(recipe, 'library')}
       />

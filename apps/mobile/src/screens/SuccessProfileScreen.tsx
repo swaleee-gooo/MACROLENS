@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 import { Pressable, ScrollView, Text, View } from 'react-native';
-import { Award, Flame, LockKeyhole, ScanLine, Settings, Target } from 'lucide-react-native';
+import { Award, BookOpen, ChevronRight, Flame, LockKeyhole, ScanLine, Settings, Target } from 'lucide-react-native';
 import { calculateMealStreak } from '../domain/streaks';
 import { useLang } from '../i18n/LanguageContext';
 import type { Meal, UserProfile } from '../domain/types';
@@ -13,6 +13,7 @@ type Props = {
   profile: UserProfile | null;
   onEditProfile: () => void;
   onOpenSettings: () => void;
+  onOpenSavedRecipes: () => void;
 };
 
 const STR = {
@@ -25,6 +26,8 @@ const STR = {
     verified: 'verified',
     scans: 'scans',
     badges: 'Badges',
+    myRecipes: 'My recipes',
+    myRecipesSub: 'Saved recipes & shopping lists',
   },
   fr: {
     profile: 'Profil',
@@ -35,6 +38,8 @@ const STR = {
     verified: 'vérifiés',
     scans: 'scans',
     badges: 'Badges',
+    myRecipes: 'Mes recettes',
+    myRecipesSub: 'Recettes & listes de courses',
   },
 };
 
@@ -65,7 +70,7 @@ function BadgeTile({ icon: Icon, title, locked }: { icon: typeof Award; title: s
   );
 }
 
-export function SuccessProfileScreen({ meals, profile, onEditProfile, onOpenSettings }: Props) {
+export function SuccessProfileScreen({ meals, profile, onEditProfile, onOpenSettings, onOpenSavedRecipes }: Props) {
   const { lang } = useLang();
   const t = STR[lang];
   const today = new Date().toISOString().slice(0, 10);
@@ -102,6 +107,20 @@ export function SuccessProfileScreen({ meals, profile, onEditProfile, onOpenSett
             <Seal size={12} color={colors.accentInk} />
             <Text style={{ color: colors.accentInk, fontFamily: fonts.mono, fontSize: 10, fontWeight: '500', letterSpacing: 0.8, textTransform: 'uppercase' }}>{t.pro}</Text>
           </View>
+        </Card>
+      </Pressable>
+
+      {/* My recipes */}
+      <Pressable onPress={onOpenSavedRecipes} style={({ pressed }) => ({ opacity: pressed ? 0.85 : 1 })}>
+        <Card style={{ alignItems: 'center', flexDirection: 'row', gap: 14, padding: 16 }}>
+          <View style={{ alignItems: 'center', backgroundColor: colors.accentWash, borderRadius: radius.md, height: 42, justifyContent: 'center', width: 42 }}>
+            <BookOpen color={colors.accentInk} size={20} strokeWidth={2} />
+          </View>
+          <View style={{ flex: 1 }}>
+            <Text style={{ color: colors.ink, fontSize: 15, fontWeight: '600' }}>{t.myRecipes}</Text>
+            <Num style={{ color: colors.muted, fontSize: typography.tiny, marginTop: 2 }}>{t.myRecipesSub}</Num>
+          </View>
+          <ChevronRight color={colors.muted2} size={18} strokeWidth={2} />
         </Card>
       </Pressable>
 
