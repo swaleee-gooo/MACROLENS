@@ -62,6 +62,7 @@ export function RecipeImportLoading({ platformLabel, sourceUrl, result, onReveal
   const morph = useRef(new Animated.Value(0)).current;
   const count = useRef(new Animated.Value(0)).current;
   const pulse = useRef(new Animated.Value(0)).current;
+  const pop = useRef(new Animated.Value(0)).current;
   const captionOpacity = useRef(new Animated.Value(1)).current;
 
   const [thumbnail, setThumbnail] = useState<string | null>(null);
@@ -101,8 +102,8 @@ export function RecipeImportLoading({ platformLabel, sourceUrl, result, onReveal
   useEffect(() => {
     const listener = ringFill.addListener(({ value }) => setPct(Math.round(value * 100)));
     Animated.sequence([
-      Animated.timing(ringFill, { toValue: 0.86, duration: 2200, easing: Easing.out(Easing.cubic), useNativeDriver: false }),
-      Animated.timing(ringFill, { toValue: 0.99, duration: 12000, easing: Easing.linear, useNativeDriver: false }),
+      Animated.timing(ringFill, { toValue: 0.84, duration: 2000, easing: Easing.out(Easing.cubic), useNativeDriver: false }),
+      Animated.timing(ringFill, { toValue: 0.95, duration: 13000, easing: Easing.linear, useNativeDriver: false }),
     ]).start();
     const halo = Animated.loop(
       Animated.sequence([
@@ -150,8 +151,14 @@ export function RecipeImportLoading({ platformLabel, sourceUrl, result, onReveal
       });
     });
 
-    Animated.timing(ringFill, { toValue: 1, duration: 320, easing: Easing.out(Easing.ease), useNativeDriver: false }).start(() => {
+    // Snap the ring to 100% in a blink, then BIM: a quick scale pop fires the morph
+    // at the exact moment it completes.
+    Animated.timing(ringFill, { toValue: 1, duration: 200, easing: Easing.out(Easing.cubic), useNativeDriver: false }).start(() => {
       setPhase('reveal');
+      Animated.sequence([
+        Animated.timing(pop, { toValue: 1, duration: 110, easing: Easing.out(Easing.ease), useNativeDriver: false }),
+        Animated.timing(pop, { toValue: 0, duration: 190, easing: Easing.in(Easing.ease), useNativeDriver: false }),
+      ]).start();
       Animated.parallel([
         Animated.timing(morph, { toValue: 1, duration: 900, easing: Easing.inOut(Easing.cubic), useNativeDriver: false }),
         Animated.timing(count, { toValue: 1, duration: 2400, easing: Easing.out(Easing.cubic), useNativeDriver: false }),
@@ -163,7 +170,7 @@ export function RecipeImportLoading({ platformLabel, sourceUrl, result, onReveal
     return () => {
       count.removeListener(countListener);
     };
-  }, [result, ringFill, morph, count]);
+  }, [result, ringFill, morph, count, pop]);
 
   const haloScale = pulse.interpolate({ inputRange: [0, 1], outputRange: [0.94, 1.08] });
   const haloOpacity = pulse.interpolate({ inputRange: [0, 1], outputRange: [0.16, 0.4] });
@@ -175,6 +182,7 @@ export function RecipeImportLoading({ platformLabel, sourceUrl, result, onReveal
   const revealOpacity = morph.interpolate({ inputRange: [0.25, 1], outputRange: [0, 1], extrapolate: 'clamp' });
   const revealTranslateY = morph.interpolate({ inputRange: [0, 1], outputRange: [16, 0] });
   const dashOffset = ringFill.interpolate({ inputRange: [0, 1], outputRange: [C, 0] });
+  const heroScale = pop.interpolate({ inputRange: [0, 1], outputRange: [1, 1.05] });
 
   return (
     <View style={{ alignItems: 'center', backgroundColor: colors.background, flex: 1, justifyContent: 'center', padding: spacing.xl }}>
@@ -188,7 +196,7 @@ export function RecipeImportLoading({ platformLabel, sourceUrl, result, onReveal
       </View>
 
       {/* Hero: photo (circle → square) + scanning ring */}
-      <Animated.View style={{ alignItems: 'center', height: heroSize, justifyContent: 'center', marginTop: spacing.xl, position: 'relative', width: heroSize }}>
+      <Animated.View style={{ alignItems: 'center', height: heroSize, justifyContent: 'center', marginTop: spacing.xl, position: 'relative', transform: [{ scale: heroScale }], width: heroSize }}>
         {phase === 'scan' ? (
           <Animated.View
             style={{

@@ -29,6 +29,8 @@
 
   .heroA{position:relative;width:268px;height:188px;transition:height .6s var(--ease)}
   .heroA.reveal{height:400px}
+  .heroA.pop{animation:heropop .3s ease}
+  @keyframes heropop{0%{transform:scale(1)}42%{transform:scale(1.05)}100%{transform:scale(1)}}
   .heroA .rng{position:absolute;left:42px;top:0;transform:rotate(-90deg);transition:opacity .4s;z-index:1}
   .heroA.reveal .rng{opacity:0}
   .heroA .pbg{fill:none;stroke:var(--line);stroke-width:7}
@@ -101,14 +103,15 @@
     if (t0===null) t0=ts;
     const t=(ts-t0)%P;
     const reveal = t>=T1;
-    // climbs fast to ~86% then keeps creeping toward ~99% (no freeze)
-    const a1 = t<2200 ? easeOut(t/2200)*0.86 : 0.86 + Math.min((t-2200)/9000,1)*0.13;
+    // climbs fast to ~84% then keeps creeping toward ~95% (never reaches 100 until ready)
+    const a1 = t<2000 ? easeOut(t/2000)*0.84 : 0.84 + Math.min((t-2000)/11000,1)*0.11;
 
     $('pct').textContent = Math.round((reveal?1:a1)*100);
     $('ring').style.strokeDashoffset = C*(1-(reveal?1:a1));
     if(!reveal){ const idx=Math.min(2,Math.floor(t/1100)); if($('cap').dataset.k!==String(idx)){$('cap').dataset.k=String(idx);$('cap').textContent=caps[idx];} }
 
     $('heroA').classList.toggle('reveal', reveal);
+    $('heroA').classList.toggle('pop', reveal && t < T1 + 320);
     $('seebtn').classList.toggle('show', reveal);
     $('title').textContent = reveal ? 'Crunching your macros 🔥' : 'Cooking up your recipe';
 
