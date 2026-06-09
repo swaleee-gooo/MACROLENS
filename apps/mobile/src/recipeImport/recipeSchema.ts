@@ -33,6 +33,12 @@ export const importedRecipeSchema = z.object({
   servings: z.number().int().positive().default(1),
   ingredients: z.array(importedRecipeIngredientSchema).min(1),
   steps: z.array(z.string().min(1)).default([]),
+  /**
+   * Calories per serving as explicitly stated by the creator in the post/caption
+   * (e.g. "508 kcal per bowl"). When present, we trust this over the per-ingredient
+   * sum and anchor the recipe to it. `null` when the post never states a number.
+   */
+  statedCaloriesPerServing: z.number().positive().nullable().default(null),
 });
 
 export type RecipePlatform = z.infer<typeof recipePlatformSchema>;

@@ -27,6 +27,7 @@ function okResult(): RecipeExtractionResult {
       sourceAuthor: '@chef',
       imageUrl: 'https://cdn.example/thumb.jpg',
       servings: 2,
+      statedCaloriesPerServing: 480,
       ingredients: [{ name: 'Poulet', grams: 300, kcalPer100g: 165, proteinPer100g: 31, carbsPer100g: 0, fatPer100g: 3.6 }],
       steps: ['Cuire le poulet'],
     },
@@ -79,6 +80,7 @@ describe('handleExtractRecipeRequest', () => {
     const body = await response.json();
     expect(body.title).toBe('Bol de poulet teriyaki');
     expect(body.sourceAuthor).toBe('@chef');
+    expect(body.statedCaloriesPerServing).toBe(480);
   });
 
   it('filters invalid ingredient grams and empty steps before returning a recipe', async () => {

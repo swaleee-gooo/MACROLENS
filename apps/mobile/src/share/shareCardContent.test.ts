@@ -87,6 +87,7 @@ describe('cardDataFromImportedRecipe', () => {
       sourceAuthor: null,
       imageUrl: 'https://cdn.example/salmon.jpg',
       servings: 2,
+      statedCaloriesPerServing: null,
       ingredients: [
         { name: 'Salmon', grams: 200, kcalPer100g: 208, proteinPer100g: 20, carbsPer100g: 0, fatPer100g: 13 },
         { name: 'Rice', grams: 300, kcalPer100g: 130, proteinPer100g: 2.7, carbsPer100g: 28, fatPer100g: 0.3 },

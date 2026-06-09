@@ -167,4 +167,26 @@ describe('buildResultTrustViewModel', () => {
     expect(vm.explanationBullets).toEqual(['Barcode source plus consumed weight produced verified nutrition math.']);
     expect(vm.sourceDetail).toContain('Open Food Facts');
   });
+
+  it('deduplicates repeated source labels (imported recipe with many custom ingredients)', () => {
+    const vm = buildResultTrustViewModel(
+      meal({
+        proof: {
+          engine: 'MetaboProof',
+          evidenceLevel: 'ESTIMATED_VISUAL_ONLY',
+          status: 'estimated',
+          warnings: [],
+          explanation: ['Estimated from the imported post.'],
+          sources: Array.from({ length: 21 }, (_, index) => ({
+            provider: 'USER_CUSTOM' as const,
+            externalId: `recipe:ingredient-${index + 1}`,
+            name: `Ingredient ${index + 1}`,
+          })),
+        },
+      }),
+    );
+
+    // "Custom source" must appear exactly once, not 21 times.
+    expect(vm.sourceDetail.match(/Custom source/g)).toHaveLength(1);
+  });
 });

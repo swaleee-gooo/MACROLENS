@@ -66,6 +66,42 @@ export function computeRecipeTotals(ingredients: ImportedRecipeIngredient[]): Re
   };
 }
 
+/**
+ * When the creator explicitly states the calories per serving in the post, trust
+ * that number over the AI's per-ingredient sum (the grams are the least reliable
+ * part of the estimate). We anchor the recipe to the stated calories by scaling
+ * every ingredient's grams by a single factor, so the per-ingredient breakdown
+ * stays internally consistent (sum of items === stated total) and the macros move
+ * proportionally. No-op when no number was stated or the computed total is zero.
+ */
+export function anchorRecipeToStatedCalories(recipe: ImportedRecipe): ImportedRecipe {
+  const stated = recipe.statedCaloriesPerServing;
+  if (typeof stated !== 'number' || !Number.isFinite(stated) || stated <= 0) {
+    return recipe;
+  }
+
+  const servings = recipe.servings > 0 ? recipe.servings : 1;
+  const computedTotalKcal = computeRecipeTotals(recipe.ingredients).kcal;
+  const computedPerServingKcal = computedTotalKcal / servings;
+  if (computedPerServingKcal <= 0) {
+    return recipe;
+  }
+
+  const factor = stated / computedPerServingKcal;
+  // Already on target (within rounding) — leave the AI grams untouched.
+  if (Math.abs(factor - 1) < 0.01) {
+    return recipe;
+  }
+
+  return {
+    ...recipe,
+    ingredients: recipe.ingredients.map((ingredient) => ({
+      ...ingredient,
+      grams: ingredient.grams * factor,
+    })),
+  };
+}
+
 /** Divide whole-recipe totals by the number of servings (never divide by zero). */
 export function perServingTotals(totals: RecipeTotals, servings: number): RecipeTotals {
   const divisor = servings > 0 ? servings : 1;

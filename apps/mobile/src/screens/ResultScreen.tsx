@@ -264,11 +264,11 @@ export function ResultScreen({ meal, onApplyCorrection, onAdjustItem, onSave, on
             </Card>
           ) : (
             <Card style={{ overflow: 'hidden' }}>
-              {meal.items.slice(0, 5).map((item, index) => (
+              {meal.items.map((item, index) => (
                 <DetectedFoodRow
                   key={item.id}
                   item={item}
-                  isLast={index === Math.min(meal.items.length, 5) - 1}
+                  isLast={index === meal.items.length - 1}
                   row={resultTrust.items.find((candidate) => candidate.id === item.id)}
                   onAdjust={onAdjustItem}
                   onRemove={(itemId) => onApplyCorrection({ type: 'remove_item', targetItemId: itemId })}

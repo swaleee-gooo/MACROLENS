@@ -16,7 +16,7 @@ import type { AnalysisResult } from './src/analysis/analysisSchema';
 import { createAnalysisService } from './src/analysis/analysisServiceFactory';
 import { createRemoteAnalysisService } from './src/analysis/remoteAnalysisService';
 import { createRecipeImportService } from './src/recipeImport/recipeImportServiceFactory';
-import { buildMealFromImportedRecipe } from './src/recipeImport/recipeNutrition';
+import { anchorRecipeToStatedCalories, buildMealFromImportedRecipe } from './src/recipeImport/recipeNutrition';
 import { parseSharedRecipeUrl } from './src/recipeImport/shareIntent';
 import { detectRecipePlatform } from './src/recipeImport/recipeUrl';
 import { isUnsupportedRecipeUrlError, RECIPE_EXTRACTION_FAILED_MESSAGE } from './src/recipeImport/recipeImportErrors';
@@ -820,7 +820,9 @@ function MacroLensApp() {
     setScreen({ name: 'recipeImport', initialUrl: url, importing: true });
 
     try {
-      const recipe = await recipeImportService.extractRecipeFromUrl({ url, userId: activeUserId });
+      const extracted = await recipeImportService.extractRecipeFromUrl({ url, userId: activeUserId });
+      // Trust creator-stated calories over the per-ingredient sum when the post gives a number.
+      const recipe = anchorRecipeToStatedCalories(extracted);
       analytics.track('recipe_import_completed', { platform: recipe.sourcePlatform, ingredientCount: recipe.ingredients.length });
       setScreen({ name: 'recipeReview', recipe });
     } catch (error) {

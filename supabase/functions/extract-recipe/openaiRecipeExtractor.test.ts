@@ -58,6 +58,7 @@ describe('extractRecipeWithOpenAI', () => {
           title: '',
           summary: 'Bol riche en proteines.',
           servings: 2,
+          statedCaloriesPerServing: 520,
           ingredients: [
             { name: 'Poulet', grams: 300, kcalPer100g: 165, proteinPer100g: 31, carbsPer100g: 0, fatPer100g: 3.6 },
           ],
@@ -86,6 +87,7 @@ describe('extractRecipeWithOpenAI', () => {
       sourcePlatform: 'tiktok',
       sourceAuthor: '@chef',
       imageUrl: 'https://cdn.example/thumb.jpg',
+      statedCaloriesPerServing: 520,
     });
   });
 

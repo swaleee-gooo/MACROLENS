@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { buildMealFromImportedRecipe, computeRecipeTotals, importedRecipeToMealItems, perServingTotals } from './recipeNutrition';
+import {
+  anchorRecipeToStatedCalories,
+  buildMealFromImportedRecipe,
+  computeRecipeTotals,
+  importedRecipeToMealItems,
+  perServingTotals,
+} from './recipeNutrition';
 import type { ImportedRecipe } from './recipeSchema';
 
 function recipe(overrides: Partial<ImportedRecipe> = {}): ImportedRecipe {
@@ -11,6 +17,7 @@ function recipe(overrides: Partial<ImportedRecipe> = {}): ImportedRecipe {
     sourceAuthor: '@chef',
     imageUrl: 'https://cdn.example/thumb.jpg',
     servings: 2,
+    statedCaloriesPerServing: null,
     ingredients: [
       { name: 'Blanc de poulet', grams: 300, kcalPer100g: 165, proteinPer100g: 31, carbsPer100g: 0, fatPer100g: 3.6 },
       { name: 'Riz cuit', grams: 400, kcalPer100g: 130, proteinPer100g: 2.7, carbsPer100g: 28, fatPer100g: 0.3 },
@@ -38,6 +45,32 @@ describe('perServingTotals', () => {
   it('treats zero servings as one to avoid division by zero', () => {
     const totals = computeRecipeTotals(recipe().ingredients);
     expect(perServingTotals(totals, 0)).toEqual(totals);
+  });
+});
+
+describe('anchorRecipeToStatedCalories', () => {
+  it('scales ingredient grams so per-serving kcal matches the creator-stated value', () => {
+    // computed: 1015 kcal whole / 2 servings = 507.5 per serving; creator stated 400.
+    const anchored = anchorRecipeToStatedCalories(recipe({ statedCaloriesPerServing: 400 }));
+    const perServing = perServingTotals(computeRecipeTotals(anchored.ingredients), anchored.servings);
+    expect(perServing.kcal).toBe(400);
+    expect(anchored.ingredients[0].grams).toBeCloseTo(300 * (400 / 507.5), 2);
+    expect(anchored.ingredients[1].grams).toBeCloseTo(400 * (400 / 507.5), 2);
+  });
+
+  it('is a no-op when the post states no calories', () => {
+    const base = recipe({ statedCaloriesPerServing: null });
+    expect(anchorRecipeToStatedCalories(base)).toBe(base);
+  });
+
+  it('leaves grams untouched when the AI estimate already matches the stated value', () => {
+    const base = recipe({ statedCaloriesPerServing: 508 });
+    expect(anchorRecipeToStatedCalories(base)).toBe(base);
+  });
+
+  it('ignores a non-positive stated value', () => {
+    const base = recipe({ statedCaloriesPerServing: 0 });
+    expect(anchorRecipeToStatedCalories(base)).toBe(base);
   });
 });
 

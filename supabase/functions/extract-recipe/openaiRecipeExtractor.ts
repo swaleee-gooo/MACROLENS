@@ -19,6 +19,7 @@ export type ExtractedRecipe = {
   sourceAuthor: string | null;
   imageUrl: string | null;
   servings: number;
+  statedCaloriesPerServing: number | null;
   ingredients: ExtractedRecipeIngredient[];
   steps: string[];
 };
@@ -33,6 +34,7 @@ type RawRecipeExtraction = {
   title: string;
   summary: string;
   servings: number;
+  statedCaloriesPerServing: number | null;
   ingredients: ExtractedRecipeIngredient[];
   steps: string[];
 };
@@ -245,6 +247,8 @@ const SYSTEM_PROMPT =
   'and the full ingredient list. For each ingredient estimate the TOTAL grams used in the whole recipe (all servings) and ' +
   'realistic per-100g nutrition (kcal, protein, carbs, fat) from standard food databases. When the caption omits a quantity, ' +
   'estimate a typical amount for the dish rather than skipping the ingredient. Include preparation steps when present. ' +
+  'If the creator explicitly states a calorie number (per serving or total), report it in statedCaloriesPerServing as a ' +
+  'per-serving value (divide a stated total by the number of servings); otherwise set statedCaloriesPerServing to null and never guess it. ' +
   'Do not invent ingredients that are not implied by the dish. Quantities are estimates the user will review and adjust.';
 
 function nonNegativeNumber(value: unknown): number {
@@ -252,6 +256,10 @@ function nonNegativeNumber(value: unknown): number {
 }
 
 function positiveGrams(value: unknown): number | null {
+  return typeof value === 'number' && Number.isFinite(value) && value > 0 ? value : null;
+}
+
+function positiveNumberOrNull(value: unknown): number | null {
   return typeof value === 'number' && Number.isFinite(value) && value > 0 ? value : null;
 }
 
@@ -315,6 +323,7 @@ function normalizeRawRecipe(
     sourceAuthor: context.author,
     imageUrl: context.imageUrl,
     servings: normalizedServings(raw.servings),
+    statedCaloriesPerServing: positiveNumberOrNull(raw.statedCaloriesPerServing),
     ingredients,
     steps: normalizedStepList(raw.steps),
   };

@@ -55,7 +55,7 @@ function sourceLabel(source: NutritionSource, imageUri: string): string {
 
 function sourceDetail(meal: Meal): string {
   if (meal.proof) {
-    const sourceList = meal.proof.sources.map((source) => providerLabel(source.provider)).join(', ');
+    const sourceList = [...new Set(meal.proof.sources.map((source) => providerLabel(source.provider)))].join(', ');
     const sourceText = sourceList.length > 0 ? sourceList : 'nutrition source';
     return `${sourceText} with ${proofEvidenceLabel(meal.proof.evidenceLevel).toLowerCase()} evidence. Wellness only; not medical guidance.`;
   }
