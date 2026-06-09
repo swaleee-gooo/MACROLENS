@@ -42,6 +42,8 @@ import { createEntitlementRepository, type EntitlementState } from './src/storag
 import { createAuthSessionRepository } from './src/storage/authSessionRepository';
 import { createSyncedMealRepository, createSyncedMetaboProofRepository, createSyncedProfileRepository } from './src/storage/cloudSyncRepository';
 import { createMealRepository } from './src/storage/mealRepository';
+import { createRecipeRepository } from './src/storage/recipeRepository';
+import type { ShoppingListSource } from './src/domain/shoppingList';
 import { createMetaboProofRepository } from './src/storage/metaboProofRepository';
 import { createOnboardingRepository, type OnboardingState } from './src/storage/onboardingRepository';
 import { createProductRepository } from './src/storage/productRepository';
@@ -76,6 +78,8 @@ import { SettingsScreen } from './src/screens/SettingsScreen';
 import { VerifiedRecipeScreen, type VerifiedRecipeInput } from './src/screens/VerifiedRecipeScreen';
 import { RecipeImportScreen } from './src/screens/RecipeImportScreen';
 import { RecipeReviewScreen } from './src/screens/RecipeReviewScreen';
+import { SavedRecipesScreen } from './src/screens/SavedRecipesScreen';
+import { ShoppingListScreen } from './src/screens/ShoppingListScreen';
 import { ReminderSettingsScreen } from './src/screens/ReminderSettingsScreen';
 import { SuccessProfileScreen } from './src/screens/SuccessProfileScreen';
 import { SubscriptionSettingsScreen } from './src/screens/SubscriptionSettingsScreen';
@@ -115,7 +119,9 @@ type ScreenState =
   | { name: 'scanHub' }
   | { name: 'verifiedRecipe' }
   | { name: 'recipeImport'; initialUrl?: string; importing: boolean; errorMessage?: string; result?: ImportedRecipe | null }
-  | { name: 'recipeReview'; recipe: ImportedRecipe }
+  | { name: 'recipeReview'; recipe: ImportedRecipe; origin?: 'import' | 'library' }
+  | { name: 'savedRecipes' }
+  | { name: 'shoppingList'; title: string; sourceItems: ShoppingListSource[]; recipe: ImportedRecipe; origin: 'import' | 'library' }
   | { name: 'calibration' }
   | { name: 'benchmarkDev' }
   | { name: 'scanError'; variant: 'non_food' | 'low_light' | 'label' }
@@ -258,6 +264,7 @@ function MacroLensApp() {
   const [onboardingState, setOnboardingState] = useState<OnboardingState>({ isComplete: false });
   const [authSession, setAuthSession] = useState<MacroLensSession>(null);
   const localMealRepository = useMemo(() => createMealRepository(AsyncStorage), []);
+  const recipeRepository = useMemo(() => createRecipeRepository(AsyncStorage), []);
   const localMetaboProofRepository = useMemo(() => createMetaboProofRepository(AsyncStorage), []);
   const localProfileRepository = useMemo(() => createProfileRepository(AsyncStorage), []);
   const entitlementRepository = useMemo(() => createEntitlementRepository(AsyncStorage), []);
@@ -836,6 +843,8 @@ function MacroLensApp() {
   }
 
   function saveImportedRecipe(recipe: ImportedRecipe) {
+    // Persist to the "My recipes" library so it can be re-opened + turned into a shopping list.
+    void recipeRepository.saveRecipe(recipe, new Date().toISOString());
     const meal = buildMealFromImportedRecipe({
       recipe,
       userId: activeUserId,
@@ -843,6 +852,16 @@ function MacroLensApp() {
       capturedAt: new Date().toISOString(),
     });
     setScreen({ name: 'result', meal, isSaved: false });
+  }
+
+  function openShoppingList(recipe: ImportedRecipe, origin: 'import' | 'library') {
+    setScreen({
+      name: 'shoppingList',
+      title: recipe.title,
+      sourceItems: recipe.ingredients.map((ingredient) => ({ name: ingredient.name, grams: ingredient.grams })),
+      recipe,
+      origin,
+    });
   }
 
   function createCalibratedMeal(portionFactor: number) {
@@ -1050,6 +1069,7 @@ function MacroLensApp() {
         onBack={() => setScreen({ name: 'app', tab: 'profile' })}
         onOpenAuth={() => setScreen({ name: 'auth', mode: authSession ? 'login' : 'signup' })}
         onOpenProfile={() => setScreen({ name: 'editProfile' })}
+        onOpenSavedRecipes={() => setScreen({ name: 'savedRecipes' })}
         onOpenTargets={() => setScreen({ name: 'targets' })}
         onOpenSubscription={() => setScreen({ name: 'subscriptionSettings' })}
         showSubscription={appEnv.paywallEnabled}
@@ -1141,11 +1161,33 @@ function MacroLensApp() {
   }
 
   if (screen.name === 'recipeReview') {
+    const reviewOrigin = screen.origin ?? 'import';
     return (
       <RecipeReviewScreen
         recipe={screen.recipe}
-        onBack={() => openRecipeImport(screen.recipe.sourceUrl)}
+        onBack={() => (reviewOrigin === 'library' ? setScreen({ name: 'savedRecipes' }) : openRecipeImport(screen.recipe.sourceUrl))}
         onSave={saveImportedRecipe}
+        onShoppingList={(recipe) => openShoppingList(recipe, reviewOrigin)}
+      />
+    );
+  }
+
+  if (screen.name === 'savedRecipes') {
+    return (
+      <SavedRecipesScreen
+        repository={recipeRepository}
+        onBack={() => setScreen({ name: 'settings' })}
+        onOpen={(recipe) => setScreen({ name: 'recipeReview', recipe, origin: 'library' })}
+      />
+    );
+  }
+
+  if (screen.name === 'shoppingList') {
+    return (
+      <ShoppingListScreen
+        title={screen.title}
+        sourceItems={screen.sourceItems}
+        onBack={() => setScreen({ name: 'recipeReview', recipe: screen.recipe, origin: screen.origin })}
       />
     );
   }

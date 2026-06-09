@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { Image, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
-import { ArrowLeft, Bookmark, Minus, Plus, Trash2, Users } from 'lucide-react-native';
+import { ArrowLeft, Bookmark, Minus, Plus, ShoppingCart, Trash2, Users } from 'lucide-react-native';
 import { useLang } from '../i18n/LanguageContext';
 import { Card, Eyebrow, MacroBar, Num, PrimaryButton, ProofChip } from '../ui/primitives';
 import { colors, fonts, radius, spacing, typography } from '../ui/theme';
@@ -14,6 +14,7 @@ type Props = {
   recipe: ImportedRecipe;
   onBack: () => void;
   onSave: (recipe: ImportedRecipe) => void;
+  onShoppingList?: (recipe: ImportedRecipe) => void;
 };
 
 type IngredientDraft = ImportedRecipeIngredient & { id: string; gramsText: string };
@@ -34,6 +35,7 @@ const STR = {
     fat: 'Fat',
     steps: 'Steps',
     save: 'Save recipe',
+    shoppingList: 'Shopping list',
     shareMyCard: 'Share my card',
     sharingCard: 'Preparing card...',
     note: 'Estimated from the post. Adjust grams and servings to match what you actually ate.',
@@ -54,6 +56,7 @@ const STR = {
     fat: 'Lipides',
     steps: 'Étapes',
     save: 'Enregistrer la recette',
+    shoppingList: 'Liste de courses',
     shareMyCard: 'Partager ma carte',
     sharingCard: 'Preparation...',
     note: 'Estimé depuis la publication. Ajuste les grammes et les portions selon ce que tu as réellement mangé.',
@@ -70,7 +73,7 @@ function hasHttpImage(imageUrl: string | null): imageUrl is string {
   return typeof imageUrl === 'string' && /^https?:\/\//i.test(imageUrl);
 }
 
-export function RecipeReviewScreen({ recipe, onBack, onSave }: Props) {
+export function RecipeReviewScreen({ recipe, onBack, onSave, onShoppingList }: Props) {
   const { lang } = useLang();
   const t = STR[lang];
 
@@ -311,6 +314,15 @@ export function RecipeReviewScreen({ recipe, onBack, onSave }: Props) {
           variant="dark"
           icon={<Bookmark color="#FFFFFF" size={17} strokeWidth={2} />}
         />
+        {onShoppingList ? (
+          <PrimaryButton
+            label={t.shoppingList}
+            onPress={() => onShoppingList(editedRecipe)}
+            disabled={!canSave}
+            variant="ghost"
+            icon={<ShoppingCart color={colors.ink} size={17} strokeWidth={2} />}
+          />
+        ) : null}
         <ShareCardButton data={shareCardData} label={t.shareMyCard} sharingLabel={t.sharingCard} disabled={!canSave} />
         <Text style={{ color: colors.muted, fontSize: typography.tiny, lineHeight: 16, textAlign: 'center' }}>{t.note}</Text>
       </View>
