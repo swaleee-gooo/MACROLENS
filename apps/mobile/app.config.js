@@ -90,11 +90,14 @@ module.exports = {
     icon: './assets/icon.png',
     userInterfaceStyle: 'light',
     owner: 'idrisscarta',
+    // appVersion keeps the runtime stable across builds/updates (tied to `version`
+    // above), so JS-only OTA updates actually reach installed builds. Bump `version`
+    // whenever a NATIVE module is added/removed, then ship a fresh build.
     runtimeVersion: {
-      policy: 'fingerprint',
+      policy: 'appVersion',
     },
     updates: {
-      enabled: false,
+      enabled: true,
       url: `https://u.expo.dev/${projectId}`,
     },
     ios: {
