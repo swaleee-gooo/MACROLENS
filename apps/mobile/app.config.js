@@ -108,6 +108,8 @@ module.exports = {
         LSApplicationQueriesSchemes: socialShareSchemes,
         NSCameraUsageDescription:
           'MacroLens uses the camera to analyze meals, scan barcodes, and read nutrition labels.',
+        NSPhotoLibraryUsageDescription:
+          'MacroLens lets you pick an existing photo of a meal to analyze its calories and macros.',
       },
     },
     android: {

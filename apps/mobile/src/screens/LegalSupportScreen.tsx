@@ -97,7 +97,7 @@ export function LegalSupportScreen({ onBack }: Props) {
         <Card style={{ overflow: 'hidden' }}>
           <LinkRow icon={Mail} label={t.contactSupport} url={supportUrl} />
           <LinkRow icon={LifeBuoy} label={t.helpCenter} url={supportUrl} />
-          <LinkRow icon={Star} label={t.rateApp} url="https://apps.apple.com" isLast />
+          <LinkRow icon={Star} label={t.rateApp} url="https://apps.apple.com/app/id6774111134?action=write-review" isLast />
         </Card>
       </View>
 

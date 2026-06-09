@@ -1,6 +1,5 @@
-import { useState } from 'react';
-import { Alert, Pressable, ScrollView, Switch, Text, View } from 'react-native';
-import { AlertTriangle, ChevronLeft, ChevronRight, Download, LogOut, RefreshCw, Settings2, Bell, Trash2 } from 'lucide-react-native';
+import { Alert, Pressable, ScrollView, Text, View } from 'react-native';
+import { AlertTriangle, ChevronLeft, ChevronRight, Download, LogOut, Trash2 } from 'lucide-react-native';
 import { useLang } from '../i18n/LanguageContext';
 import { Card, Eyebrow } from '../ui/primitives';
 import { colors, radius, spacing, typography } from '../ui/theme';
@@ -94,50 +93,9 @@ function ActionRow({
   );
 }
 
-function ToggleRow({
-  label,
-  icon: Icon,
-  value,
-  onValueChange,
-  isLast = false,
-}: {
-  label: string;
-  icon: typeof Bell;
-  value: boolean;
-  onValueChange: (v: boolean) => void;
-  isLast?: boolean;
-}) {
-  return (
-    <View
-      style={{
-        alignItems: 'center',
-        borderBottomColor: colors.line,
-        borderBottomWidth: isLast ? 0 : 1,
-        flexDirection: 'row',
-        gap: spacing.md,
-        paddingHorizontal: spacing.md,
-        paddingVertical: 13,
-      }}
-    >
-      <View style={{ alignItems: 'center', backgroundColor: colors.paper2, borderRadius: radius.sm, height: 32, justifyContent: 'center', width: 32 }}>
-        <Icon color={colors.ink2} size={16} strokeWidth={2} />
-      </View>
-      <Text style={{ color: colors.ink, flex: 1, fontSize: typography.body, fontWeight: '500' }}>{label}</Text>
-      <Switch
-        value={value}
-        onValueChange={onValueChange}
-        trackColor={{ false: colors.line2, true: colors.accent }}
-        thumbColor={colors.surface}
-      />
-    </View>
-  );
-}
-
 export function DataPrivacyScreen({ isAuthenticated, mealCount, onBack, onExportData, onLogout, onDeleteAccount }: Props) {
   const { lang } = useLang();
   const t = STR[lang];
-  const [analytics, setAnalytics] = useState(false);
-  const [communications, setCommunications] = useState(true);
 
   function confirmDeleteAccount() {
     Alert.alert(t.alertTitle, t.alertBody, [
@@ -162,17 +120,7 @@ export function DataPrivacyScreen({ isAuthenticated, mealCount, onBack, onExport
       <View style={{ gap: spacing.sm }}>
         <Eyebrow>{t.myData}</Eyebrow>
         <Card style={{ overflow: 'hidden' }}>
-          <ActionRow icon={Download} label={t.exportLabel} onPress={onExportData} />
-          <ActionRow icon={RefreshCw} label={t.clearCache} onPress={() => undefined} isLast />
-        </Card>
-      </View>
-
-      {/* Privacy group */}
-      <View style={{ gap: spacing.sm }}>
-        <Eyebrow>{t.privacy}</Eyebrow>
-        <Card style={{ overflow: 'hidden' }}>
-          <ToggleRow icon={Settings2} label={t.analytics} value={analytics} onValueChange={setAnalytics} />
-          <ToggleRow icon={Bell} label={t.communications} value={communications} onValueChange={setCommunications} isLast />
+          <ActionRow icon={Download} label={t.exportLabel} onPress={onExportData} isLast />
         </Card>
       </View>
 
