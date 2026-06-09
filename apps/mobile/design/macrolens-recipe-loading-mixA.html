@@ -54,6 +54,8 @@
   .mtrack{height:6px;border-radius:999px;background:var(--line);overflow:hidden;margin-top:6px}
   .mfill{height:100%;border-radius:999px;width:0%}
   .spark{position:absolute;font-size:22px;opacity:0;transition:.3s;pointer-events:none}
+  .seebtn{margin-top:26px;width:100%;height:50px;border-radius:14px;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;gap:8px;font-family:var(--display);font-weight:700;font-size:15px;opacity:0;transform:translateY(8px);transition:opacity .4s,transform .4s;box-shadow:0 8px 22px rgba(20,158,110,.35)}
+  .seebtn.show{opacity:1;transform:translateY(0)}
 </style>
 </head>
 <body>
@@ -80,6 +82,7 @@
       </div>
       <div class="title" id="title" style="margin-top:10px">Cooking up your recipe</div>
       <div class="caption" id="cap">Reading the post 🔍</div>
+      <div class="seebtn" id="seebtn"><span>Voir la recette</span><span style="font-size:18px">→</span></div>
     </div>
   </div>
 
@@ -92,19 +95,21 @@
   const $ = (id) => document.getElementById(id);
   $('ring').style.strokeDasharray = C;
 
-  const P = 6400, T1 = 2900, REVEAL = 2200;
+  const P = 8200, T1 = 3400, REVEAL = 2400;
   let t0 = null;
   function tick(ts){
     if (t0===null) t0=ts;
     const t=(ts-t0)%P;
     const reveal = t>=T1;
-    const a1 = easeOut(Math.min(t,2700)/2700);
+    // climbs fast to ~86% then keeps creeping toward ~99% (no freeze)
+    const a1 = t<2200 ? easeOut(t/2200)*0.86 : 0.86 + Math.min((t-2200)/9000,1)*0.13;
 
     $('pct').textContent = Math.round((reveal?1:a1)*100);
     $('ring').style.strokeDashoffset = C*(1-(reveal?1:a1));
-    if(!reveal){ const idx=Math.min(2,Math.floor(t/950)); if($('cap').dataset.k!==String(idx)){$('cap').dataset.k=String(idx);$('cap').textContent=caps[idx];} }
+    if(!reveal){ const idx=Math.min(2,Math.floor(t/1100)); if($('cap').dataset.k!==String(idx)){$('cap').dataset.k=String(idx);$('cap').textContent=caps[idx];} }
 
     $('heroA').classList.toggle('reveal', reveal);
+    $('seebtn').classList.toggle('show', reveal);
     $('title').textContent = reveal ? 'Crunching your macros 🔥' : 'Cooking up your recipe';
 
     if(reveal){

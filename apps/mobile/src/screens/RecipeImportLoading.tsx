@@ -1,12 +1,13 @@
 import { useEffect, useRef, useState } from 'react';
 import { Animated, Easing, Image, StyleSheet, Text, View } from 'react-native';
 import Svg, { Circle } from 'react-native-svg';
+import { ArrowRight } from 'lucide-react-native';
 import { useLang } from '../i18n/LanguageContext';
 import { fetchRecipeThumbnailUrl } from '../recipeImport/recipeThumbnail';
 import { computeRecipeTotals, perServingTotals } from '../recipeImport/recipeNutrition';
 import type { ImportedRecipe } from '../recipeImport/recipeSchema';
 import { macroBarSegments } from '../share/shareCardContent';
-import { Eyebrow } from '../ui/primitives';
+import { Eyebrow, PrimaryButton } from '../ui/primitives';
 import { colors, fonts, spacing, typography } from '../ui/theme';
 
 /**
@@ -31,8 +32,6 @@ const HERO_REVEAL = 248;
 const PHOTO_SCAN = 130;
 const PHOTO_REVEAL = 248;
 
-const REVEAL_HANDOFF_MS = 680;
-
 const STR = {
   en: {
     brand: 'MacroLens',
@@ -43,6 +42,7 @@ const STR = {
     protein: 'Protein',
     carbs: 'Carbs',
     fat: 'Fat',
+    seeRecipe: 'See the recipe',
   },
   fr: {
     brand: 'MacroLens',
@@ -53,6 +53,7 @@ const STR = {
     protein: 'Protéines',
     carbs: 'Glucides',
     fat: 'Lipides',
+    seeRecipe: 'Voir la recette',
   },
 };
 
@@ -84,8 +85,6 @@ export function RecipeImportLoading({ platformLabel, sourceUrl, result, onReveal
   const [numbers, setNumbers] = useState({ kcal: 0, proteinG: 0, carbsG: 0, fatG: 0 });
   const [sparkle, setSparkle] = useState(false);
 
-  const onCompleteRef = useRef(onRevealComplete);
-  onCompleteRef.current = onRevealComplete;
   const revealStarted = useRef(false);
 
   // Per-serving target for the reveal counters.
@@ -111,10 +110,14 @@ export function RecipeImportLoading({ platformLabel, sourceUrl, result, onReveal
     };
   }, [sourceUrl]);
 
-  // Scan: ring fills toward ~92% while we wait; a soft halo keeps it alive.
+  // Scan: ring climbs fast to ~86%, then keeps creeping toward ~99% (never freezes)
+  // until the result lands and completes it. A soft halo keeps it alive.
   useEffect(() => {
     const listener = ringFill.addListener(({ value }) => setPct(Math.round(value * 100)));
-    Animated.timing(ringFill, { toValue: 0.92, duration: 2600, easing: Easing.out(Easing.cubic), useNativeDriver: false }).start();
+    Animated.sequence([
+      Animated.timing(ringFill, { toValue: 0.86, duration: 2200, easing: Easing.out(Easing.cubic), useNativeDriver: false }),
+      Animated.timing(ringFill, { toValue: 0.99, duration: 12000, easing: Easing.linear, useNativeDriver: false }),
+    ]).start();
     const halo = Animated.loop(
       Animated.sequence([
         Animated.timing(pulse, { toValue: 1, duration: 1100, easing: Easing.out(Easing.ease), useNativeDriver: true }),
@@ -161,23 +164,18 @@ export function RecipeImportLoading({ platformLabel, sourceUrl, result, onReveal
       });
     });
 
-    let handoff: ReturnType<typeof setTimeout> | null = null;
-    Animated.timing(ringFill, { toValue: 1, duration: 240, easing: Easing.out(Easing.ease), useNativeDriver: false }).start(() => {
+    Animated.timing(ringFill, { toValue: 1, duration: 320, easing: Easing.out(Easing.ease), useNativeDriver: false }).start(() => {
       setPhase('reveal');
       Animated.parallel([
-        Animated.timing(morph, { toValue: 1, duration: 600, easing: Easing.inOut(Easing.cubic), useNativeDriver: false }),
-        Animated.timing(count, { toValue: 1, duration: 1400, easing: Easing.out(Easing.cubic), useNativeDriver: false }),
+        Animated.timing(morph, { toValue: 1, duration: 900, easing: Easing.inOut(Easing.cubic), useNativeDriver: false }),
+        Animated.timing(count, { toValue: 1, duration: 2400, easing: Easing.out(Easing.cubic), useNativeDriver: false }),
       ]).start(() => {
         setSparkle(true);
-        handoff = setTimeout(() => onCompleteRef.current?.(result), REVEAL_HANDOFF_MS);
       });
     });
 
     return () => {
       count.removeListener(countListener);
-      if (handoff) {
-        clearTimeout(handoff);
-      }
     };
   }, [result, ringFill, morph, count]);
 
@@ -293,6 +291,18 @@ export function RecipeImportLoading({ platformLabel, sourceUrl, result, onReveal
           </Animated.Text>
         )}
       </View>
+
+      {/* User-controlled hand-off to the review screen */}
+      {phase === 'reveal' && result ? (
+        <Animated.View style={{ marginTop: spacing.xl, opacity: revealOpacity, width: '100%' }}>
+          <PrimaryButton
+            label={t.seeRecipe}
+            onPress={() => onRevealComplete?.(result)}
+            variant="accent"
+            icon={<ArrowRight color="#FFFFFF" size={18} strokeWidth={2.2} />}
+          />
+        </Animated.View>
+      ) : null}
     </View>
   );
 }
