@@ -150,7 +150,7 @@ export function SettingsScreen({
   onOpenData,
   onOpenLegal,
 }: Props) {
-  const { lang, setLang } = useLang();
+  const { lang } = useLang();
   const t = STR[lang];
 
   // Initials for the profile avatar
@@ -207,25 +207,6 @@ export function SettingsScreen({
         <SettingsRow label={t.appleHealth} icon="health" onPress={onOpenHealth} />
         <SettingsRow label={t.calibration} icon="calibration" onPress={onOpenCalibration} isLast />
       </SectionCard>
-
-      {/* Language */}
-      <View style={{ gap: spacing.sm }}>
-        <Eyebrow style={{ paddingHorizontal: 2 }}>{t.language}</Eyebrow>
-        <View style={{ backgroundColor: colors.paper2, borderColor: colors.line2, borderRadius: radius.md, borderWidth: 1, flexDirection: 'row', gap: 4, padding: 4 }}>
-          {(['en', 'fr'] as const).map((code) => {
-            const on = lang === code;
-            return (
-              <Pressable
-                key={code}
-                onPress={() => setLang(code)}
-                style={{ alignItems: 'center', backgroundColor: on ? colors.surface : 'transparent', borderRadius: 9, flex: 1, paddingVertical: 11 }}
-              >
-                <Text style={{ color: on ? colors.ink : colors.muted, fontSize: 13, fontWeight: '600' }}>{code === 'en' ? 'English' : 'Français'}</Text>
-              </Pressable>
-            );
-          })}
-        </View>
-      </View>
 
       {/* Data section */}
       <SectionCard title={t.data}>

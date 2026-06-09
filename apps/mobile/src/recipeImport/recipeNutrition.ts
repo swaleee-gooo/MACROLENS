@@ -216,7 +216,7 @@ export function buildMealFromImportedRecipe({
   });
 
   const sourceLabel = recipe.sourceAuthor ? `${recipe.sourceAuthor} · ${recipe.sourceUrl}` : recipe.sourceUrl;
-  const notes = `Recette importée depuis ${sourceLabel}`.trim();
+  const notes = `Imported recipe from ${sourceLabel}`.trim();
 
   // When the creator stated macros/calories, those exact numbers win over the
   // per-ingredient computation — that is what the user saw in the video.
