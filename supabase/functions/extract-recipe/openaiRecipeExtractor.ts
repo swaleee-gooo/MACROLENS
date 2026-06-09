@@ -49,6 +49,16 @@ type SourceContext = {
 
 const sourceFetchHeaders = { 'user-agent': 'MacroLensBot/1.0 (+recipe import)' };
 
+// Instagram serves a login wall to bots, but its /embed/captioned/ endpoint returns
+// the caption + image for public posts without auth — when requested with a real
+// browser User-Agent.
+const browserFetchHeaders = {
+  'user-agent':
+    'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.4 Safari/605.1.15',
+  'accept-language': 'en-US,en;q=0.9',
+  accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+};
+
 export function detectPlatform(url: string): RecipePlatform {
   let host: string;
   try {
@@ -123,9 +133,9 @@ async function fetchJson(url: string): Promise<Record<string, unknown> | null> {
   }
 }
 
-async function fetchHtml(url: string): Promise<string | null> {
+async function fetchHtml(url: string, headers: Record<string, string> = sourceFetchHeaders): Promise<string | null> {
   try {
-    const response = await fetch(url, { headers: sourceFetchHeaders });
+    const response = await fetch(url, { headers });
     if (!response.ok) {
       return null;
     }
@@ -185,8 +195,8 @@ async function oEmbedContext(endpoint: string, sourceUrl: string): Promise<Sourc
   return { title, caption: title, author, imageUrl, sourceUrl };
 }
 
-async function htmlContext(url: string): Promise<SourceContext> {
-  const html = await fetchHtml(url);
+async function htmlContext(url: string, headers: Record<string, string> = sourceFetchHeaders): Promise<SourceContext> {
+  const html = await fetchHtml(url, headers);
   if (!html) {
     return { title: '', caption: '', author: null, imageUrl: null, sourceUrl: url };
   }
@@ -197,6 +207,53 @@ async function htmlContext(url: string): Promise<SourceContext> {
   const author = nullableTrimmedString(metaContent(html, 'author') ?? metaContent(html, 'article:author'));
   const caption = `${title}\n${description}`.trim();
   return { title, caption, author, imageUrl, sourceUrl: url };
+}
+
+/** Pull the shortcode out of a /p/, /reel/, /reels/ or /tv/ Instagram URL. */
+function instagramShortcode(url: string): string | null {
+  const match = url.match(/instagram\.com\/(?:[^/]+\/)?(?:p|reel|reels|tv)\/([A-Za-z0-9_-]+)/i);
+  return match ? match[1] : null;
+}
+
+function stripHtml(value: string): string {
+  return value
+    .replace(/<br\s*\/?>/gi, '\n')
+    .replace(/<[^>]+>/g, ' ')
+    .replace(/[ \t]+/g, ' ')
+    .replace(/\n\s+/g, '\n')
+    .trim();
+}
+
+/** The /embed/captioned/ page renders the caption inside <div class="Caption">. */
+function instagramCaptionFromEmbed(html: string): string {
+  const block = html.match(/<div class="Caption"[^>]*>([\s\S]*?)<\/div>\s*<\/div>/i)?.[1] ?? html.match(/<div class="Caption"[^>]*>([\s\S]*?)<\/div>/i)?.[1];
+  if (!block) {
+    return '';
+  }
+  const withoutUsername = block.replace(/<a[^>]*class="[^"]*CaptionUsername[^"]*"[\s\S]*?<\/a>/i, '');
+  const withoutComments = withoutUsername.replace(/<div class="CaptionComments[\s\S]*$/i, '');
+  return decodeHtmlEntities(stripHtml(withoutComments)).slice(0, 4000);
+}
+
+async function instagramContext(url: string): Promise<SourceContext> {
+  const shortcode = instagramShortcode(url);
+  if (shortcode) {
+    const html = await fetchHtml(`https://www.instagram.com/p/${shortcode}/embed/captioned/`, browserFetchHeaders);
+    if (html) {
+      const embedCaption = instagramCaptionFromEmbed(html);
+      const ogDescription = decodeHtmlEntities(trimmedString(metaContent(html, 'og:description') ?? ''));
+      const caption = (embedCaption.length >= ogDescription.length ? embedCaption : ogDescription).trim();
+      const imageUrl =
+        httpImageUrl(metaContent(html, 'og:image')) ?? httpImageUrl(html.match(/class="EmbeddedMediaImage"[^>]+src="([^"]+)"/i)?.[1]);
+      const author = nullableTrimmedString(html.match(/class="[^"]*CaptionUsername[^"]*"[^>]*>\s*([^<]+?)\s*</i)?.[1]);
+      if (caption.length > 0 || imageUrl) {
+        return { title: caption.split('\n')[0]?.slice(0, 120) ?? '', caption, author, imageUrl, sourceUrl: url };
+      }
+    }
+  }
+
+  // Fallback: standard Open Graph scrape, but with a real browser UA.
+  return htmlContext(url, browserFetchHeaders);
 }
 
 async function gatherSourceContext(url: string, platform: RecipePlatform): Promise<SourceContext> {
@@ -211,8 +268,11 @@ async function gatherSourceContext(url: string, platform: RecipePlatform): Promi
     return context ?? (await htmlContext(url));
   }
 
-  // Instagram has no open oEmbed without a Graph token, and generic web pages just
-  // get scraped for their Open Graph tags + title.
+  if (platform === 'instagram') {
+    return instagramContext(url);
+  }
+
+  // Generic web pages get scraped for their Open Graph tags + title.
   return htmlContext(url);
 }
 

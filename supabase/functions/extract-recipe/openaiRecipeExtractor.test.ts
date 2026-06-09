@@ -121,4 +121,52 @@ describe('extractRecipeWithOpenAI', () => {
 
     await expect(extractRecipeWithOpenAI('https://example.com/post', 'openai-key')).resolves.toEqual({ status: 'no_recipe' });
   });
+
+  it('extracts an Instagram recipe from the /embed/captioned/ page (caption + image + author)', async () => {
+    const embedHtml = `<!doctype html><html><head>
+      <meta property="og:image" content="https://scontent.cdninstagram.com/dish.jpg" />
+    </head><body>
+      <div class="Caption">
+        <a class="CaptionUsername" href="https://instagram.com/chef_marco">chef_marco</a>
+        High protein pasta. Ingredients: 200g pasta, 150g chicken breast, 50g parmesan.
+        <div class="CaptionComments">View all 12 comments</div>
+      </div>
+    </body></html>`;
+
+    const fetchMock = vi.fn(async (input: FetchInput) => {
+      const url = String(input);
+      if (url === 'https://www.instagram.com/p/ABC123/embed/captioned/') {
+        return { ok: true, text: async () => embedHtml } as Response;
+      }
+      if (url === 'https://api.openai.com/v1/responses') {
+        return openAiJson({
+          recipeFound: true,
+          title: 'High protein pasta',
+          summary: '',
+          servings: 2,
+          statedCaloriesPerServing: null,
+          ingredients: [{ name: 'Pasta', grams: 200, kcalPer100g: 350, proteinPer100g: 12, carbsPer100g: 70, fatPer100g: 1.5 }],
+          steps: [],
+        });
+      }
+      throw new Error(`unexpected_fetch_${url}`);
+    });
+    vi.stubGlobal('fetch', fetchMock);
+
+    const result = await extractRecipeWithOpenAI('https://www.instagram.com/reel/ABC123/', 'openai-key');
+    expect(result.status).toBe('ok');
+    if (result.status !== 'ok') {
+      throw new Error('unexpected_extraction_status');
+    }
+
+    expect(result.recipe).toMatchObject({
+      sourcePlatform: 'instagram',
+      sourceAuthor: 'chef_marco',
+      imageUrl: 'https://scontent.cdninstagram.com/dish.jpg',
+    });
+
+    const openAiCall = fetchMock.mock.calls.find(([input]) => String(input) === 'https://api.openai.com/v1/responses');
+    const body = JSON.parse(String(openAiCall?.[1]?.body));
+    expect(body.input[1].content[0].text).toContain('200g pasta');
+  });
 });
