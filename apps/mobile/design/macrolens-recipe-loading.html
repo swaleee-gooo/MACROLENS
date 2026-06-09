@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>MacroLens — Recipe import loading</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --ink:#16181C; --ink2:#3A3E46; --muted:#6B7280; --muted2:#9AA0AA;
+    --accent:#149E6E; --accentInk:#0C6B4C; --accentWash:#E6F4EE; --accentLine:#CDE8DC;
+    --protein:#C75A45; --carbs:#D6A24A; --fat:#5C7CC2;
+    --bg:#F6F7F7; --surface:#FFFFFF; --line:#E8EAED; --line2:#DEE1E6;
+    --display:'Space Grotesk',sans-serif; --mono:'IBM Plex Mono',monospace;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:#0c0d0f;min-height:100vh;display:flex;align-items:center;justify-content:center;font-family:var(--display);padding:28px;gap:40px;flex-wrap:wrap}
+  .phone{width:340px;height:724px;background:var(--bg);border-radius:46px;border:10px solid #0a0a0a;box-shadow:0 30px 80px rgba(0,0,0,.55);overflow:hidden;position:relative;display:flex;flex-direction:column}
+  .head{display:flex;align-items:center;justify-content:space-between;padding:20px 22px 6px}
+  .back{width:38px;height:38px;border-radius:999px;border:1px solid var(--line);background:var(--surface);display:flex;align-items:center;justify-content:center;color:var(--ink);font-size:17px}
+  .eyebrow{font-family:var(--mono);font-size:10px;font-weight:600;letter-spacing:1.4px;text-transform:uppercase;color:var(--muted)}
+
+  .stage{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px 26px}
+  .brandrow{display:flex;flex-direction:column;align-items:center;gap:7px}
+  .chip{background:var(--accentWash);border:1px solid var(--accentLine);border-radius:7px;padding:3px 9px;font-family:var(--mono);font-size:11px;font-weight:600;letter-spacing:.4px;color:var(--accentInk)}
+
+  /* Hero */
+  .hero{position:relative;width:176px;height:176px;display:flex;align-items:center;justify-content:center;margin-top:26px}
+  .glow{position:absolute;width:158px;height:158px;border-radius:999px;background:var(--accentWash);animation:glow 2.2s ease-in-out infinite}
+  @keyframes glow{0%,100%{transform:scale(.92);opacity:.22}50%{transform:scale(1.12);opacity:.5}}
+
+  .ring{position:absolute;width:176px;height:176px;animation:spin 7s linear infinite}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .ring svg{position:absolute;inset:0}
+  .mdot{position:absolute;width:10px;height:10px;border-radius:999px}
+  .mdot.p{background:var(--protein);left:83px;top:1px;animation:pop 1.6s ease-in-out infinite}
+  .mdot.c{background:var(--carbs);left:146px;top:114px;animation:pop 1.6s ease-in-out .2s infinite}
+  .mdot.f{background:var(--fat);left:20px;top:114px;animation:pop 1.6s ease-in-out .4s infinite}
+  @keyframes pop{0%,72%,100%{transform:scale(1)}40%{transform:scale(1.7)}}
+
+  .target{width:132px;height:132px;border-radius:18px;background:var(--ink);overflow:hidden;position:relative;display:flex;align-items:center;justify-content:center}
+  .target .grid{position:absolute;inset:0}
+  .target .ml{font-family:var(--display);font-weight:700;font-size:52px;letter-spacing:-2px;color:rgba(255,255,255,.16)}
+  .beam{position:absolute;left:0;right:0;height:58px;animation:sweep 1.7s ease-in-out infinite;
+        background:linear-gradient(to bottom,rgba(20,158,110,0) 0%,rgba(20,158,110,.5) 50%,rgba(20,158,110,0) 100%)}
+  .beam::after{content:"";position:absolute;left:0;right:0;top:28px;height:2px;background:var(--accent);box-shadow:0 0 10px rgba(20,158,110,.9)}
+  @keyframes sweep{0%{transform:translateY(-58px)}100%{transform:translateY(132px)}}
+
+  .title{font-family:var(--display);font-weight:700;font-size:23px;letter-spacing:-.4px;color:var(--ink);margin-top:34px}
+  .caption{font-family:var(--mono);font-size:13px;color:var(--muted);margin-top:7px;text-align:center;min-height:18px;transition:opacity .26s}
+
+  .checklist{width:100%;background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:18px;margin-top:34px;display:flex;flex-direction:column;gap:14px}
+  .step{display:flex;align-items:center;gap:12px}
+  .stepmark{width:20px;height:20px;display:flex;align-items:center;justify-content:center}
+  .stepmark .pending{width:9px;height:9px;border-radius:999px;background:var(--line2)}
+  .stepmark .active{width:11px;height:11px;border-radius:999px;background:var(--accent);animation:beat .62s ease-in-out infinite alternate}
+  @keyframes beat{from{transform:scale(1);opacity:.35}to{transform:scale(1.55);opacity:.9}}
+  .stepmark .done{width:18px;height:18px;border-radius:999px;background:var(--accent);display:flex;align-items:center;justify-content:center;color:#fff;font-size:11px;font-weight:700}
+  .step .label{font-family:var(--mono);font-size:13px;font-weight:500;letter-spacing:.1px;color:var(--ink)}
+  .step.pending .label{color:var(--muted2)}
+  .step.active .label{font-weight:700}
+</style>
+</head>
+<body>
+  <div class="phone">
+    <div class="head">
+      <div class="back">‹</div>
+      <div class="eyebrow">MacroLens</div>
+      <div style="width:38px"></div>
+    </div>
+
+    <div class="stage">
+      <div class="brandrow">
+        <div class="eyebrow">MacroLens</div>
+        <div class="chip">TikTok</div>
+      </div>
+
+      <div class="hero">
+        <div class="glow"></div>
+        <div class="ring">
+          <svg width="176" height="176">
+            <circle cx="88" cy="88" r="81" fill="none" stroke="#149E6E" stroke-opacity=".45" stroke-width="2" stroke-dasharray="2 11" stroke-linecap="round"/>
+          </svg>
+          <div class="mdot p"></div>
+          <div class="mdot c"></div>
+          <div class="mdot f"></div>
+        </div>
+        <div class="target">
+          <svg class="grid" width="132" height="132">
+            <line x1="44" y1="0" x2="44" y2="132" stroke="#fff" stroke-opacity=".08"/>
+            <line x1="88" y1="0" x2="88" y2="132" stroke="#fff" stroke-opacity=".08"/>
+            <line x1="0" y1="44" x2="132" y2="44" stroke="#fff" stroke-opacity=".08"/>
+            <line x1="0" y1="88" x2="132" y2="88" stroke="#fff" stroke-opacity=".08"/>
+          </svg>
+          <div class="ml">ML</div>
+          <div class="beam"></div>
+        </div>
+      </div>
+
+      <div class="title">Reading the recipe</div>
+      <div class="caption" id="caption">Counting the calories so you don’t have to 🧮</div>
+
+      <div class="checklist" id="checklist"></div>
+    </div>
+  </div>
+
+<script>
+  const steps = ['Reading the post','Spotting ingredients','Estimating portions','Crunching the macros'];
+  const captions = [
+    'Counting the calories so you don’t have to 🧮',
+    'Weighing every gram… virtually 🪶',
+    'Stealing the chef’s secrets 🤫',
+    'Turning a video into a real meal 🍱'
+  ];
+  const list = document.getElementById('checklist');
+  function render(active){
+    list.innerHTML = steps.map((label,i)=>{
+      const state = i<active?'done':i===active?'active':'pending';
+      const mark = state==='done'?'<div class="done">✓</div>':state==='active'?'<div class="active"></div>':'<div class="pending"></div>';
+      return `<div class="step ${state}"><div class="stepmark">${mark}</div><div class="label">${label}</div></div>`;
+    }).join('');
+  }
+  let step=0; render(step);
+  setInterval(()=>{ if(step<steps.length-1){ step++; render(step);} }, 1150);
+
+  const cap=document.getElementById('caption'); let ci=0;
+  setInterval(()=>{ cap.style.opacity=0; setTimeout(()=>{ ci=(ci+1)%captions.length; cap.textContent=captions[ci]; cap.style.opacity=1; },260); }, 2300);
+</script>
+</body>
+</html>

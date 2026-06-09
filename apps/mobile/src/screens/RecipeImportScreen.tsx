@@ -5,6 +5,7 @@ import { useLang } from '../i18n/LanguageContext';
 import { Card, Eyebrow, PrimaryButton } from '../ui/primitives';
 import { colors, fonts, radius, spacing, typography } from '../ui/theme';
 import { normalizeRecipeUrl, recipePlatformLabel } from '../recipeImport/recipeUrl';
+import { RecipeImportLoading } from './RecipeImportLoading';
 
 type Props = {
   initialUrl?: string;
@@ -75,6 +76,10 @@ export function RecipeImportScreen({ initialUrl, importing, errorMessage, onBack
     if (normalized) {
       onSubmit(normalized.url);
     }
+  }
+
+  if (importing) {
+    return <RecipeImportLoading platformLabel={normalized ? recipePlatformLabel(normalized.platform) : null} />;
   }
 
   return (
