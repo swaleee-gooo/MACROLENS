@@ -44,14 +44,11 @@ Reste à ajouter (quand les comptes seront créés, étape 3) :
 | `EXPO_PUBLIC_POSTHOG_API_KEY` | preview + production | (clé PostHog) |
 | `EXPO_PUBLIC_PAYWALL_ENABLED` | **production, APRÈS la QA sandbox (étape 7)** | `true` |
 
-## 5. Déploiement backend (~10 min) — code prêt, je n'ai pas déployé en ton absence
+## 5. Déploiement backend — ✅ fonctions déployées le 2026-06-10, 1 étape restante
 
-```powershell
-supabase db push                 # applique la migration scan_usage
-supabase functions deploy analyze-meal extract-recipe scan-nutrition-label lookup-packaged-food delete-account
-```
-
-Vérif rapide après déploiement : un scan depuis l'app fonctionne toujours (le rate limiting est fail-open : même si la table manquait, rien ne casse).
+- [x] **5 Edge Functions déployées** (analyze-meal, extract-recipe, scan-nutrition-label, lookup-packaged-food, delete-account) ✓ — smoke test : l'endpoint répond 401 `Invalid JWT` sans token valide, la protection gateway est active.
+- [ ] **Migration `scan_usage` (30 s)** : `supabase db push` est bloqué par un décalage d'historique de migrations (les anciennes migrations ont été appliquées sous d'autres versions). Le plus simple : ouvre le [SQL editor](https://supabase.com/dashboard/project/wyrfncoiubvdnrvdpads/sql/new), colle le contenu de `supabase/migrations/20260610090000_create_scan_usage.sql`, Run. En attendant, le rate limiting est **fail-open** : les scans marchent normalement, les quotas s'activeront tout seuls dès que la table existera.
+- [ ] (Plus tard, hors lancement) Réconcilier l'historique de migrations CLI (`supabase migration repair`) pour réactiver `db push`.
 
 ## 6. Builds (~10 min de commandes + attente EAS)
 
