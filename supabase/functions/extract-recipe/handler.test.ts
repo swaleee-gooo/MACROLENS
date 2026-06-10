@@ -4,7 +4,7 @@ import type { RecipeExtractionResult } from './openaiRecipeExtractor.ts';
 
 function fakeJwt(sub: string): string {
   const header = Buffer.from(JSON.stringify({ alg: 'none', typ: 'JWT' })).toString('base64url');
-  const payload = Buffer.from(JSON.stringify({ sub })).toString('base64url');
+  const payload = Buffer.from(JSON.stringify({ sub, exp: Math.floor(Date.now() / 1000) + 3600 })).toString('base64url');
   return `${header}.${payload}.signature`;
 }
 
@@ -44,6 +44,27 @@ describe('handleExtractRecipeRequest', () => {
       extractRecipe: async () => okResult(),
     });
     expect(response.status).toBe(401);
+  });
+
+  it('returns 429 with retryAfterSeconds when the hourly quota is exceeded', async () => {
+    const response = await handleExtractRecipeRequest(request({ url: 'https://vm.tiktok.com/ZGabc/' }), {
+      env: { get: () => 'openai-key' },
+      checkRateLimit: async () => ({ allowed: false as const, retryAfterSeconds: 900 }),
+      extractRecipe: async () => okResult(),
+    });
+
+    expect(response.status).toBe(429);
+    await expect(response.json()).resolves.toEqual({ error: 'rate_limited', retryAfterSeconds: 900 });
+  });
+
+  it('extracts normally when the rate limiter allows the request', async () => {
+    const response = await handleExtractRecipeRequest(request({ url: 'https://vm.tiktok.com/ZGabc/' }), {
+      env: { get: () => 'openai-key' },
+      checkRateLimit: async () => ({ allowed: true as const }),
+      extractRecipe: async () => okResult(),
+    });
+
+    expect(response.status).toBe(200);
   });
 
   it('returns 400 when the url is missing', async () => {

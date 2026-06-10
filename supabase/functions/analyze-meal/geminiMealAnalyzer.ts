@@ -1,3 +1,4 @@
+import { AI_FETCH_TIMEOUT_MS, fetchWithTimeoutAndRetry } from '../_shared/resilientFetch.ts';
 import { mealAnalysisJsonSchema } from './mealSchema.ts';
 import type { RawMealAnalysis } from './openaiMealAnalyzer.ts';
 
@@ -37,7 +38,7 @@ function extractGeminiText(data: GeminiResponse): string {
 }
 
 async function imageInlineData(imageUrl: string) {
-  const response = await fetch(imageUrl);
+  const response = await fetchWithTimeoutAndRetry(imageUrl, {}, { timeoutMs: AI_FETCH_TIMEOUT_MS });
   if (!response.ok) {
     throw new Error(`gemini_image_fetch_failed_${response.status}`);
   }
@@ -53,7 +54,7 @@ async function imageInlineData(imageUrl: string) {
 
 export async function analyzeMealWithGemini(imageUrl: string, geminiKey: string): Promise<RawMealAnalysis> {
   const inlineData = await imageInlineData(imageUrl);
-  const response = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent', {
+  const response = await fetchWithTimeoutAndRetry('https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent', {
     method: 'POST',
     headers: {
       'x-goog-api-key': geminiKey,
@@ -81,7 +82,7 @@ export async function analyzeMealWithGemini(imageUrl: string, geminiKey: string)
         },
       },
     }),
-  });
+  }, { timeoutMs: AI_FETCH_TIMEOUT_MS });
 
   if (!response.ok) {
     throw new Error(`gemini_request_failed_${response.status}`);

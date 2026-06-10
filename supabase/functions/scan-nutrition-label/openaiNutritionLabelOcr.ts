@@ -1,3 +1,4 @@
+import { AI_FETCH_TIMEOUT_MS, fetchWithTimeoutAndRetry } from '../_shared/resilientFetch.ts';
 import { nutritionLabelOcrJsonSchema } from './nutritionLabelSchema.ts';
 
 export type ConfidenceTier = 'high' | 'medium' | 'low';
@@ -46,7 +47,7 @@ function extractOutputText(data: unknown): string {
 }
 
 export async function scanNutritionLabelWithOpenAI(imageUrl: string, openAiKey: string): Promise<RawNutritionLabelOcr> {
-  const response = await fetch('https://api.openai.com/v1/responses', {
+  const response = await fetchWithTimeoutAndRetry('https://api.openai.com/v1/responses', {
     method: 'POST',
     headers: {
       authorization: `Bearer ${openAiKey}`,
@@ -80,7 +81,7 @@ export async function scanNutritionLabelWithOpenAI(imageUrl: string, openAiKey: 
         },
       },
     }),
-  });
+  }, { timeoutMs: AI_FETCH_TIMEOUT_MS });
 
   if (!response.ok) {
     throw new Error(`openai_request_failed_${response.status}`);

@@ -1,10 +1,10 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { handleAnalyzeMealRequest } from './handler.ts';
 import type { RawMealAnalysis } from './openaiMealAnalyzer.ts';
 
 function fakeJwt(sub: string): string {
   const header = Buffer.from(JSON.stringify({ alg: 'none', typ: 'JWT' })).toString('base64url');
-  const payload = Buffer.from(JSON.stringify({ sub })).toString('base64url');
+  const payload = Buffer.from(JSON.stringify({ sub, exp: Math.floor(Date.now() / 1000) + 3600 })).toString('base64url');
   return `${header}.${payload}.signature`;
 }
 
@@ -353,6 +353,66 @@ describe('handleAnalyzeMealRequest', () => {
       error: 'non_food_photo',
       message: 'Je ne vois pas de nourriture sur cette photo. Reprends une photo de ton repas.',
     });
+  });
+
+  it('returns 429 with retryAfterSeconds when the hourly quota is exceeded', async () => {
+    const analyzeMeal = vi.fn(async () => foodAnalysis());
+    const checkRateLimit = vi.fn(async () => ({ allowed: false as const, retryAfterSeconds: 1504 }));
+
+    const response = await handleAnalyzeMealRequest(
+      new Request('https://example.test/analyze-meal', {
+        method: 'POST',
+        headers: { authorization: `Bearer ${fakeJwt('jwt-user')}` },
+        body: JSON.stringify({ imageUrl: 'https://cdn.example/meal.jpg' }),
+      }),
+      {
+        env: { get: () => 'openai-key' },
+        checkRateLimit,
+        analyzeMeal,
+      },
+    );
+
+    expect(response.status).toBe(429);
+    await expect(response.json()).resolves.toEqual({ error: 'rate_limited', retryAfterSeconds: 1504 });
+    expect(checkRateLimit).toHaveBeenCalledWith('jwt-user');
+    expect(analyzeMeal).not.toHaveBeenCalled();
+  });
+
+  it('analyzes normally when the rate limiter allows the request', async () => {
+    const response = await handleAnalyzeMealRequest(
+      new Request('https://example.test/analyze-meal', {
+        method: 'POST',
+        headers: { authorization: `Bearer ${fakeJwt('jwt-user')}` },
+        body: JSON.stringify({ imageUrl: 'https://cdn.example/meal.jpg' }),
+      }),
+      {
+        env: { get: () => 'openai-key' },
+        checkRateLimit: async () => ({ allowed: true as const }),
+        analyzeMeal: async () => foodAnalysis(),
+      },
+    );
+
+    expect(response.status).toBe(200);
+  });
+
+  it('rejects an expired JWT with 401', async () => {
+    const header = Buffer.from(JSON.stringify({ alg: 'none', typ: 'JWT' })).toString('base64url');
+    const payload = Buffer.from(JSON.stringify({ sub: 'jwt-user', exp: Math.floor(Date.now() / 1000) - 60 })).toString('base64url');
+
+    const response = await handleAnalyzeMealRequest(
+      new Request('https://example.test/analyze-meal', {
+        method: 'POST',
+        headers: { authorization: `Bearer ${header}.${payload}.signature` },
+        body: JSON.stringify({ imageUrl: 'https://cdn.example/meal.jpg' }),
+      }),
+      {
+        env: { get: () => 'openai-key' },
+        analyzeMeal: async () => foodAnalysis(),
+      },
+    );
+
+    expect(response.status).toBe(401);
+    await expect(response.json()).resolves.toEqual({ error: 'missing_or_invalid_authorization' });
   });
 
   it('rejects missing authorization before analysis', async () => {

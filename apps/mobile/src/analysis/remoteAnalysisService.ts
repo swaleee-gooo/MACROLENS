@@ -1,4 +1,4 @@
-import { NonFoodPhotoError } from './analysisErrors';
+import { NonFoodPhotoError, RateLimitedError } from './analysisErrors';
 import { analysisResultSchema, type AnalysisService } from './analysisSchema';
 import { createMacroLensSupabaseClient } from '../supabase/client';
 import { ensureAnonymousUserId } from '../supabase/session';
@@ -35,6 +35,7 @@ type SupabaseLike = {
 type EdgeErrorPayload = {
   error?: unknown;
   message?: unknown;
+  retryAfterSeconds?: unknown;
 };
 
 function getNonFoodMessage(payload: unknown): string | undefined | null {
@@ -48,6 +49,21 @@ function getNonFoodMessage(payload: unknown): string | undefined | null {
   }
 
   return typeof candidate.message === 'string' ? candidate.message : undefined;
+}
+
+function getRateLimitRetryAfterSeconds(payload: unknown): number | null | false {
+  if (typeof payload !== 'object' || payload === null) {
+    return false;
+  }
+
+  const candidate = payload as EdgeErrorPayload;
+  if (candidate.error !== 'rate_limited') {
+    return false;
+  }
+
+  return typeof candidate.retryAfterSeconds === 'number' && Number.isFinite(candidate.retryAfterSeconds)
+    ? candidate.retryAfterSeconds
+    : null;
 }
 
 async function getFunctionErrorPayload(error: unknown): Promise<unknown> {
@@ -117,11 +133,21 @@ export function createRemoteAnalysisService(config: RemoteConfig, client?: Supab
           throw new NonFoodPhotoError(nonFoodMessage);
         }
 
+        const rateLimitRetryAfter = getRateLimitRetryAfterSeconds(functionResult.data);
+        if (rateLimitRetryAfter !== false) {
+          throw new RateLimitedError(rateLimitRetryAfter);
+        }
+
         if (functionResult.error) {
           const errorPayload = await getFunctionErrorPayload(functionResult.error);
           const wrappedNonFoodMessage = getNonFoodMessage(errorPayload);
           if (wrappedNonFoodMessage !== null) {
             throw new NonFoodPhotoError(wrappedNonFoodMessage);
+          }
+
+          const wrappedRateLimitRetryAfter = getRateLimitRetryAfterSeconds(errorPayload);
+          if (wrappedRateLimitRetryAfter !== false) {
+            throw new RateLimitedError(wrappedRateLimitRetryAfter);
           }
 
           throw new Error('analysis_function_failed');

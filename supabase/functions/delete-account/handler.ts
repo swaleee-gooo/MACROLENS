@@ -1,3 +1,5 @@
+import { getUserIdFromAuthorizationHeader } from '../_shared/auth.ts';
+
 type EnvReader = {
   get(name: string): string | undefined;
 };
@@ -12,30 +14,6 @@ const corsHeaders = {
   'access-control-allow-headers': 'authorization, x-client-info, apikey, content-type',
   'access-control-allow-methods': 'POST, OPTIONS',
 };
-
-function decodeBase64Url(value: string): string {
-  const padded = value.padEnd(value.length + ((4 - (value.length % 4)) % 4), '=');
-  return atob(padded.replace(/-/g, '+').replace(/_/g, '/'));
-}
-
-function getUserIdFromAuthorizationHeader(authorization: string | null): string | null {
-  const match = authorization?.match(/^Bearer\s+(.+)$/i);
-  if (!match) {
-    return null;
-  }
-
-  const [, payload] = match[1].split('.');
-  if (!payload) {
-    return null;
-  }
-
-  try {
-    const parsed = JSON.parse(decodeBase64Url(payload)) as { sub?: unknown };
-    return typeof parsed.sub === 'string' && parsed.sub.length > 0 ? parsed.sub : null;
-  } catch {
-    return null;
-  }
-}
 
 function jsonResponse(body: unknown, status = 200): Response {
   return Response.json(body, {

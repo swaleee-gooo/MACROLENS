@@ -4,7 +4,7 @@ import { useLang } from '../i18n/LanguageContext';
 import { Card, Eyebrow, PrimaryButton } from '../ui/primitives';
 import { colors, radius, spacing, typography } from '../ui/theme';
 
-type ScanErrorVariant = 'non_food' | 'low_light' | 'label';
+type ScanErrorVariant = 'non_food' | 'low_light' | 'label' | 'rate_limited';
 
 type Props = {
   variant: ScanErrorVariant;
@@ -28,6 +28,9 @@ const STR = {
     nonFoodTitle: 'No meal detected',
     nonFoodDetail: 'We could not find usable food in this photo.',
     nonFoodTips: ['Frame the full plate', 'Avoid isolated objects', 'Add manually if needed'],
+    rateLimitTitle: 'Hourly scan limit reached',
+    rateLimitDetail: "You've hit the hourly scan limit. Try again in a few minutes.",
+    rateLimitTips: ['Limits reset every hour', 'Add the meal manually meanwhile', 'Your saved meals stay available'],
   },
   fr: {
     tipsLabel: 'Conseils',
@@ -43,6 +46,9 @@ const STR = {
     nonFoodTitle: 'Aucun repas détecté',
     nonFoodDetail: 'Nous n\'avons pas trouvé d\'aliments exploitables dans cette photo.',
     nonFoodTips: ['Cadrez toute l\'assiette', 'Évitez les objets isolés', 'Ajoutez manuellement si nécessaire'],
+    rateLimitTitle: 'Limite horaire atteinte',
+    rateLimitDetail: 'Vous avez atteint la limite horaire de scans. Réessayez dans quelques minutes.',
+    rateLimitTips: ['La limite se réinitialise chaque heure', 'Ajoutez le repas manuellement en attendant', 'Vos repas enregistrés restent disponibles'],
   },
 };
 
@@ -65,6 +71,15 @@ export function ScanErrorScreen({ variant, onRetake, onManual, onHome }: Props) 
         title: t.lowLightTitle,
         detail: t.lowLightDetail,
         tips: t.lowLightTips,
+        assetVariant: 'error' as const,
+      };
+    }
+
+    if (v === 'rate_limited') {
+      return {
+        title: t.rateLimitTitle,
+        detail: t.rateLimitDetail,
+        tips: t.rateLimitTips,
         assetVariant: 'error' as const,
       };
     }

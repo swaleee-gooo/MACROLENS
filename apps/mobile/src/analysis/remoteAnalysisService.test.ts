@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { NON_FOOD_PHOTO_MESSAGE, NonFoodPhotoError } from './analysisErrors';
+import { NON_FOOD_PHOTO_MESSAGE, NonFoodPhotoError, RATE_LIMITED_MESSAGE, RateLimitedError } from './analysisErrors';
 import { createRemoteAnalysisService } from './remoteAnalysisService';
 
 describe('createRemoteAnalysisService', () => {
@@ -164,6 +164,87 @@ describe('createRemoteAnalysisService', () => {
       name: 'NonFoodPhotoError',
       message: 'non_food_photo',
       userMessage: NON_FOOD_PHOTO_MESSAGE,
+    });
+  });
+
+  it('throws a typed rate-limited error with the dedicated message from a wrapped 429 payload', async () => {
+    vi.spyOn(Date, 'now').mockReturnValue(12345);
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue({
+      ok: true,
+      arrayBuffer: async () => new ArrayBuffer(4),
+    } as Response);
+
+    const getSession = vi.fn().mockResolvedValue({ data: { session: { user: { id: 'auth-user' } } }, error: null });
+    const signInAnonymously = vi.fn();
+    const upload = vi.fn().mockResolvedValue({ data: { path: 'auth-user/12345.jpg' }, error: null });
+    const createSignedUrl = vi.fn().mockResolvedValue({
+      data: { signedUrl: 'https://cdn.example/meal.jpg?token=signed' },
+      error: null,
+    });
+    const invoke = vi.fn().mockResolvedValue({
+      data: null,
+      error: {
+        context: {
+          json: async () => ({ error: 'rate_limited', retryAfterSeconds: 1504 }),
+        },
+      },
+    });
+
+    const service = createRemoteAnalysisService(
+      { supabaseUrl: 'https://example.supabase.co', supabaseAnonKey: 'sb_publishable_123' },
+      {
+        auth: { getSession, signInAnonymously },
+        storage: { from: () => ({ upload, createSignedUrl }) },
+        functions: { invoke },
+      },
+    );
+
+    const analysis = service.analyzeMealPhoto({ imageUri: 'file://meal.jpg', userId: 'local-user' });
+
+    await expect(analysis).rejects.toBeInstanceOf(RateLimitedError);
+    await expect(analysis).rejects.toMatchObject({
+      name: 'RateLimitedError',
+      message: 'rate_limited',
+      userMessage: RATE_LIMITED_MESSAGE,
+      retryAfterSeconds: 1504,
+    });
+  });
+
+  it('throws a typed rate-limited error without retryAfterSeconds when the payload omits it', async () => {
+    vi.spyOn(Date, 'now').mockReturnValue(12345);
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue({
+      ok: true,
+      arrayBuffer: async () => new ArrayBuffer(4),
+    } as Response);
+
+    const getSession = vi.fn().mockResolvedValue({ data: { session: { user: { id: 'auth-user' } } }, error: null });
+    const signInAnonymously = vi.fn();
+    const upload = vi.fn().mockResolvedValue({ data: { path: 'auth-user/12345.jpg' }, error: null });
+    const createSignedUrl = vi.fn().mockResolvedValue({
+      data: { signedUrl: 'https://cdn.example/meal.jpg?token=signed' },
+      error: null,
+    });
+    const invoke = vi.fn().mockResolvedValue({
+      data: { error: 'rate_limited' },
+      error: null,
+    });
+
+    const service = createRemoteAnalysisService(
+      { supabaseUrl: 'https://example.supabase.co', supabaseAnonKey: 'sb_publishable_123' },
+      {
+        auth: { getSession, signInAnonymously },
+        storage: { from: () => ({ upload, createSignedUrl }) },
+        functions: { invoke },
+      },
+    );
+
+    const analysis = service.analyzeMealPhoto({ imageUri: 'file://meal.jpg', userId: 'local-user' });
+
+    await expect(analysis).rejects.toBeInstanceOf(RateLimitedError);
+    await expect(analysis).rejects.toMatchObject({
+      name: 'RateLimitedError',
+      userMessage: RATE_LIMITED_MESSAGE,
+      retryAfterSeconds: null,
     });
   });
 

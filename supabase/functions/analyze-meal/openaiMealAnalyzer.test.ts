@@ -44,6 +44,7 @@ describe('analyzeMealWithOpenAI', () => {
 
     const body = JSON.parse(String(fetchMock.mock.calls[0][1]?.body));
 
+    expect(fetchMock.mock.calls[0][1]?.signal).toBeInstanceOf(AbortSignal);
     expect(body.temperature).toBe(0);
     expect(body.input[0].content[0].text).toContain('For repeat scans of the exact same image');
     expect(body.input[0].content[0].text).toContain('scanRoute');

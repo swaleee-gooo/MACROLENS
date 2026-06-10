@@ -1,11 +1,32 @@
 import { describe, expect, it } from 'vitest';
 import { handleLookupPackagedFood } from './handler.ts';
 
+function fakeJwt(sub: string): string {
+  const header = Buffer.from(JSON.stringify({ alg: 'none', typ: 'JWT' })).toString('base64url');
+  const payload = Buffer.from(JSON.stringify({ sub, exp: Math.floor(Date.now() / 1000) + 3600 })).toString('base64url');
+  return `${header}.${payload}.signature`;
+}
+
+const authHeaders = { authorization: `Bearer ${fakeJwt('user-1')}` };
+
 describe('handleLookupPackagedFood', () => {
+  it('requires an authenticated Supabase user', async () => {
+    const response = await handleLookupPackagedFood(
+      new Request('https://example.test/lookup-packaged-food', {
+        method: 'POST',
+        body: JSON.stringify({ barcode: '3017620422003' }),
+      }),
+    );
+
+    expect(response.status).toBe(401);
+    await expect(response.json()).resolves.toEqual({ error: 'missing_or_invalid_authorization' });
+  });
+
   it('requires a barcode', async () => {
     const response = await handleLookupPackagedFood(
       new Request('https://example.test/lookup-packaged-food', {
         method: 'POST',
+        headers: authHeaders,
         body: JSON.stringify({}),
       }),
     );
@@ -19,6 +40,7 @@ describe('handleLookupPackagedFood', () => {
     const response = await handleLookupPackagedFood(
       new Request('https://example.test/lookup-packaged-food', {
         method: 'POST',
+        headers: authHeaders,
         body: JSON.stringify({ barcode: '3017620422003' }),
       }),
       {
@@ -54,6 +76,7 @@ describe('handleLookupPackagedFood', () => {
     const response = await handleLookupPackagedFood(
       new Request('https://example.test/lookup-packaged-food', {
         method: 'POST',
+        headers: authHeaders,
         body: JSON.stringify({ barcode: '012345678905' }),
       }),
       {

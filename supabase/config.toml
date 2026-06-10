@@ -2,6 +2,20 @@ project_id = "macrolens"
 
 [functions.analyze-meal]
 entrypoint = "./functions/analyze-meal/index.ts"
+verify_jwt = true
 
 [functions.extract-recipe]
 entrypoint = "./functions/extract-recipe/index.ts"
+verify_jwt = true
+
+[functions.scan-nutrition-label]
+entrypoint = "./functions/scan-nutrition-label/index.ts"
+verify_jwt = true
+
+[functions.lookup-packaged-food]
+entrypoint = "./functions/lookup-packaged-food/index.ts"
+verify_jwt = true
+
+[functions.delete-account]
+entrypoint = "./functions/delete-account/index.ts"
+verify_jwt = true

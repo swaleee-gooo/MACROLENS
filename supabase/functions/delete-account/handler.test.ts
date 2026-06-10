@@ -3,7 +3,7 @@ import { handleDeleteAccountRequest } from './handler.ts';
 
 function fakeJwt(sub: string): string {
   const header = Buffer.from(JSON.stringify({ alg: 'none', typ: 'JWT' })).toString('base64url');
-  const payload = Buffer.from(JSON.stringify({ sub })).toString('base64url');
+  const payload = Buffer.from(JSON.stringify({ sub, exp: Math.floor(Date.now() / 1000) + 3600 })).toString('base64url');
   return `${header}.${payload}.signature`;
 }
 

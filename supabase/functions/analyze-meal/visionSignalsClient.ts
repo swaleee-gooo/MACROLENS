@@ -1,3 +1,5 @@
+import { VISION_FETCH_TIMEOUT_MS } from '../_shared/resilientFetch.ts';
+
 export type VisionSignals = {
   objectBoxes?: Array<{
     label: string;
@@ -24,6 +26,8 @@ export async function fetchVisionSignals(imageUrl: string, serviceUrl: string): 
     method: 'POST',
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify({ imageUrl }),
+    // Optional signal: degradation is already handled by the caller, so no retry here.
+    signal: AbortSignal.timeout(VISION_FETCH_TIMEOUT_MS),
   });
 
   if (!response.ok) {

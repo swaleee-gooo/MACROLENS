@@ -1,4 +1,5 @@
-import { getUserIdFromAuthorizationHeader } from './auth.ts';
+import { getUserIdFromAuthorizationHeader } from '../_shared/auth.ts';
+import type { RateLimiter } from '../_shared/rateLimit.ts';
 import { analyzeMealWithModelRouter, type RoutedMealAnalysis } from './modelRouter.ts';
 import { isNonFoodAnalysis } from './nutritionCalibration.ts';
 import { toMacroLensResponse } from './nutritionEstimator.ts';
@@ -12,6 +13,7 @@ type HandlerDeps = {
   env: {
     get(name: string): string | undefined;
   };
+  checkRateLimit?: RateLimiter;
   analyzeMeal?: (imageUrl: string, openAiKey: string) => Promise<RawMealAnalysis>;
   analyzeMealWithRouter?: (imageUrl: string, env: HandlerDeps['env']) => Promise<RoutedMealAnalysis>;
 };
@@ -91,6 +93,13 @@ export async function handleAnalyzeMealRequest(request: Request, deps: HandlerDe
   const userId = getUserIdFromAuthorizationHeader(request.headers.get('authorization'));
   if (!userId) {
     return jsonResponse({ error: 'missing_or_invalid_authorization' }, 401);
+  }
+
+  if (deps.checkRateLimit) {
+    const verdict = await deps.checkRateLimit(userId);
+    if (!verdict.allowed) {
+      return jsonResponse({ error: 'rate_limited', retryAfterSeconds: verdict.retryAfterSeconds }, 429);
+    }
   }
 
   let payload: AnalyzeRequest;

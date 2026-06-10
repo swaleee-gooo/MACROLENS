@@ -1,3 +1,5 @@
+import { getUserIdFromAuthorizationHeader } from '../_shared/auth.ts';
+
 type LookupRequest = {
   barcode?: string;
 };
@@ -36,6 +38,10 @@ function normalizeBarcodeCandidates(rawBarcode: string): string[] {
 }
 
 export async function handleLookupPackagedFood(request: Request, dependencies: Dependencies = {}): Promise<Response> {
+  if (!getUserIdFromAuthorizationHeader(request.headers.get('authorization'))) {
+    return Response.json({ error: 'missing_or_invalid_authorization' }, { status: 401 });
+  }
+
   const body = (await request.json()) as LookupRequest;
   if (!body.barcode) {
     return Response.json({ error: 'barcode_required' }, { status: 400 });

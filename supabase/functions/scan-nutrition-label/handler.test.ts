@@ -4,7 +4,7 @@ import type { RawNutritionLabelOcr } from './openaiNutritionLabelOcr.ts';
 
 function fakeJwt(sub: string): string {
   const header = Buffer.from(JSON.stringify({ alg: 'none', typ: 'JWT' })).toString('base64url');
-  const payload = Buffer.from(JSON.stringify({ sub })).toString('base64url');
+  const payload = Buffer.from(JSON.stringify({ sub, exp: Math.floor(Date.now() / 1000) + 3600 })).toString('base64url');
   return `${header}.${payload}.signature`;
 }
 
@@ -39,6 +39,41 @@ describe('handleScanNutritionLabelRequest', () => {
 
     expect(response.status).toBe(401);
     await expect(response.json()).resolves.toEqual({ error: 'missing_or_invalid_authorization' });
+  });
+
+  it('returns 429 with retryAfterSeconds when the hourly quota is exceeded', async () => {
+    const response = await handleScanNutritionLabelRequest(
+      new Request('https://example.test/scan-nutrition-label', {
+        method: 'POST',
+        headers: { authorization: `Bearer ${fakeJwt('user-1')}` },
+        body: JSON.stringify({ imageUrl: 'https://cdn.example/label.jpg' }),
+      }),
+      {
+        env: { get: () => 'openai-key' },
+        checkRateLimit: async () => ({ allowed: false as const, retryAfterSeconds: 120 }),
+        scanLabel: async () => readableLabel(),
+      },
+    );
+
+    expect(response.status).toBe(429);
+    await expect(response.json()).resolves.toEqual({ error: 'rate_limited', retryAfterSeconds: 120 });
+  });
+
+  it('scans normally when the rate limiter allows the request', async () => {
+    const response = await handleScanNutritionLabelRequest(
+      new Request('https://example.test/scan-nutrition-label', {
+        method: 'POST',
+        headers: { authorization: `Bearer ${fakeJwt('user-1')}` },
+        body: JSON.stringify({ imageUrl: 'https://cdn.example/label.jpg' }),
+      }),
+      {
+        env: { get: () => 'openai-key' },
+        checkRateLimit: async () => ({ allowed: true as const }),
+        scanLabel: async () => readableLabel(),
+      },
+    );
+
+    expect(response.status).toBe(200);
   });
 
   it('converts a readable nutrition label into packaged food macros per 100g', async () => {

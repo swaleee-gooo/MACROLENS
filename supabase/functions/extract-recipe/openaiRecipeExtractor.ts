@@ -1,3 +1,4 @@
+import { AI_FETCH_TIMEOUT_MS, fetchWithTimeoutAndRetry } from '../_shared/resilientFetch.ts';
 import { recipeExtractionJsonSchema } from './recipeSchema.ts';
 
 export type RecipePlatform = 'tiktok' | 'instagram' | 'youtube' | 'web';
@@ -414,7 +415,7 @@ async function requestOpenAi(context: SourceContext, url: string, openAiKey: str
     content.push({ type: 'input_image', image_url: context.imageUrl, detail: 'low' });
   }
 
-  const response = await fetch('https://api.openai.com/v1/responses', {
+  const response = await fetchWithTimeoutAndRetry('https://api.openai.com/v1/responses', {
     method: 'POST',
     headers: {
       authorization: `Bearer ${openAiKey}`,
@@ -436,7 +437,7 @@ async function requestOpenAi(context: SourceContext, url: string, openAiKey: str
         },
       },
     }),
-  });
+  }, { timeoutMs: AI_FETCH_TIMEOUT_MS });
 
   if (!response.ok) {
     throw new Error(`openai_request_failed_${response.status}`);

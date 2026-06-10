@@ -1,4 +1,5 @@
-import { getUserIdFromAuthorizationHeader } from './auth.ts';
+import { getUserIdFromAuthorizationHeader } from '../_shared/auth.ts';
+import type { RateLimiter } from '../_shared/rateLimit.ts';
 import {
   detectPlatform,
   extractRecipeWithOpenAI,
@@ -15,6 +16,7 @@ type HandlerDeps = {
   env: {
     get(name: string): string | undefined;
   };
+  checkRateLimit?: RateLimiter;
   extractRecipe?: (url: string, openAiKey: string) => Promise<RecipeExtractionResult>;
 };
 
@@ -180,6 +182,13 @@ export async function handleExtractRecipeRequest(request: Request, deps: Handler
   const userId = getUserIdFromAuthorizationHeader(request.headers.get('authorization'));
   if (!userId) {
     return jsonResponse({ error: 'missing_or_invalid_authorization' }, 401);
+  }
+
+  if (deps.checkRateLimit) {
+    const verdict = await deps.checkRateLimit(userId);
+    if (!verdict.allowed) {
+      return jsonResponse({ error: 'rate_limited', retryAfterSeconds: verdict.retryAfterSeconds }, 429);
+    }
   }
 
   let payload: ExtractRequest;

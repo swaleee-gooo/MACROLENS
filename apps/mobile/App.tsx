@@ -12,7 +12,7 @@ import * as ImagePicker from 'expo-image-picker';
 import { LanguageProvider } from './src/i18n/LanguageContext';
 import { createAnalyticsClient } from './src/analytics/analyticsClient';
 import { createAppAnalyticsSink } from './src/analytics/posthogAnalyticsSink';
-import { isNonFoodPhotoError } from './src/analysis/analysisErrors';
+import { isNonFoodPhotoError, isRateLimitedError } from './src/analysis/analysisErrors';
 import type { AnalysisResult } from './src/analysis/analysisSchema';
 import { createAnalysisService } from './src/analysis/analysisServiceFactory';
 import { createRemoteAnalysisService } from './src/analysis/remoteAnalysisService';
@@ -129,7 +129,7 @@ type ScreenState =
   | { name: 'shoppingList'; title: string; sourceItems: ShoppingListSource[]; recipe: ImportedRecipe; back: 'review-import' | 'review-library' | 'library' }
   | { name: 'calibration' }
   | { name: 'benchmarkDev' }
-  | { name: 'scanError'; variant: 'non_food' | 'low_light' | 'label' }
+  | { name: 'scanError'; variant: 'non_food' | 'low_light' | 'label' | 'rate_limited' }
   | { name: 'scanner'; initialMode: ScannerMode; productLookupError?: boolean; productLookupIssue?: 'not_found' | 'needs_label' }
   | { name: 'packagedProduct'; item: PackagedFoodItem; initialServingGrams: number; imageUri: string }
   | { name: 'weeklyReport' };
@@ -589,6 +589,12 @@ function MacroLensApp() {
       if (isNonFoodPhotoError(error)) {
         analytics.track('non_food_detected', { source: 'photo' });
         setScreen({ name: 'scanError', variant: 'non_food' });
+        return;
+      }
+
+      if (isRateLimitedError(error)) {
+        analytics.track('scan_failed', { source: 'photo', reason: 'rate_limited' });
+        setScreen({ name: 'scanError', variant: 'rate_limited' });
         return;
       }
 
