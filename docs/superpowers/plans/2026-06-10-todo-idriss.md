@@ -21,11 +21,17 @@
 - [x] **Clé publique vérifiée** : la clé `appl_JMatWPzGViDyFOqfAoliNlaktRO` présente dans l'env EAS production ET `.env.local` est bien la Public API Key de l'app App Store `appfc489ed8b3` (bundle `com.idrisscarta.macrolens`) ✓. L'app `app5027aabb45` est en réalité le **Test Store RevenueCat** (sandbox), pas du legacy — rien à nettoyer.
 - [ ] (Recommandé, ~10 min) **App Store Connect API Key** dans RevenueCat (différente de la In-App Purchase Key, déjà en place) : permet à RevenueCat de lire l'état/prix des produits côté store. ASC → Users and Access → Integrations → App Store Connect API → générer, puis uploader dans RevenueCat → Apps → MACROLENS (App Store). Une fois fait, redemander à l'assistant RevenueCat de vérifier prix + intro offer 7 j + territoires — ça valide l'étape 1 d'un coup.
 
-## 3. Comptes observabilité (~20 min)
+## 3. Comptes observabilité (~20 min) — REPORTÉ par décision du 2026-06-10
 
-- [ ] **Sentry** : créer org + projet React Native sur sentry.io (free tier) → récupérer le **DSN** et un **auth token**.
-- [ ] **PostHog** : créer un compte sur us.posthog.com → projet « MacroLens » → copier la **Project API Key**.
-- [ ] Dashboard PostHog (optionnel, 5 min) : Insight → Funnel : `app_opened → onboarding_started → onboarding_completed → paywall_viewed → paywall_cta_tapped → purchase_completed`.
+- [ ] (Reporté — note : Sentry et PostHog acceptent les adresses Gmail, le « email pro » n'est exigé que pour les offres entreprise. À réactiver quand tu veux : le code est prêt, il ne manque que les clés dans EAS.)
+
+## 3bis. Providers d'authentification Supabase (~25 min) — NOUVEAU (OAuth codé le 2026-06-10)
+
+- [ ] **Apple** : Dashboard Supabase → Authentication → Sign In / Providers → Apple → Enable. Dans « Authorized Client IDs », ajouter : `com.idrisscarta.macrolens` (+ les variantes `.dev`/`.preview` si tu testes ces builds). Aucune Secret Key nécessaire pour le flux natif iOS.
+- [ ] **Google** : [Google Cloud Console](https://console.cloud.google.com/apis/credentials) → Create OAuth client ID → type **Web application** → Authorized redirect URI : `https://wyrfncoiubvdnrvdpads.supabase.co/auth/v1/callback`. Puis Dashboard Supabase → Providers → Google → Enable → coller Client ID + Client Secret.
+- [ ] **Redirect URL** : Dashboard Supabase → Authentication → URL Configuration → Redirect URLs → ajouter `macrolens://auth-callback` (sans ça, le flux Google ne revient pas dans l'app).
+- [ ] **Désactiver l'email de confirmation** : Dashboard Supabase → Authentication → Sign In / Providers → Email → décocher « Confirm email ». (Le code gère les deux états, mais c'est ça qui supprime l'email Supabase à l'inscription.)
+- [ ] ⚠️ **Nouveau build natif requis** : `expo-apple-authentication`, `expo-web-browser`, `expo-crypto` sont des modules natifs — le bouton Apple reste invisible tant qu'un nouveau build EAS n'est pas fait (déjà nécessaire pour Sentry/PostHog/StoreReview de toute façon).
 
 ## 4. Variables d'environnement EAS (~5 min restantes)
 
