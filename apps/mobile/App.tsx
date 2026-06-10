@@ -33,6 +33,7 @@ import { cloneMealForRelog } from './src/domain/recurringMeals';
 import { shouldPromptForReview, type ReviewPromptContext } from './src/domain/reviewPrompt';
 import { calculateMealStreak } from './src/domain/streaks';
 import type { MacroTargets, Meal, UserProfile } from './src/domain/types';
+import type { UnitSystem } from './src/domain/units';
 import { buildWeeklyReport, buildWeeklyReportFromMeals } from './src/domain/weeklyReport';
 import { createEntitlementProvider } from './src/entitlements/entitlementProviderFactory';
 import type { CommercialEntitlementState, PlanPricing, PurchasePlan } from './src/entitlements/entitlementTypes';
@@ -53,6 +54,7 @@ import { createOnboardingRepository, type OnboardingState } from './src/storage/
 import { createProductRepository } from './src/storage/productRepository';
 import { createProfileRepository } from './src/storage/profileRepository';
 import { createReviewPromptRepository } from './src/storage/reviewPromptRepository';
+import { createUnitPreferenceRepository } from './src/storage/unitPreferenceRepository';
 import { parseSupabaseAuthCallback } from './src/auth/deepLinkSession';
 import { createMacroLensSupabaseClient, type MacroLensSession } from './src/supabase/client';
 import { colors, radius, spacing, typography } from './src/ui/theme';
@@ -269,6 +271,9 @@ function MacroLensApp() {
     updatedAt: null,
   });
   const [onboardingState, setOnboardingState] = useState<OnboardingState>({ isComplete: false });
+  // Display-only unit preference (S2). Canonical storage stays metric; the
+  // default is imperial for the US market and the toggle lives in Settings.
+  const [unitSystem, setUnitSystem] = useState<UnitSystem>('imperial');
   const [authSession, setAuthSession] = useState<MacroLensSession>(null);
   // Localized store pricing for the paywall. Loaded when the paywall screen
   // mounts (never at boot), null while loading or when offerings are
@@ -283,6 +288,7 @@ function MacroLensApp() {
   const onboardingRepository = useMemo(() => createOnboardingRepository(AsyncStorage), []);
   const productRepository = useMemo(() => createProductRepository(AsyncStorage), []);
   const reviewPromptRepository = useMemo(() => createReviewPromptRepository(AsyncStorage), []);
+  const unitPreferenceRepository = useMemo(() => createUnitPreferenceRepository(AsyncStorage), []);
   // Set by the scan/purchase error paths, reset on a successful save: the
   // review prompt must never appear right after a failure (S6).
   const lastActionWasErrorRef = useRef(false);
@@ -401,17 +407,19 @@ function MacroLensApp() {
         setAuthSession(storedSession);
       }
 
-      const [loadedMeals, loadedProfile, loadedEntitlement, loadedOnboarding] = await Promise.all([
+      const [loadedMeals, loadedProfile, loadedEntitlement, loadedOnboarding, loadedUnitSystem] = await Promise.all([
         repository.listMeals(),
         profileRepository.getProfile(),
         entitlementRepository.getEntitlement(),
         onboardingRepository.getState(),
+        unitPreferenceRepository.getUnitSystem(),
       ]);
 
         setMeals(loadedMeals);
         setProfile(loadedProfile);
         setEntitlement(loadedEntitlement);
         setOnboardingState(loadedOnboarding);
+        setUnitSystem(loadedUnitSystem);
 
         if (!loadedOnboarding.isComplete || !loadedProfile) {
           analytics.track('onboarding_started');
@@ -432,7 +440,7 @@ function MacroLensApp() {
         captureException(error);
         setScreen({ name: 'onboarding' });
       });
-  }, [authSessionRepository, entitlementRepository, onboardingRepository, profileRepository, repository, supabaseClient]);
+  }, [authSessionRepository, entitlementRepository, onboardingRepository, profileRepository, repository, supabaseClient, unitPreferenceRepository]);
 
   useEffect(() => {
     if (!supabaseClient) {
@@ -767,6 +775,13 @@ function MacroLensApp() {
     setScreen({ name: 'app', tab: 'profile' });
   }
 
+  // S2 — the state update propagates to every open screen without an app
+  // restart; persistence is fire-and-forget so the toggle feels instant.
+  function changeUnitSystem(nextSystem: UnitSystem) {
+    setUnitSystem(nextSystem);
+    unitPreferenceRepository.saveUnitSystem(nextSystem).catch(captureException);
+  }
+
   async function clearMeals() {
     await repository.clearMeals();
     setMeals([]);
@@ -1032,6 +1047,7 @@ function MacroLensApp() {
           meals={meals}
           targets={targets}
           profile={profile}
+          unitSystem={unitSystem}
           onBack={() => setScreen({ name: 'app', tab: 'home' })}
           onAddWeighIn={() => setScreen({ name: 'weighIn' })}
           onOpenWeeklyReport={openWeeklyReport}
@@ -1080,6 +1096,7 @@ function MacroLensApp() {
     return (
       <OnboardingScreen
         userId={activeUserId}
+        unitSystem={unitSystem}
         authEmail={authEmail}
         onEmailSignUp={signUpWithEmail}
         onOAuthSignIn={startOAuthSignIn}
@@ -1170,7 +1187,7 @@ function MacroLensApp() {
   }
 
   if (screen.name === 'editProfile') {
-    return <EditProfileScreen profile={profile} userId={activeUserId} onBack={() => setScreen({ name: 'app', tab: 'profile' })} onSave={saveProfile} />;
+    return <EditProfileScreen profile={profile} userId={activeUserId} unitSystem={unitSystem} onBack={() => setScreen({ name: 'app', tab: 'profile' })} onSave={saveProfile} />;
   }
 
   if (screen.name === 'settings') {
@@ -1180,7 +1197,9 @@ function MacroLensApp() {
         authEmail={authEmail}
         isAuthenticated={Boolean(authSession?.user?.id)}
         mealCount={meals.length}
+        unitSystem={unitSystem}
         onBack={() => setScreen({ name: 'app', tab: 'profile' })}
+        onChangeUnitSystem={changeUnitSystem}
         onOpenAuth={() => setScreen({ name: 'auth', mode: authSession ? 'login' : 'signup' })}
         onOpenProfile={() => setScreen({ name: 'editProfile' })}
         onOpenTargets={() => setScreen({ name: 'targets' })}
@@ -1351,7 +1370,7 @@ function MacroLensApp() {
   }
 
   if (screen.name === 'weighIn') {
-    return <WeighInScreen profile={profile} userId={activeUserId} onBack={() => setScreen({ name: 'app', tab: 'today' })} onSave={saveProfile} />;
+    return <WeighInScreen profile={profile} userId={activeUserId} unitSystem={unitSystem} onBack={() => setScreen({ name: 'app', tab: 'today' })} onSave={saveProfile} />;
   }
 
   if (screen.name === 'manualMeal') {

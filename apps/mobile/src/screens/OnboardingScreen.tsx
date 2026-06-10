@@ -7,6 +7,7 @@ import { StickyFooterButton } from '../components/StickyFooterButton';
 import { MacroPlanAsset, MealScanAsset, ScannerPermissionAsset } from '../components/BrandAssets';
 import { buildPersonalizedPromise, type TrackingFriction } from '../domain/onboardingConversion';
 import { buildUserProfileFromOnboarding, isOnboardingDraftValid, type OnboardingProfileDraft } from '../domain/onboardingProfile';
+import { formatWeeklyPace, ftInToCm, kgToLbs, lbsToKg, type UnitSystem } from '../domain/units';
 import type { UserGoal, UserProfile } from '../domain/types';
 import { Card, Eyebrow, Num, PrimaryButton, Seal } from '../ui/primitives';
 import { colors, fonts, radius, spacing, typography } from '../ui/theme';
@@ -63,18 +64,22 @@ const STR = {
     heightWeightSubtitle: 'We adjust calories and macros\nwith conservative estimates.',
     heightLabel: 'Height',
     heightPlaceholder: 'Ex: 175',
+    heightFtPlaceholder: 'Ex: 5',
+    heightInPlaceholder: 'Ex: 9',
     weightLabel: 'Current weight',
     weightPlaceholder: 'Ex: 70.0',
+    weightPlaceholderLbs: 'Ex: 154.0',
     // Target / Pace step
     targetPaceEyebrow: 'Step 5 — Target',
     targetPaceTitle: 'Your target and pace',
     targetPaceSubtitle: 'A realistic pace makes tracking more sustainable.',
     targetWeightLabel: 'Target weight',
     targetWeightPlaceholder: 'Ex: 62.0',
+    targetWeightPlaceholderLbs: 'Ex: 137.0',
     weeklyPace: 'Weekly pace',
-    paceUnit: (pace: number) => `${pace} kg / week`,
     safeRange: 'Safe range',
-    safeRangeDetail: '0.25 to 1 kg per week depending on your goal.',
+    safeRangeDetailMetric: '0.25 to 1 kg per week depending on your goal.',
+    safeRangeDetailImperial: '0.5 to 2 lb per week depending on your goal.',
     // Activity step
     activityEyebrow: 'Step 6 — Activity',
     activityTitle: 'What is your\nactivity level?',
@@ -218,18 +223,22 @@ const STR = {
     heightWeightSubtitle: 'Nous ajustons calories et macros\navec des estimations prudentes.',
     heightLabel: 'Taille',
     heightPlaceholder: 'Ex : 175',
+    heightFtPlaceholder: 'Ex : 5',
+    heightInPlaceholder: 'Ex : 9',
     weightLabel: 'Poids actuel',
     weightPlaceholder: 'Ex : 70,0',
+    weightPlaceholderLbs: 'Ex : 154,0',
     // Target / Pace step
     targetPaceEyebrow: 'Étape 5 — Cible',
     targetPaceTitle: 'Votre cible et votre rythme',
     targetPaceSubtitle: 'Un rythme réaliste rend le suivi plus durable.',
     targetWeightLabel: 'Poids cible',
     targetWeightPlaceholder: 'Ex : 62,0',
+    targetWeightPlaceholderLbs: 'Ex : 137,0',
     weeklyPace: 'Rythme hebdomadaire',
-    paceUnit: (pace: number) => `${pace} kg / semaine`,
     safeRange: 'Plage recommandée',
-    safeRangeDetail: '0,25 à 1 kg par semaine selon votre objectif.',
+    safeRangeDetailMetric: '0,25 à 1 kg par semaine selon votre objectif.',
+    safeRangeDetailImperial: '0,5 à 2 lb par semaine selon votre objectif.',
     // Activity step
     activityEyebrow: 'Étape 6 — Activité',
     activityTitle: "Quel est votre\nniveau d'activité ?",
@@ -326,6 +335,8 @@ const STR = {
 
 type Props = {
   userId: string;
+  /** Display unit system; the wizard state and saved profile stay metric. */
+  unitSystem: UnitSystem;
   authEmail?: string | null;
   onEmailSignUp?: (email: string, password: string) => Promise<void>;
   onOAuthSignIn?: (provider: 'apple' | 'google') => Promise<void>;
@@ -683,7 +694,7 @@ function Field({
   placeholder,
   unit,
 }: {
-  label: string;
+  label?: string;
   value: string;
   onChangeText: (value: string) => void;
   placeholder: string;
@@ -691,7 +702,7 @@ function Field({
 }) {
   return (
     <View style={{ gap: spacing.sm }}>
-      <Eyebrow>{label}</Eyebrow>
+      {label ? <Eyebrow>{label}</Eyebrow> : null}
       <View
         style={{
           alignItems: 'center',
@@ -857,14 +868,20 @@ function FoodMockup({ compact = false }: { compact?: boolean }) {
 
 // ─── Main screen ─────────────────────────────────────────────────────────────
 
-export function OnboardingScreen({ userId, authEmail, onEmailSignUp, onOAuthSignIn, onComplete, onStepCompleted, onOnboardingCompleted }: Props) {
+export function OnboardingScreen({ userId, unitSystem, authEmail, onEmailSignUp, onOAuthSignIn, onComplete, onStepCompleted, onOnboardingCompleted }: Props) {
   const { lang } = useLang();
   const t = STR[lang];
+  const isImperial = unitSystem === 'imperial';
   const [stepIndex, setStepIndex] = useState(0);
   const [draft, setDraft] = useState<OnboardingProfileDraft>(emptyDraft('lose_fat'));
   const [friction, setFriction] = useState<TrackingFriction>('restaurant_meals');
   const [age, setAge] = useState('');
+  // Field text lives in the DISPLAY unit (cm/kg in metric, ft+in/lbs in
+  // imperial); the hydrated draft below converts back to metric so the wizard
+  // state and onboardingProfile.ts only ever see canonical metric values.
   const [height, setHeight] = useState('');
+  const [heightFt, setHeightFt] = useState('');
+  const [heightIn, setHeightIn] = useState('');
   const [weight, setWeight] = useState('');
   const [targetWeight, setTargetWeight] = useState('');
   const [diet, setDiet] = useState('omnivore');
@@ -880,11 +897,12 @@ export function OnboardingScreen({ userId, authEmail, onEmailSignUp, onOAuthSign
     () => ({
       ...draft,
       age: parseNumber(age),
-      heightCm: parseNumber(height),
-      weightKg: parseNumber(weight),
-      targetWeightKg: targetWeight.length > 0 ? parseNumber(targetWeight) : null,
+      // Imperial entries convert to metric without rounding (storage direction).
+      heightCm: isImperial ? ftInToCm(parseNumber(heightFt), parseNumber(heightIn)) : parseNumber(height),
+      weightKg: isImperial ? lbsToKg(parseNumber(weight)) : parseNumber(weight),
+      targetWeightKg: targetWeight.length > 0 ? (isImperial ? lbsToKg(parseNumber(targetWeight)) : parseNumber(targetWeight)) : null,
     }),
-    [age, draft, height, targetWeight, weight],
+    [age, draft, height, heightFt, heightIn, isImperial, targetWeight, weight],
   );
   const preview = isOnboardingDraftValid(hydratedDraft) ? buildUserProfileFromOnboarding(hydratedDraft, userId) : null;
   const personalizedPromise = preview
@@ -916,11 +934,13 @@ export function OnboardingScreen({ userId, authEmail, onEmailSignUp, onOAuthSign
       return;
     }
 
-    const suggestion = suggestedTargetWeight(parseNumber(weight), draft.goal);
-    if (suggestion > 0) {
-      setTargetWeight(formatNumber(suggestion));
+    // The suggestion is computed in metric, then rendered in the display unit.
+    const currentWeightKg = isImperial ? lbsToKg(parseNumber(weight)) : parseNumber(weight);
+    const suggestionKg = suggestedTargetWeight(currentWeightKg, draft.goal);
+    if (suggestionKg > 0) {
+      setTargetWeight(formatNumber(isImperial ? kgToLbs(suggestionKg) : suggestionKg));
     }
-  }, [draft.goal, step, targetWeight.length, weight]);
+  }, [draft.goal, isImperial, step, targetWeight.length, weight]);
 
   const canContinue =
     step === 'body'
@@ -1166,8 +1186,28 @@ export function OnboardingScreen({ userId, authEmail, onEmailSignUp, onOAuthSign
         {step === 'heightWeight' ? (
           <View style={{ gap: spacing.xl, padding: spacing.xl }}>
             <SectionTitle eyebrow={t.heightWeightEyebrow} title={t.heightWeightTitle} subtitle={t.heightWeightSubtitle} />
-            <Field label={t.heightLabel} placeholder={t.heightPlaceholder} unit="cm" value={height} onChangeText={setHeight} />
-            <Field label={t.weightLabel} placeholder={t.weightPlaceholder} unit="kg" value={weight} onChangeText={setWeight} />
+            {isImperial ? (
+              <View style={{ gap: spacing.sm }}>
+                <Eyebrow>{t.heightLabel}</Eyebrow>
+                <View style={{ flexDirection: 'row', gap: spacing.md }}>
+                  <View style={{ flex: 1 }}>
+                    <Field placeholder={t.heightFtPlaceholder} unit="ft" value={heightFt} onChangeText={setHeightFt} />
+                  </View>
+                  <View style={{ flex: 1 }}>
+                    <Field placeholder={t.heightInPlaceholder} unit="in" value={heightIn} onChangeText={setHeightIn} />
+                  </View>
+                </View>
+              </View>
+            ) : (
+              <Field label={t.heightLabel} placeholder={t.heightPlaceholder} unit="cm" value={height} onChangeText={setHeight} />
+            )}
+            <Field
+              label={t.weightLabel}
+              placeholder={isImperial ? t.weightPlaceholderLbs : t.weightPlaceholder}
+              unit={isImperial ? 'lbs' : 'kg'}
+              value={weight}
+              onChangeText={setWeight}
+            />
           </View>
         ) : null}
 
@@ -1175,7 +1215,13 @@ export function OnboardingScreen({ userId, authEmail, onEmailSignUp, onOAuthSign
         {step === 'targetPace' ? (
           <View style={{ gap: spacing.xl, padding: spacing.xl }}>
             <SectionTitle eyebrow={t.targetPaceEyebrow} title={t.targetPaceTitle} subtitle={t.targetPaceSubtitle} />
-            <Field label={t.targetWeightLabel} placeholder={t.targetWeightPlaceholder} unit="kg" value={targetWeight} onChangeText={setTargetWeight} />
+            <Field
+              label={t.targetWeightLabel}
+              placeholder={isImperial ? t.targetWeightPlaceholderLbs : t.targetWeightPlaceholder}
+              unit={isImperial ? 'lbs' : 'kg'}
+              value={targetWeight}
+              onChangeText={setTargetWeight}
+            />
             <View style={{ gap: spacing.sm }}>
               <Eyebrow>{t.weeklyPace}</Eyebrow>
               <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm }}>
@@ -1195,7 +1241,7 @@ export function OnboardingScreen({ userId, authEmail, onEmailSignUp, onOAuthSign
                       }}
                     >
                       <Num style={{ color: selected ? '#FFFFFF' : colors.ink2, fontSize: typography.small }}>
-                        {t.paceUnit(pace)}
+                        {formatWeeklyPace(pace, unitSystem)}
                       </Num>
                     </Pressable>
                   );
@@ -1203,7 +1249,7 @@ export function OnboardingScreen({ userId, authEmail, onEmailSignUp, onOAuthSign
               </View>
             </View>
             <Card style={{ gap: spacing.sm, padding: spacing.lg }}>
-              <ToggleRow checked label={t.safeRange} detail={t.safeRangeDetail} />
+              <ToggleRow checked label={t.safeRange} detail={isImperial ? t.safeRangeDetailImperial : t.safeRangeDetailMetric} />
             </Card>
           </View>
         ) : null}

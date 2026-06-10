@@ -2,12 +2,15 @@ import { useMemo, useState } from 'react';
 import { Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import { ArrowLeft, Save } from 'lucide-react-native';
 import { calculateMacroTargets } from '../domain/macroTargets';
+import { cmToFtIn, ftInToCm, kgToLbs, lbsToKg, type UnitSystem } from '../domain/units';
 import type { MacroTargets, UserGoal, UserProfile } from '../domain/types';
 import { colors, radius, spacing, typography } from '../ui/theme';
 
 type Props = {
   profile: UserProfile | null;
   userId: string;
+  /** Display unit system; the saved profile stays metric. */
+  unitSystem: UnitSystem;
   onBack: () => void;
   onSave: (profile: UserProfile) => void;
 };
@@ -70,17 +73,26 @@ function OptionButton<T extends string>({
   );
 }
 
-export function ProfileScreen({ profile, userId, onBack, onSave }: Props) {
+export function ProfileScreen({ profile, userId, unitSystem, onBack, onSave }: Props) {
+  const isImperial = unitSystem === 'imperial';
   const [goal, setGoal] = useState<UserGoal>(profile?.goal ?? 'lose_fat');
   const [ageRange, setAgeRange] = useState<UserProfile['ageRange']>(profile?.ageRange ?? '25-34');
   const [sex, setSex] = useState<UserProfile['sex']>(profile?.sex ?? 'prefer_not_to_say');
+  // Field text lives in the DISPLAY unit; parsing below converts back to
+  // metric without rounding so the saved profile stays canonical kg/cm.
+  const initialFtIn = profile?.heightCm ? cmToFtIn(profile.heightCm) : null;
   const [heightCm, setHeightCm] = useState(profile?.heightCm ? String(profile.heightCm) : '');
-  const [weightKg, setWeightKg] = useState(profile?.weightKg ? String(profile.weightKg) : '');
-  const [targetWeightKg, setTargetWeightKg] = useState(profile?.targetWeightKg ? String(profile.targetWeightKg) : '');
+  const [heightFt, setHeightFt] = useState(initialFtIn ? String(initialFtIn.ft) : '');
+  const [heightIn, setHeightIn] = useState(initialFtIn ? String(initialFtIn.in) : '');
+  const [weightKg, setWeightKg] = useState(profile?.weightKg ? String(isImperial ? kgToLbs(profile.weightKg) : profile.weightKg) : '');
+  const [targetWeightKg, setTargetWeightKg] = useState(
+    profile?.targetWeightKg ? String(isImperial ? kgToLbs(profile.targetWeightKg) : profile.targetWeightKg) : '',
+  );
   const [activityLevel, setActivityLevel] = useState<UserProfile['activityLevel']>(profile?.activityLevel ?? 'moderate');
 
-  const height = parsePositiveNumber(heightCm);
-  const weight = parsePositiveNumber(weightKg);
+  const height = isImperial ? ftInToCm(parsePositiveNumber(heightFt), parsePositiveNumber(heightIn)) : parsePositiveNumber(heightCm);
+  const weight = isImperial ? lbsToKg(parsePositiveNumber(weightKg)) : parsePositiveNumber(weightKg);
+  const parsedTargetWeight = targetWeightKg.trim() ? (isImperial ? lbsToKg(parsePositiveNumber(targetWeightKg)) : parsePositiveNumber(targetWeightKg)) : null;
   const canSave = height >= 120 && height <= 230 && weight >= 35 && weight <= 250;
   const preview = useMemo(() => {
     if (!canSave) {
@@ -95,11 +107,11 @@ export function ProfileScreen({ profile, userId, onBack, onSave }: Props) {
       heightCm: height,
       weightKg: weight,
       activityLevel,
-      targetWeightKg: targetWeightKg.trim() ? parsePositiveNumber(targetWeightKg) : null,
+      targetWeightKg: parsedTargetWeight,
       targets: profile?.targets ?? emptyTargets,
       updatedAt: profile?.updatedAt ?? new Date().toISOString(),
     });
-  }, [activityLevel, ageRange, canSave, goal, height, profile?.targets, profile?.updatedAt, sex, targetWeightKg, userId, weight]);
+  }, [activityLevel, ageRange, canSave, goal, height, parsedTargetWeight, profile?.targets, profile?.updatedAt, sex, userId, weight]);
 
   function save() {
     if (!canSave || !preview) {
@@ -114,7 +126,7 @@ export function ProfileScreen({ profile, userId, onBack, onSave }: Props) {
       heightCm: height,
       weightKg: weight,
       activityLevel,
-      targetWeightKg: targetWeightKg.trim() ? parsePositiveNumber(targetWeightKg) : null,
+      targetWeightKg: parsedTargetWeight,
       targets: preview,
       updatedAt: new Date().toISOString(),
     });
@@ -161,19 +173,40 @@ export function ProfileScreen({ profile, userId, onBack, onSave }: Props) {
         </View>
       </View>
 
-      <TextInput
-        value={heightCm}
-        onChangeText={setHeightCm}
-        keyboardType="numeric"
-        placeholder="Height in cm"
-        placeholderTextColor={colors.muted}
-        style={{ backgroundColor: colors.surface, borderColor: colors.line, borderRadius: radius.sm, borderWidth: 1, color: colors.ink, padding: spacing.md }}
-      />
+      {isImperial ? (
+        <View style={{ flexDirection: 'row', gap: spacing.sm }}>
+          <TextInput
+            value={heightFt}
+            onChangeText={setHeightFt}
+            keyboardType="numeric"
+            placeholder="Height (ft)"
+            placeholderTextColor={colors.muted}
+            style={{ backgroundColor: colors.surface, borderColor: colors.line, borderRadius: radius.sm, borderWidth: 1, color: colors.ink, flex: 1, padding: spacing.md }}
+          />
+          <TextInput
+            value={heightIn}
+            onChangeText={setHeightIn}
+            keyboardType="numeric"
+            placeholder="(in)"
+            placeholderTextColor={colors.muted}
+            style={{ backgroundColor: colors.surface, borderColor: colors.line, borderRadius: radius.sm, borderWidth: 1, color: colors.ink, flex: 1, padding: spacing.md }}
+          />
+        </View>
+      ) : (
+        <TextInput
+          value={heightCm}
+          onChangeText={setHeightCm}
+          keyboardType="numeric"
+          placeholder="Height in cm"
+          placeholderTextColor={colors.muted}
+          style={{ backgroundColor: colors.surface, borderColor: colors.line, borderRadius: radius.sm, borderWidth: 1, color: colors.ink, padding: spacing.md }}
+        />
+      )}
       <TextInput
         value={weightKg}
         onChangeText={setWeightKg}
         keyboardType="numeric"
-        placeholder="Weight in kg"
+        placeholder={isImperial ? 'Weight in lbs' : 'Weight in kg'}
         placeholderTextColor={colors.muted}
         style={{ backgroundColor: colors.surface, borderColor: colors.line, borderRadius: radius.sm, borderWidth: 1, color: colors.ink, padding: spacing.md }}
       />
@@ -181,7 +214,7 @@ export function ProfileScreen({ profile, userId, onBack, onSave }: Props) {
         value={targetWeightKg}
         onChangeText={setTargetWeightKg}
         keyboardType="numeric"
-        placeholder="Optional target weight"
+        placeholder={isImperial ? 'Optional target weight (lbs)' : 'Optional target weight'}
         placeholderTextColor={colors.muted}
         style={{ backgroundColor: colors.surface, borderColor: colors.line, borderRadius: radius.sm, borderWidth: 1, color: colors.ink, padding: spacing.md }}
       />

@@ -2,6 +2,7 @@ import { forwardRef } from 'react';
 import { Image, StyleSheet, Text, View } from 'react-native';
 import QRCode from 'react-native-qrcode-svg';
 import Svg, { Defs, LinearGradient, Rect, Stop } from 'react-native-svg';
+import { formatWeight } from '../domain/units';
 import { colors, fonts } from '../ui/theme';
 import { MACROLENS_APP_STORE_URL, macroBarSegments, type ShareCardData } from './shareCardContent';
 
@@ -120,7 +121,11 @@ export const ShareCard = forwardRef<View, Props>(function ShareCard({ data, widt
           <View style={{ gap: u(0.05), marginTop: u(0.07) }}>
             <View style={{ flexDirection: 'row', gap: u(0.03) }}>
               <ProgressStat value={`${data.progress?.streakDays ?? 0}`} label="day streak" u={u} />
-              <ProgressStat value={data.progress?.weightKg ? `${round(data.progress.weightKg)}kg` : '--'} label="weight" u={u} />
+              <ProgressStat
+                value={data.progress?.weightKg ? formatWeight(data.progress.weightKg, data.progress.unitSystem) : '--'}
+                label="weight"
+                u={u}
+              />
               <ProgressStat value={`${round(data.calories)}`} label="kcal today" u={u} />
             </View>
             <View style={{ gap: u(0.022) }}>

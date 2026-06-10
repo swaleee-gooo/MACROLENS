@@ -1,5 +1,6 @@
 import { Pressable, ScrollView, Text, View } from 'react-native';
-import { Bell, ChevronLeft, ChevronRight, CreditCard, Download, FileText, Heart, Scale, Target, User } from 'lucide-react-native';
+import { Bell, ChevronLeft, ChevronRight, CreditCard, Download, FileText, Heart, Ruler, Scale, Target, User } from 'lucide-react-native';
+import type { UnitSystem } from '../domain/units';
 import { useLang } from '../i18n/LanguageContext';
 import { Card, Eyebrow, Num } from '../ui/primitives';
 import { colors, radius, spacing, typography } from '../ui/theme';
@@ -13,6 +14,9 @@ const STR = {
     macroTargets: 'Macro targets',
     subscription: 'Subscription',
     preferences: 'Preferences',
+    units: 'Units',
+    unitsImperial: 'Imperial (lbs, ft)',
+    unitsMetric: 'Metric (kg, cm)',
     reminders: 'Meal reminders',
     appleHealth: 'Apple Health',
     calibration: 'Calibration',
@@ -30,6 +34,9 @@ const STR = {
     macroTargets: 'Cibles & macros',
     subscription: 'Abonnement',
     preferences: 'Préférences',
+    units: 'Unités',
+    unitsImperial: 'Impérial (lbs, ft)',
+    unitsMetric: 'Métrique (kg, cm)',
     reminders: 'Rappels',
     appleHealth: 'Santé',
     calibration: 'Calibration',
@@ -47,8 +54,10 @@ type Props = {
   isAuthenticated: boolean;
   mealCount: number;
   showSubscription: boolean;
+  unitSystem: UnitSystem;
   userName?: string;
   onBack: () => void;
+  onChangeUnitSystem: (system: UnitSystem) => void;
   onOpenAuth: () => void;
   onOpenProfile: () => void;
   onOpenTargets: () => void;
@@ -118,6 +127,53 @@ function SettingsRow({
   );
 }
 
+/** Units — Imperial (lbs, ft) / Metric (kg, cm). Display-only preference: stored data stays metric. */
+function UnitSystemRow({
+  label,
+  options,
+  value,
+  onChange,
+}: {
+  label: string;
+  options: { key: UnitSystem; label: string }[];
+  value: UnitSystem;
+  onChange: (system: UnitSystem) => void;
+}) {
+  return (
+    <View style={{ borderBottomColor: colors.line, borderBottomWidth: 1, gap: spacing.sm, paddingHorizontal: spacing.md, paddingVertical: 13 }}>
+      <View style={{ alignItems: 'center', flexDirection: 'row', gap: spacing.md }}>
+        <View style={{ alignItems: 'center', backgroundColor: colors.paper2, borderRadius: radius.sm, height: 34, justifyContent: 'center', width: 34 }}>
+          <Ruler color={colors.ink2} size={17} strokeWidth={2} />
+        </View>
+        <Text style={{ color: colors.ink, flex: 1, fontSize: typography.body, fontWeight: '500' }}>{label}</Text>
+      </View>
+      <View style={{ flexDirection: 'row', gap: 6 }}>
+        {options.map((option) => {
+          const selected = option.key === value;
+          return (
+            <Pressable
+              key={option.key}
+              onPress={() => onChange(option.key)}
+              style={({ pressed }) => ({
+                alignItems: 'center' as const,
+                backgroundColor: selected ? colors.ink : colors.paper2,
+                borderColor: selected ? colors.ink : colors.line2,
+                borderRadius: radius.pill,
+                borderWidth: 1,
+                flex: 1,
+                opacity: pressed ? 0.8 : 1,
+                paddingVertical: 9,
+              })}
+            >
+              <Text style={{ color: selected ? colors.surface : colors.ink2, fontSize: typography.small, fontWeight: '600' }}>{option.label}</Text>
+            </Pressable>
+          );
+        })}
+      </View>
+    </View>
+  );
+}
+
 function SectionCard({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <View style={{ gap: spacing.sm }}>
@@ -133,8 +189,10 @@ export function SettingsScreen({
   isAuthenticated,
   mealCount,
   showSubscription,
+  unitSystem,
   userName,
   onBack,
+  onChangeUnitSystem,
   onOpenAuth: _onOpenAuth,
   onOpenProfile,
   onOpenTargets,
@@ -197,6 +255,15 @@ export function SettingsScreen({
 
       {/* Preferences section */}
       <SectionCard title={t.preferences}>
+        <UnitSystemRow
+          label={t.units}
+          options={[
+            { key: 'imperial', label: t.unitsImperial },
+            { key: 'metric', label: t.unitsMetric },
+          ]}
+          value={unitSystem}
+          onChange={onChangeUnitSystem}
+        />
         <SettingsRow label={t.reminders} icon="reminders" onPress={onOpenReminders} />
         <SettingsRow label={t.appleHealth} icon="health" onPress={onOpenHealth} />
         <SettingsRow label={t.calibration} icon="calibration" onPress={onOpenCalibration} isLast />

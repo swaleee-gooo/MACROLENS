@@ -3,6 +3,7 @@ import { Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import { ChevronDown, ChevronLeft } from 'lucide-react-native';
 import { StickyFooterButton } from '../components/StickyFooterButton';
 import { calculateMacroTargets } from '../domain/macroTargets';
+import { cmToFtIn, ftInToCm, kgToLbs, lbsToKg, type UnitSystem } from '../domain/units';
 import type { MacroTargets, UserGoal, UserProfile } from '../domain/types';
 import { useLang } from '../i18n/LanguageContext';
 import { Eyebrow } from '../ui/primitives';
@@ -20,8 +21,12 @@ const STR = {
     female: 'Female',
     other: 'Other',
     currentWeightKg: 'Weight (kg)',
+    currentWeightLbs: 'Weight (lbs)',
     targetWeightKg: 'Target (kg)',
+    targetWeightLbs: 'Target (lbs)',
     heightCm: 'Height (cm)',
+    heightFt: 'Height (ft)',
+    heightIn: '(in)',
     age: 'Age',
     activityLevel: 'Activity level',
     intense: 'Intense',
@@ -39,8 +44,12 @@ const STR = {
     female: 'Femme',
     other: 'Autre',
     currentWeightKg: 'Poids (kg)',
+    currentWeightLbs: 'Poids (lbs)',
     targetWeightKg: 'Cible (kg)',
+    targetWeightLbs: 'Cible (lbs)',
     heightCm: 'Taille (cm)',
+    heightFt: 'Taille (ft)',
+    heightIn: '(in)',
     age: 'Âge',
     activityLevel: "Niveau d'activité",
     intense: 'Intensif',
@@ -52,6 +61,8 @@ const STR = {
 type Props = {
   profile: UserProfile | null;
   userId: string;
+  /** Display unit system; the saved profile stays metric. */
+  unitSystem: UnitSystem;
   onBack: () => void;
   onSave: (profile: UserProfile) => void;
 };
@@ -159,18 +170,26 @@ function SelectRow({ label, value, onPress }: { label: string; value: string; on
   );
 }
 
-export function EditProfileScreen({ profile, userId, onBack, onSave }: Props) {
+export function EditProfileScreen({ profile, userId, unitSystem, onBack, onSave }: Props) {
   const { lang } = useLang();
   const t = STR[lang];
+  const isImperial = unitSystem === 'imperial';
   const [goal, setGoal] = useState<UserGoal>(profile?.goal ?? 'maintain');
-  const [weight, setWeight] = useState(profile?.weightKg ? String(profile.weightKg) : '');
-  const [targetWeight, setTargetWeight] = useState(profile?.targetWeightKg ? String(profile.targetWeightKg) : '');
+  // Field text lives in the DISPLAY unit; parsing below converts back to
+  // metric without rounding so the saved profile stays canonical kg/cm.
+  const [weight, setWeight] = useState(profile?.weightKg ? String(isImperial ? kgToLbs(profile.weightKg) : profile.weightKg) : '');
+  const [targetWeight, setTargetWeight] = useState(
+    profile?.targetWeightKg ? String(isImperial ? kgToLbs(profile.targetWeightKg) : profile.targetWeightKg) : '',
+  );
+  const initialFtIn = profile?.heightCm ? cmToFtIn(profile.heightCm) : null;
   const [height, setHeight] = useState(profile?.heightCm ? String(profile.heightCm) : '');
+  const [heightFt, setHeightFt] = useState(initialFtIn ? String(initialFtIn.ft) : '');
+  const [heightIn, setHeightIn] = useState(initialFtIn ? String(initialFtIn.in) : '');
   const [sex, setSex] = useState<UserProfile['sex']>(profile?.sex ?? 'female');
   const [activityLevel, setActivityLevel] = useState<UserProfile['activityLevel']>(profile?.activityLevel ?? 'moderate');
-  const weightKg = parseNumber(weight);
-  const targetWeightKg = targetWeight.trim().length > 0 ? parseNumber(targetWeight) : null;
-  const heightCm = parseNumber(height);
+  const weightKg = isImperial ? lbsToKg(parseNumber(weight)) : parseNumber(weight);
+  const targetWeightKg = targetWeight.trim().length > 0 ? (isImperial ? lbsToKg(parseNumber(targetWeight)) : parseNumber(targetWeight)) : null;
+  const heightCm = isImperial ? ftInToCm(parseNumber(heightFt), parseNumber(heightIn)) : parseNumber(height);
   const canSave = weightKg >= 35 && weightKg <= 250 && heightCm >= 120 && heightCm <= 230 && (targetWeightKg === null || (targetWeightKg >= 35 && targetWeightKg <= 250));
   const nextTargets = useMemo(() => {
     if (!canSave) {
@@ -252,14 +271,31 @@ export function EditProfileScreen({ profile, userId, onBack, onSave }: Props) {
           <View style={{ flex: 1, minWidth: 120 }}>
             <FieldInput label={t.age} value={profile?.ageRange === '18-24' ? '22' : '28'} onChangeText={() => undefined} placeholder="28" />
           </View>
+          {isImperial ? (
+            <View style={{ flex: 1, flexDirection: 'row', gap: 11, minWidth: 120 }}>
+              <FieldInput label={t.heightFt} value={heightFt} onChangeText={setHeightFt} placeholder="5" />
+              <FieldInput label={t.heightIn} value={heightIn} onChangeText={setHeightIn} placeholder="10" />
+            </View>
+          ) : (
+            <View style={{ flex: 1, minWidth: 120 }}>
+              <FieldInput label={t.heightCm} value={height} onChangeText={setHeight} placeholder="178" />
+            </View>
+          )}
           <View style={{ flex: 1, minWidth: 120 }}>
-            <FieldInput label={t.heightCm} value={height} onChangeText={setHeight} placeholder="178" />
+            <FieldInput
+              label={isImperial ? t.currentWeightLbs : t.currentWeightKg}
+              value={weight}
+              onChangeText={setWeight}
+              placeholder={isImperial ? '160.0' : '72.5'}
+            />
           </View>
           <View style={{ flex: 1, minWidth: 120 }}>
-            <FieldInput label={t.currentWeightKg} value={weight} onChangeText={setWeight} placeholder="72.5" />
-          </View>
-          <View style={{ flex: 1, minWidth: 120 }}>
-            <FieldInput label={t.targetWeightKg} value={targetWeight} onChangeText={setTargetWeight} placeholder="62.0" />
+            <FieldInput
+              label={isImperial ? t.targetWeightLbs : t.targetWeightKg}
+              value={targetWeight}
+              onChangeText={setTargetWeight}
+              placeholder={isImperial ? '137.0' : '62.0'}
+            />
           </View>
         </View>
 

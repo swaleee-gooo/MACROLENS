@@ -1,5 +1,6 @@
 import { calculateMealStreak } from '../domain/streaks';
 import type { MacroTargets, Meal, UserProfile } from '../domain/types';
+import type { UnitSystem } from '../domain/units';
 import { recipeServingMacros } from '../recipeImport/recipeNutrition';
 import type { ImportedRecipe } from '../recipeImport/recipeSchema';
 
@@ -31,7 +32,10 @@ export type ShareCardData = {
   imageUrl: string | null;
   progress?: {
     streakDays: number;
+    /** Canonical metric weight; the card converts on display via formatWeight. */
     weightKg: number | null;
+    /** Display unit system for the weight stat. */
+    unitSystem: UnitSystem;
     calorieProgressPct: number;
     proteinProgressPct: number;
   };
@@ -102,11 +106,14 @@ export function cardDataFromProgress({
   meals,
   targets,
   profile,
+  unitSystem = 'imperial',
   isoDate = new Date().toISOString().slice(0, 10),
 }: {
   meals: Meal[];
   targets: MacroTargets | null;
   profile: UserProfile | null;
+  /** Display unit preference (US-market default: imperial). Stored weight stays kg. */
+  unitSystem?: UnitSystem;
   isoDate?: string;
 }): ShareCardData {
   const dayMeals = meals.filter((meal) => mealIsoDate(meal) === isoDate);
@@ -126,6 +133,7 @@ export function cardDataFromProgress({
     progress: {
       streakDays,
       weightKg: profile?.weightKg ?? null,
+      unitSystem,
       calorieProgressPct: progressPercent(calories, targets?.calorieTarget),
       proteinProgressPct: progressPercent(proteinG, targets?.proteinTargetG),
     },

@@ -3,6 +3,7 @@ import { Pressable, ScrollView, Text, View } from 'react-native';
 import { ArrowLeft, Check, Minus, Plus, TrendingDown } from 'lucide-react-native';
 import Svg, { Circle, Polyline } from 'react-native-svg';
 import { calculateMacroTargets } from '../domain/macroTargets';
+import { formatWeight, kgToLbs, lbsToKg, type UnitSystem } from '../domain/units';
 import { useLang } from '../i18n/LanguageContext';
 import type { MacroTargets, UserProfile } from '../domain/types';
 import { Card, Eyebrow, Num, PrimaryButton } from '../ui/primitives';
@@ -11,6 +12,8 @@ import { colors, radius, spacing, typography } from '../ui/theme';
 type Props = {
   profile: UserProfile | null;
   userId: string;
+  /** Display unit system; the saved/synced weigh-in stays in kg. */
+  unitSystem: UnitSystem;
   onBack: () => void;
   onSave: (profile: UserProfile) => void;
 };
@@ -53,7 +56,7 @@ function parseNumber(value: string): number {
   return Number.isFinite(parsed) && parsed > 0 ? parsed : 0;
 }
 
-function TrendChart({ startKg, endKg }: { startKg: number; endKg: number }) {
+function TrendChart({ startKg, endKg, unitSystem }: { startKg: number; endKg: number; unitSystem: UnitSystem }) {
   // Illustrative 8-point downward trend from startKg to endKg
   const points: [number, number][] = [
     [6, 12],
@@ -85,19 +88,29 @@ function TrendChart({ startKg, endKg }: { startKg: number; endKg: number }) {
         ))}
       </Svg>
       <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 6 }}>
-        <Num style={{ color: colors.muted, fontSize: typography.tiny }}>{maxKg.toFixed(1)} kg</Num>
-        <Num style={{ color: colors.muted, fontSize: typography.tiny }}>{minKg.toFixed(1)} kg</Num>
+        <Num style={{ color: colors.muted, fontSize: typography.tiny }}>{formatWeight(maxKg, unitSystem)}</Num>
+        <Num style={{ color: colors.muted, fontSize: typography.tiny }}>{formatWeight(minKg, unitSystem)}</Num>
       </View>
     </View>
   );
 }
 
-export function WeighInScreen({ profile, userId, onBack, onSave }: Props) {
+export function WeighInScreen({ profile, userId, unitSystem, onBack, onSave }: Props) {
   const { lang } = useLang();
   const t = STR[lang];
-  const initialWeight = profile?.weightKg ?? 70;
-  const [weightTenths, setWeightTenths] = useState(Math.round(initialWeight * 10));
-  const weightKg = weightTenths / 10;
+  const isImperial = unitSystem === 'imperial';
+  const initialWeightKg = profile?.weightKg ?? 70;
+  // The stepper works in tenths of the DISPLAY unit so each tap moves 0.1 lbs
+  // (or 0.1 kg) and decimal entries like 164.5 lbs are representable. The
+  // saved/synced value is converted back to kg without rounding.
+  // Stepper bounds mirror the 35–250 kg save range: 77.2 lbs ≈ 35.0 kg, 551.1 lbs ≈ 249.97 kg.
+  const minDisplayTenths = isImperial ? 772 : 350;
+  const maxDisplayTenths = isImperial ? 5511 : 2500;
+  const [displayTenths, setDisplayTenths] = useState(() =>
+    Math.min(maxDisplayTenths, Math.max(minDisplayTenths, Math.round((isImperial ? kgToLbs(initialWeightKg) : initialWeightKg) * 10))),
+  );
+  const displayWeight = displayTenths / 10;
+  const weightKg = isImperial ? lbsToKg(displayWeight) : displayWeight;
   const canSave = weightKg >= 35 && weightKg <= 250;
 
   const nextProfile = useMemo(() => {
@@ -164,7 +177,7 @@ export function WeighInScreen({ profile, userId, onBack, onSave }: Props) {
             }}
           >
             <Pressable
-              onPress={() => setWeightTenths((w) => Math.max(350, w - 1))}
+              onPress={() => setDisplayTenths((w) => Math.max(minDisplayTenths, w - 1))}
               style={{
                 alignItems: 'center',
                 backgroundColor: colors.paper2,
@@ -177,11 +190,11 @@ export function WeighInScreen({ profile, userId, onBack, onSave }: Props) {
               <Minus color={colors.ink} size={18} strokeWidth={2} />
             </Pressable>
             <View style={{ alignItems: 'baseline', flexDirection: 'row', gap: 4 }}>
-              <Num style={{ fontSize: 34, fontWeight: '600' }}>{weightKg.toFixed(1)}</Num>
-              <Text style={{ color: colors.muted, fontSize: typography.small }}>kg</Text>
+              <Num style={{ fontSize: 34, fontWeight: '600' }}>{displayWeight.toFixed(1)}</Num>
+              <Text style={{ color: colors.muted, fontSize: typography.small }}>{isImperial ? 'lbs' : 'kg'}</Text>
             </View>
             <Pressable
-              onPress={() => setWeightTenths((w) => Math.min(2500, w + 1))}
+              onPress={() => setDisplayTenths((w) => Math.min(maxDisplayTenths, w + 1))}
               style={{
                 alignItems: 'center',
                 backgroundColor: colors.paper2,
@@ -205,16 +218,16 @@ export function WeighInScreen({ profile, userId, onBack, onSave }: Props) {
               <View style={{ alignItems: 'center', flexDirection: 'row', gap: 5 }}>
                 <TrendingDown color={colors.accentInk} size={15} strokeWidth={2} />
                 <Num style={{ color: colors.accentInk, fontSize: typography.tiny, fontWeight: '600' }}>
-                  {(weightKg - targetKg).toFixed(1)} kg
+                  {formatWeight(weightKg - targetKg, unitSystem)}
                 </Num>
               </View>
             )}
           </View>
-          <TrendChart startKg={weightKg} endKg={targetKg ?? weightKg - 1.2} />
+          <TrendChart startKg={weightKg} endKg={targetKg ?? weightKg - 1.2} unitSystem={unitSystem} />
           <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 6 }}>
-            <Num style={{ color: colors.muted, fontSize: typography.tiny }}>{weightKg.toFixed(1)} kg</Num>
+            <Num style={{ color: colors.muted, fontSize: typography.tiny }}>{formatWeight(weightKg, unitSystem)}</Num>
             <Num style={{ color: colors.muted, fontSize: typography.tiny }}>
-              {targetKg !== null ? t.targetWeight(`${targetKg} kg`) : t.targetNotSet}
+              {targetKg !== null ? t.targetWeight(formatWeight(targetKg, unitSystem)) : t.targetNotSet}
             </Num>
           </View>
         </Card>

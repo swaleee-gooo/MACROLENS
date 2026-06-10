@@ -55,6 +55,30 @@ describe('calculateMacroTargets', () => {
     expect(understand.proteinTargetG).toBe(128);
   });
 
+  it('produces exactly the same targets as before the imperial display layer (S2 non-regression)', () => {
+    // Frozen fixture values captured before S2: the calculation pipeline stays
+    // 100% metric, so the imperial UI layer must not move ANY of these numbers.
+    expect(calculateMacroTargets(profile({ goal: 'lose_fat' }))).toEqual({
+      calorieTarget: 2370,
+      proteinTargetG: 160,
+      carbsTargetG: 266,
+      fatTargetG: 74,
+      fiberTargetG: 30,
+      calorieOverride: null,
+      proteinOverrideG: null,
+    });
+
+    expect(calculateMacroTargets(profile({ goal: 'maintain' }))).toEqual({
+      calorieTarget: 2760,
+      proteinTargetG: 128,
+      carbsTargetG: 369,
+      fatTargetG: 86,
+      fiberTargetG: 35,
+      calorieOverride: null,
+      proteinOverrideG: null,
+    });
+  });
+
   it('uses calorie and protein overrides when present', () => {
     const targets = calculateMacroTargets(
       profile({

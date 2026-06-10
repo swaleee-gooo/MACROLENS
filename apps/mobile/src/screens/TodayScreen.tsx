@@ -6,6 +6,7 @@ import { FileText, Scale } from 'lucide-react-native';
 import { useLang } from '../i18n/LanguageContext';
 import type { HomeStreakCalendar, HomeStreakDay } from '../domain/homeStreak';
 import type { MacroTargets, Meal, UserProfile } from '../domain/types';
+import type { UnitSystem } from '../domain/units';
 import { buildDayReviewViewModel } from '../ui/dayReviewViewModel';
 import { buildPremiumDashboardViewModel } from '../ui/premiumDashboardViewModel';
 import { Card, Eyebrow, Num } from '../ui/primitives';
@@ -17,6 +18,8 @@ type Props = {
   meals: Meal[];
   targets: MacroTargets | null;
   profile: UserProfile | null;
+  /** Display unit system for the share card weight stat. */
+  unitSystem: UnitSystem;
   onBack: () => void;
   onAddWeighIn: () => void;
   onOpenWeeklyReport: () => void;
@@ -164,7 +167,7 @@ function ActionButton({ icon, label, onPress, variant }: { icon: ReactNode; labe
   );
 }
 
-export function TodayScreen({ meals, targets, profile, onAddWeighIn, onOpenWeeklyReport }: Props) {
+export function TodayScreen({ meals, targets, profile, unitSystem, onAddWeighIn, onOpenWeeklyReport }: Props) {
   const { lang } = useLang();
   const t = STR[lang];
   const today = new Date().toISOString().slice(0, 10);
@@ -178,7 +181,7 @@ export function TodayScreen({ meals, targets, profile, onAddWeighIn, onOpenWeekl
   const consumed = dayReview.calories.consumed;
   const remaining = Math.max(0, calorieTarget - consumed);
   const calorieProgress = clampProgress(consumed, calorieTarget);
-  const shareCardData = cardDataFromProgress({ meals, targets, profile, isoDate: selectedIsoDate });
+  const shareCardData = cardDataFromProgress({ meals, targets, profile, unitSystem, isoDate: selectedIsoDate });
 
   return (
     <ScrollView style={{ backgroundColor: colors.background, flex: 1 }} contentContainerStyle={{ gap: spacing.md, padding: spacing.xl, paddingBottom: 116 }} showsVerticalScrollIndicator={false}>
