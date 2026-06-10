@@ -58,6 +58,10 @@ const androidSharePackages = [
 
 const plugins = [
   'expo-font',
+  // Native Sign in with Apple (App Store guideline 4.8 — required next to Google sign-in).
+  'expo-apple-authentication',
+  // System-browser OAuth sessions (Google sign-in via Supabase authorize URL).
+  'expo-web-browser',
   [
     'expo-share-intent',
     {
@@ -119,6 +123,7 @@ module.exports = {
     ios: {
       supportsTablet: true,
       bundleIdentifier: variant.bundleIdentifier,
+      usesAppleSignIn: true,
       infoPlist: {
         ITSAppUsesNonExemptEncryption: false,
         LSApplicationQueriesSchemes: socialShareSchemes,

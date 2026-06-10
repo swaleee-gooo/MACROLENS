@@ -103,6 +103,46 @@ describe('createMacroLensSupabaseClient', () => {
     expect(url).toContain('redirect_to=macrolens%3A%2F%2Fauth-callback');
   });
 
+  it('exchanges a provider identity token for a session and reuses it for Data API calls', async () => {
+    const fetcher = vi
+      .fn<typeof fetch>()
+      .mockResolvedValueOnce(jsonResponse({ access_token: 'apple-token', refresh_token: 'refresh-token', user: { id: 'user-1', email: 'you@example.com' } }))
+      .mockResolvedValueOnce(jsonResponse([{ id: 'user-1' }]));
+    const client = createMacroLensSupabaseClient('https://project.supabase.co/', 'anon-key', fetcher);
+
+    const auth = await client.auth.signInWithIdToken({ provider: 'apple', token: 'identity-jwt', nonce: 'raw-nonce' });
+    const rows = await client.rest.get('profiles', 'select=id');
+
+    expect(auth.error).toBeNull();
+    expect(auth.data.session?.access_token).toBe('apple-token');
+    expect(auth.data.user?.id).toBe('user-1');
+    expect(fetcher.mock.calls[0][0]).toBe('https://project.supabase.co/auth/v1/token?grant_type=id_token');
+    expect(JSON.parse(String(fetcher.mock.calls[0][1]?.body))).toEqual({
+      provider: 'apple',
+      id_token: 'identity-jwt',
+      nonce: 'raw-nonce',
+    });
+    expect(fetcher.mock.calls[0][1]?.headers).toMatchObject({ apikey: 'anon-key' });
+    expect(rows.error).toBeNull();
+    expect(fetcher.mock.calls[1][1]?.headers).toMatchObject({ Authorization: 'Bearer apple-token' });
+  });
+
+  it('omits the nonce field and surfaces errors from the id_token grant', async () => {
+    const fetcher = vi
+      .fn<typeof fetch>()
+      .mockResolvedValueOnce(jsonResponse({ error: 'invalid_grant', message: 'Bad ID token' }, { status: 400 }));
+    const client = createMacroLensSupabaseClient('https://project.supabase.co', 'anon-key', fetcher);
+
+    const auth = await client.auth.signInWithIdToken({ provider: 'google', token: 'identity-jwt' });
+
+    expect(auth.data.session).toBeNull();
+    expect((auth.error as { message: string }).message).toBe('Bad ID token');
+    expect(JSON.parse(String(fetcher.mock.calls[0][1]?.body))).toEqual({
+      provider: 'google',
+      id_token: 'identity-jwt',
+    });
+  });
+
   it('loads the current user with the active session token', async () => {
     const fetcher = vi
       .fn<typeof fetch>()

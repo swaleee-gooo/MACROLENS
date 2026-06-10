@@ -15,6 +15,14 @@ type PasswordCredentials = {
   password: string;
 };
 
+type IdTokenCredentials = {
+  provider: OAuthProvider;
+  /** The identity token (JWT) issued by the provider — e.g. Apple's identityToken. */
+  token: string;
+  /** RAW nonce when the provider received its SHA-256 hash (Sign in with Apple). */
+  nonce?: string;
+};
+
 type RedirectOptions = {
   redirectTo?: string;
 };
@@ -200,6 +208,35 @@ export function createMacroLensSupabaseClient(supabaseUrl: string, supabaseAnonK
             body: JSON.stringify({
               email: credentials.email.trim(),
               password: credentials.password,
+            }),
+          });
+          const { payload, text } = await readResponse(response);
+
+          if (!response.ok) {
+            return { data: { session: null, user: null }, error: buildRequestError(response, payload, text) };
+          }
+
+          const { session, user } = parseSessionPayload(payload);
+          currentSession = session;
+          return { data: { session, user }, error: null };
+        } catch (error) {
+          return { data: { session: null, user: null }, error };
+        }
+      },
+      /** Exchange a provider identity token (native Sign in with Apple / Google) for a Supabase session. */
+      async signInWithIdToken(credentials: IdTokenCredentials) {
+        try {
+          const response = await fetcher(`${baseUrl}/auth/v1/token?grant_type=id_token`, {
+            method: 'POST',
+            headers: {
+              apikey: supabaseAnonKey,
+              Authorization: `Bearer ${supabaseAnonKey}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              provider: credentials.provider,
+              id_token: credentials.token,
+              ...(credentials.nonce ? { nonce: credentials.nonce } : {}),
             }),
           });
           const { payload, text } = await readResponse(response);

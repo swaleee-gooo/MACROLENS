@@ -2,7 +2,10 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Alert, Linking, Platform, SafeAreaView, Share, Text, View } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import * as AppleAuthentication from 'expo-apple-authentication';
 import Constants from 'expo-constants';
+import * as Crypto from 'expo-crypto';
+import * as WebBrowser from 'expo-web-browser';
 import { useFonts } from 'expo-font';
 import { useShareIntent } from 'expo-share-intent';
 import { SpaceGrotesk_600SemiBold, SpaceGrotesk_700Bold } from '@expo-google-fonts/space-grotesk';
@@ -452,10 +455,10 @@ function MacroLensApp() {
         return;
       }
 
-      const parsedSession = parseSupabaseAuthCallback(url);
-      if (parsedSession) {
-        await persistAuthSession(parsedSession);
-      }
+      // Fallback path — openAuthSessionAsync already hands the callback URL back to
+      // the in-app flow; this listener covers cold starts and browsers that fire the
+      // deep link instead. completeSessionFromCallbackUrl dedupes the two paths.
+      await completeSessionFromCallbackUrl(url, 'oauth_callback');
     }
 
     Linking.getInitialURL().then(handleUrl).catch(() => undefined);
@@ -521,6 +524,26 @@ function MacroLensApp() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [screen]);
 
+  // Guards against double-handling one OAuth callback (in-app browser result AND the
+  // Linking deep-link listener can both observe the same URL).
+  const handledAuthCallbackTokensRef = useRef(new Set<string>());
+
+  async function completeSessionFromCallbackUrl(url: string, method: 'apple' | 'google' | 'oauth_callback'): Promise<boolean> {
+    const parsedSession = parseSupabaseAuthCallback(url);
+    if (!parsedSession?.access_token) {
+      return false;
+    }
+
+    if (handledAuthCallbackTokensRef.current.has(parsedSession.access_token)) {
+      return true;
+    }
+    handledAuthCallbackTokensRef.current.add(parsedSession.access_token);
+
+    await persistAuthSession(parsedSession);
+    analytics.track('auth_completed', { method });
+    return true;
+  }
+
   async function persistAuthSession(nextSession: MacroLensSession) {
     if (!nextSession || !supabaseClient) {
       return null;
@@ -550,7 +573,12 @@ function MacroLensApp() {
     return hydratedSession;
   }
 
-  async function signUpWithEmail(email: string, password: string) {
+  /**
+   * Email sign-up that reports what happened: 'signed_in' when Supabase returns a
+   * session right away (email confirmation disabled), 'confirm_email' when the
+   * account exists but a confirmation email is still required.
+   */
+  async function signUpWithEmailOutcome(email: string, password: string): Promise<'signed_in' | 'confirm_email'> {
     if (!supabaseClient) {
       throw new Error('Enable Supabase remote mode to create an account.');
     }
@@ -561,10 +589,20 @@ function MacroLensApp() {
     }
 
     if (!result.data.session) {
-      throw new Error('Account created. Check your email, then sign in.');
+      return 'confirm_email';
     }
 
     await persistAuthSession(result.data.session);
+    analytics.track('auth_completed', { method: 'email_signup' });
+    return 'signed_in';
+  }
+
+  /** Onboarding-compatible wrapper: the confirm-email case surfaces as a thrown message so the step does not advance without a session. */
+  async function signUpWithEmail(email: string, password: string) {
+    const outcome = await signUpWithEmailOutcome(email, password);
+    if (outcome === 'confirm_email') {
+      throw new Error('Account created. Check your email, then sign in.');
+    }
   }
 
   async function signInWithEmail(email: string, password: string) {
@@ -578,6 +616,7 @@ function MacroLensApp() {
     }
 
     await persistAuthSession(result.data.session);
+    analytics.track('auth_completed', { method: 'email_signin' });
     setScreen({ name: 'app', tab: 'profile' });
   }
 
@@ -592,12 +631,86 @@ function MacroLensApp() {
     }
   }
 
-  async function startOAuthSignIn(provider: 'apple' | 'google') {
+  function isAppleAuthCancelError(error: unknown): boolean {
+    return typeof error === 'object' && error !== null && 'code' in error && (error as { code?: unknown }).code === 'ERR_REQUEST_CANCELED';
+  }
+
+  /**
+   * Native Sign in with Apple (App Store compliant). Apple receives the SHA-256
+   * hash of the nonce; Supabase receives the RAW nonce alongside the identity
+   * token so it can verify the pair. Resolves false when the user cancels.
+   */
+  async function signInWithAppleNative(): Promise<boolean> {
     if (!supabaseClient) {
       throw new Error('Enable Supabase remote mode to sign in.');
     }
 
-    await Linking.openURL(supabaseClient.auth.getOAuthUrl(provider, authRedirectUri));
+    const rawNonce = Crypto.randomUUID();
+    const hashedNonce = await Crypto.digestStringAsync(Crypto.CryptoDigestAlgorithm.SHA256, rawNonce);
+
+    let credential: AppleAuthentication.AppleAuthenticationCredential;
+    try {
+      credential = await AppleAuthentication.signInAsync({
+        requestedScopes: [AppleAuthentication.AppleAuthenticationScope.FULL_NAME, AppleAuthentication.AppleAuthenticationScope.EMAIL],
+        nonce: hashedNonce,
+      });
+    } catch (error) {
+      if (isAppleAuthCancelError(error)) {
+        return false;
+      }
+      throw new Error('Apple sign-in is unavailable right now. Try again.');
+    }
+
+    if (!credential.identityToken) {
+      throw new Error('Apple did not return an identity token. Try again.');
+    }
+
+    const result = await supabaseClient.auth.signInWithIdToken({ provider: 'apple', token: credential.identityToken, nonce: rawNonce });
+    if (result.error || !result.data.session) {
+      throw new Error('Apple sign-in failed. Try again.');
+    }
+
+    await persistAuthSession(result.data.session);
+    analytics.track('auth_completed', { method: 'apple' });
+    return true;
+  }
+
+  /** System-browser OAuth (Google, and Apple where the native sheet is unavailable). Resolves false when the user backs out. */
+  async function signInWithProviderBrowser(provider: 'apple' | 'google'): Promise<boolean> {
+    if (!supabaseClient) {
+      throw new Error('Enable Supabase remote mode to sign in.');
+    }
+
+    const result = await WebBrowser.openAuthSessionAsync(supabaseClient.auth.getOAuthUrl(provider, authRedirectUri), authRedirectUri);
+    if (result.type === 'success') {
+      const completed = await completeSessionFromCallbackUrl(result.url, provider);
+      if (!completed) {
+        throw new Error('Sign-in did not return a session. Try again.');
+      }
+      return true;
+    }
+
+    if (result.type === 'cancel' || result.type === 'dismiss') {
+      return false;
+    }
+
+    throw new Error('Sign-in did not complete. Try again.');
+  }
+
+  /** Returns true when a session was created, false on user cancel. */
+  async function startOAuthSignIn(provider: 'apple' | 'google'): Promise<boolean> {
+    if (!supabaseClient) {
+      throw new Error('Enable Supabase remote mode to sign in.');
+    }
+
+    if (provider === 'apple' && Platform.OS === 'ios') {
+      const nativeAppleAvailable = await AppleAuthentication.isAvailableAsync().catch(() => false);
+      if (nativeAppleAvailable) {
+        return signInWithAppleNative();
+      }
+    }
+
+    return signInWithProviderBrowser(provider);
   }
 
   async function analyzeImageUri(imageUri: string) {
@@ -1099,7 +1212,9 @@ function MacroLensApp() {
         unitSystem={unitSystem}
         authEmail={authEmail}
         onEmailSignUp={signUpWithEmail}
-        onOAuthSignIn={startOAuthSignIn}
+        onOAuthSignIn={async (provider) => {
+          await startOAuthSignIn(provider);
+        }}
         onComplete={completeOnboarding}
         onStepCompleted={(step) => analytics.track('onboarding_step_completed', { step })}
         onOnboardingCompleted={({ goal, friction }) => analytics.track('onboarding_completed', { goal, friction })}
@@ -1177,11 +1292,19 @@ function MacroLensApp() {
         onBack={() => setScreen({ name: 'settings' })}
         onEmailLogin={signInWithEmail}
         onEmailSignup={async (email, password) => {
-          await signUpWithEmail(email, password);
-          setScreen({ name: 'app', tab: 'profile' });
+          const outcome = await signUpWithEmailOutcome(email, password);
+          if (outcome === 'signed_in') {
+            setScreen({ name: 'app', tab: 'profile' });
+          }
+          return outcome;
         }}
         onResetPassword={resetPassword}
-        onOAuth={startOAuthSignIn}
+        onOAuth={async (provider) => {
+          const signedIn = await startOAuthSignIn(provider);
+          if (signedIn) {
+            setScreen({ name: 'app', tab: 'profile' });
+          }
+        }}
       />
     );
   }

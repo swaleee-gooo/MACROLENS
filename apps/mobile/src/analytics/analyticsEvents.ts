@@ -25,6 +25,7 @@ export type AnalyticsEventName =
   | 'progress_viewed'
   | 'weekly_report_viewed'
   | 'review_prompt_requested'
+  | 'auth_completed'
   | 'screen_error';
 
 export type AnalyticsPayload = Record<string, string | number | boolean | null>;
