@@ -2,11 +2,15 @@
 
 **État au moment de la rédaction :** les 6 specs (S1-S6) sont **codées, testées (482 tests verts) et poussées** sur `codex/share-cards-native`. Tout ce qui suit est ce que seul toi peux faire. Ordre recommandé = ordre du document. Temps total : ~1 h 30 + temps de build.
 
-## 1. App Store Connect (~30 min)
+## 1. App Store Connect (~15 min restantes)
 
-- [ ] **Prix USD** : Mon apps → MacroLens → Abonnements → vérifier le groupe d'abonnements ; fixer le prix de l'annuel à **49,99 $US/an** et du mensuel à **9,99 $US/mois** (Apple localise les autres devises).
-- [ ] **Essai gratuit** : sur l'abonnement **ANNUEL uniquement** → Offres promotionnelles/d'introduction → créer une *Introductory Offer* type **Free trial, 7 jours**, toutes les régions. NE PAS en mettre sur le mensuel. (Le badge du paywall est dynamique : il n'apparaît que si cette offre existe réellement.)
+- [x] **Prix USD** : annuel 49,99 $ ✓, mensuel 9,99 $ ✓ (vérifié via RevenueCat le 2026-06-10).
+- [x] **Essai gratuit 7 jours sur l'annuel** : détecté actif (ONE_WEEK) ✓.
+- [ ] **🔴 Capture de review sur le produit ANNUEL** (la cause du « Metadata Missing ») : ASC → abonnement annuel → App Review Information → uploader **`docs/appstore/review-screenshot-paywall-1170x2532.png`** (générée par Claude depuis le vrai paywall de l'app, 1170×2532 ≥ minimum Apple 640×920). La même image peut servir au mensuel si ASC la redemande.
+- [ ] **🟠 Disponibilité territoriale du MENSUEL** : actuellement US + Canada seulement (l'annuel est partout). Recommandé : étendre le mensuel à tous les territoires (section Availability) — sinon, hors US/CA, `getPricing()` ne trouvera pas le package mensuel et le paywall passera en mode dégradé « Price shown at checkout ».
+- [ ] **🟠 Display name localisé du Subscription Group** (cause probable du « Metadata Missing » restant du mensuel) : ASC → groupe d'abonnements → Localization → ajouter le nom anglais (US), p. ex. « MacroLens Pro ».
 - [ ] **Compte sandbox** : Users and Access → Sandbox → créer un Sandbox Apple ID (pour la QA achat).
+- [ ] Après ces 3 corrections : redemander à l'assistant RevenueCat « re-vérifie » → les 2 produits doivent passer en `ok`.
 
 ## 2. RevenueCat (~15 min) — vérifié le 2026-06-10, mis à jour
 

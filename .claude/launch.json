@@ -1,0 +1,15 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "expo-web-paywall",
+      "runtimeExecutable": "cmd",
+      "runtimeArgs": [
+        "/c",
+        "cd apps\\mobile && set EXPO_PUBLIC_PAYWALL_ENABLED=true&& set EXPO_PUBLIC_ENTITLEMENT_MODE=local_dev&& set EXPO_PUBLIC_ANALYSIS_MODE=mock&& npx expo start --web --port 8083"
+      ],
+      "port": 8083,
+      "autoPort": false
+    }
+  ]
+}
