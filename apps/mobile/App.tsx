@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Alert, Linking, Platform, SafeAreaView, Share, Text, View } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -30,6 +30,7 @@ import { getMealCorrectionType, type MealCorrection } from './src/domain/correct
 import { applyMealCorrectionWithLedger } from './src/domain/correctionPersistence';
 import { createManualMacroMeal } from './src/domain/manualMeal';
 import { cloneMealForRelog } from './src/domain/recurringMeals';
+import { shouldPromptForReview, type ReviewPromptContext } from './src/domain/reviewPrompt';
 import { calculateMealStreak } from './src/domain/streaks';
 import type { MacroTargets, Meal, UserProfile } from './src/domain/types';
 import { buildWeeklyReport, buildWeeklyReportFromMeals } from './src/domain/weeklyReport';
@@ -51,6 +52,7 @@ import { createMetaboProofRepository } from './src/storage/metaboProofRepository
 import { createOnboardingRepository, type OnboardingState } from './src/storage/onboardingRepository';
 import { createProductRepository } from './src/storage/productRepository';
 import { createProfileRepository } from './src/storage/profileRepository';
+import { createReviewPromptRepository } from './src/storage/reviewPromptRepository';
 import { parseSupabaseAuthCallback } from './src/auth/deepLinkSession';
 import { createMacroLensSupabaseClient, type MacroLensSession } from './src/supabase/client';
 import { colors, radius, spacing, typography } from './src/ui/theme';
@@ -276,6 +278,11 @@ function MacroLensApp() {
   const authSessionRepository = useMemo(() => createAuthSessionRepository(AsyncStorage), []);
   const onboardingRepository = useMemo(() => createOnboardingRepository(AsyncStorage), []);
   const productRepository = useMemo(() => createProductRepository(AsyncStorage), []);
+  const reviewPromptRepository = useMemo(() => createReviewPromptRepository(AsyncStorage), []);
+  // Set by the scan/purchase error paths, reset on a successful save: the
+  // review prompt must never appear right after a failure (S6).
+  const lastActionWasErrorRef = useRef(false);
+  const pendingReviewContextRef = useRef<Omit<ReviewPromptContext, 'now'> | null>(null);
   const supabaseClient = useMemo(() => {
     if (appEnv.analysisMode !== 'remote' || !appEnv.supabaseUrl || !appEnv.supabaseAnonKey) {
       return null;
@@ -461,6 +468,29 @@ function MacroLensApp() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [hasShareIntent]);
 
+  // S6 — native store review prompt: evaluated 1.5s after the save
+  // confirmation is shown, so the popup never interrupts the animation. The
+  // timeout is cleared if the user leaves the confirmation screen first.
+  useEffect(() => {
+    if (screen.name !== 'saveConfirmation') {
+      return undefined;
+    }
+
+    const reviewContext = pendingReviewContextRef.current;
+    pendingReviewContextRef.current = null;
+    if (!reviewContext) {
+      return undefined;
+    }
+
+    const timer = setTimeout(() => {
+      void maybeRequestStoreReview(reviewContext);
+    }, 1500);
+
+    return () => clearTimeout(timer);
+    // maybeRequestStoreReview is hoisted and stable for the lifetime of the screen.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [screen]);
+
   async function persistAuthSession(nextSession: MacroLensSession) {
     if (!nextSession || !supabaseClient) {
       return null;
@@ -555,6 +585,7 @@ function MacroLensApp() {
       });
       setScreen({ name: 'result', meal: analyzedMeal, isSaved: false });
     } catch (error) {
+      lastActionWasErrorRef.current = true;
       if (isNonFoodPhotoError(error)) {
         analytics.track('non_food_detected', { source: 'photo' });
         setScreen({ name: 'scanError', variant: 'non_food' });
@@ -622,6 +653,7 @@ function MacroLensApp() {
       const nextEntitlement = await applyPurchasedEntitlement(plan);
       analytics.track('purchase_completed', { plan, source: nextEntitlement.source });
     } catch (error) {
+      lastActionWasErrorRef.current = true;
       analytics.track('purchase_failed', { plan });
       Alert.alert(...purchaseFailureAlert(error));
     }
@@ -653,12 +685,47 @@ function MacroLensApp() {
     }
   }
 
+  async function maybeRequestStoreReview(reviewContext: Omit<ReviewPromptContext, 'now'>) {
+    try {
+      const state = await reviewPromptRepository.getState({ totalMealsSaved: reviewContext.totalMealsSaved });
+      const decision = shouldPromptForReview(state, { ...reviewContext, now: new Date() });
+      if (!decision.prompt || !decision.milestone) {
+        return;
+      }
+
+      // requestReview() is best-effort (iOS decides whether the popup shows
+      // and gives no feedback), so the attempt is recorded no matter what.
+      await reviewPromptRepository.recordPrompt(decision.milestone, new Date());
+      analytics.track('review_prompt_requested', { milestone: decision.milestone });
+
+      // Dynamic import on purpose (same pattern as posthogAnalyticsSink.ts):
+      // no top-level 'expo-store-review' import anywhere, so the native module
+      // is only loaded when a prompt is actually due.
+      const StoreReview = await import('expo-store-review');
+      if (await StoreReview.isAvailableAsync()) {
+        await StoreReview.requestReview();
+      }
+    } catch (error) {
+      // The review prompt must never break the save flow.
+      captureException(error);
+    }
+  }
+
   async function saveMeal(meal: Meal) {
     await repository.saveMeal(meal);
     analytics.track('meal_saved', { source: meal.source, caloriesEstimate: meal.caloriesEstimate });
     const nextMeals = await repository.listMeals();
     setMeals(nextMeals);
-    setScreen({ name: 'saveConfirmation', meal, streakDays: calculateMealStreak(nextMeals, new Date().toISOString().slice(0, 10)) });
+    const streakDays = calculateMealStreak(nextMeals, new Date().toISOString().slice(0, 10));
+    // Snapshot the review-prompt context at save time; the saveConfirmation
+    // effect evaluates it 1.5s after the confirmation screen appears.
+    pendingReviewContextRef.current = {
+      totalMealsSaved: nextMeals.length,
+      currentStreakDays: streakDays,
+      lastActionWasError: lastActionWasErrorRef.current,
+    };
+    lastActionWasErrorRef.current = false;
+    setScreen({ name: 'saveConfirmation', meal, streakDays });
   }
 
   async function relogMeal(templateMeal: Meal) {
@@ -756,6 +823,7 @@ function MacroLensApp() {
       const outcome = normalizeProductLookupOutcome(item);
 
       if (outcome.status === 'needs_label') {
+        lastActionWasErrorRef.current = true;
         analytics.track('scan_failed', { source: 'barcode', reason: 'product_needs_label' });
         setScreen({ name: 'scanner', initialMode: 'label', productLookupError: true, productLookupIssue: 'needs_label' });
         return;
@@ -764,6 +832,7 @@ function MacroLensApp() {
       await productRepository.saveProduct(outcome.item);
       setScreen({ name: 'packagedProduct', item: outcome.item, initialServingGrams: 30, imageUri: `product://${outcome.item.barcode}` });
     } catch (error) {
+      lastActionWasErrorRef.current = true;
       const issue = error instanceof Error && error.message === 'product_nutrition_missing' ? 'needs_label' : 'not_found';
       analytics.track('scan_failed', { source: 'barcode', reason: issue === 'needs_label' ? 'product_needs_label' : 'product_not_found' });
       setScreen({ name: 'scanner', initialMode: issue === 'needs_label' ? 'label' : 'barcode', productLookupError: true, productLookupIssue: issue });
@@ -791,6 +860,7 @@ function MacroLensApp() {
       });
       setScreen({ name: 'packagedProduct', item: result.item, initialServingGrams: result.servingGrams, imageUri });
     } catch {
+      lastActionWasErrorRef.current = true;
       analytics.track('scan_failed', { source: 'label_ocr', reason: 'label_ocr_error' });
       setScreen({ name: 'scanError', variant: 'label' });
     }

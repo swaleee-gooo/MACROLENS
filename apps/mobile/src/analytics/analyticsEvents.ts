@@ -23,6 +23,7 @@ export type AnalyticsEventName =
   | 'recipe_import_failed'
   | 'progress_viewed'
   | 'weekly_report_viewed'
+  | 'review_prompt_requested'
   | 'screen_error';
 
 export type AnalyticsPayload = Record<string, string | number | boolean | null>;
