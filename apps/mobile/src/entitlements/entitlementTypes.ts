@@ -10,9 +10,18 @@ export type CommercialEntitlementState = {
 
 export type PurchasePlan = 'monthly' | 'annual';
 
+export type PlanPricing = {
+  plan: PurchasePlan;
+  priceString: string; // "$49.99" — localized by the store
+  perMonthPriceString: string | null; // computed for annual, null otherwise
+  hasFreeTrial: boolean; // introPrice present AND price === 0
+  trialLabel: string | null; // "7 days free" derived from introPrice.periodNumberOfUnits
+};
+
 export type EntitlementProvider = {
   kind: 'local_dev' | 'revenue_cat';
   getEntitlement(): Promise<CommercialEntitlementState>;
   purchase(plan: PurchasePlan): Promise<CommercialEntitlementState>;
   restore(): Promise<CommercialEntitlementState>;
+  getPricing(): Promise<PlanPricing[]>;
 };

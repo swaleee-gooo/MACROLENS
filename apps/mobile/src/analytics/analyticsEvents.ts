@@ -5,6 +5,7 @@ export type AnalyticsEventName =
   | 'onboarding_completed'
   | 'paywall_viewed'
   | 'paywall_cta_tapped'
+  | 'paywall_pricing_failed'
   | 'trial_started'
   | 'purchase_completed'
   | 'purchase_failed'

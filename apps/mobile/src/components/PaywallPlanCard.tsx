@@ -9,12 +9,13 @@ type Props = {
   selected: boolean;
   title: string;
   price: string;
+  priceIsPlaceholder?: boolean;
   detail: string;
   badge?: string;
   onSelect: (plan: PaywallPlan) => void;
 };
 
-export function PaywallPlanCard({ plan, selected, title, price, detail, badge, onSelect }: Props) {
+export function PaywallPlanCard({ plan, selected, title, price, priceIsPlaceholder = false, detail, badge, onSelect }: Props) {
   return (
     <Pressable
       onPress={() => onSelect(plan)}
@@ -31,7 +32,11 @@ export function PaywallPlanCard({ plan, selected, title, price, detail, badge, o
         <Text style={{ color: selected ? 'white' : colors.ink, fontSize: typography.heading, fontWeight: '900' }}>{title}</Text>
         {selected ? <CheckCircle2 color="white" size={22} strokeWidth={2.5} /> : null}
       </View>
-      <Text style={{ color: selected ? 'white' : colors.ink, fontSize: typography.title, fontWeight: '900' }}>{price}</Text>
+      {priceIsPlaceholder ? (
+        <Text style={{ color: selected ? '#EDEDED' : colors.muted, fontSize: typography.heading, fontWeight: '800' }}>{price}</Text>
+      ) : (
+        <Text style={{ color: selected ? 'white' : colors.ink, fontSize: typography.title, fontWeight: '900' }}>{price}</Text>
+      )}
       <Text style={{ color: selected ? '#EDEDED' : colors.muted, fontSize: typography.small, fontWeight: '800' }}>{detail}</Text>
       {badge ? (
         <View style={{ alignSelf: 'flex-start', backgroundColor: selected ? colors.greenSoft : colors.surfaceMuted, borderRadius: radius.sm, paddingHorizontal: spacing.sm, paddingVertical: spacing.xs }}>

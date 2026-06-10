@@ -1,6 +1,7 @@
 import { Linking, Pressable, ScrollView, Text, View } from 'react-native';
 import Constants from 'expo-constants';
 import { ChevronLeft, ExternalLink, FileText, Info, LifeBuoy, Mail, ShieldCheck, Sliders, Star } from 'lucide-react-native';
+import { privacyUrl, termsUrl } from '../config/legalLinks';
 import { useLang } from '../i18n/LanguageContext';
 import { Card, Eyebrow, Num, Seal } from '../ui/primitives';
 import { colors, radius, spacing, typography } from '../ui/theme';
@@ -32,8 +33,6 @@ const STR = {
   },
 };
 
-const privacyUrl = 'https://github.com/swaleee-gooo/MACROLENS/blob/codex/macrolens-mvp/docs/legal/privacy-policy.md';
-const termsUrl = 'https://github.com/swaleee-gooo/MACROLENS/blob/codex/macrolens-mvp/docs/legal/terms-of-use.md';
 const supportUrl = 'mailto:idriss.carta@gmail.com?subject=MacroLens%20Support';
 
 type Props = {

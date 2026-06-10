@@ -1,13 +1,18 @@
 import { useState } from 'react';
-import { Pressable, ScrollView, Text, View } from 'react-native';
+import { Linking, Pressable, ScrollView, Text, View } from 'react-native';
 import { Check, LockKeyhole } from 'lucide-react-native';
 import { MacroPlanAsset } from '../components/BrandAssets';
 import { PaywallPlanCard, type PaywallPlan } from '../components/PaywallPlanCard';
 import { StickyFooterButton } from '../components/StickyFooterButton';
+import { privacyUrl, termsUrl } from '../config/legalLinks';
+import type { PlanPricing } from '../entitlements/entitlementTypes';
+import { ctaLabelForSelection, paywallLegalText, paywallPlanCardContent } from '../ui/paywallViewModel';
 import { colors, spacing, typography } from '../ui/theme';
 
 type Props = {
+  pricing: PlanPricing[] | null;
   onPurchase: (plan: PaywallPlan) => void;
+  onRetryPricing: () => void;
   onUnlockForDevelopment: () => void;
   onRestore: () => void;
   showDevelopmentUnlock: boolean;
@@ -15,8 +20,10 @@ type Props = {
 
 const benefits = ['Unlimited meal scans', 'Advanced macros and calories', 'Portion corrections', 'History, progress, and device sync'];
 
-export function PaywallScreen({ onPurchase, onUnlockForDevelopment, onRestore, showDevelopmentUnlock }: Props) {
+export function PaywallScreen({ pricing, onPurchase, onRetryPricing, onUnlockForDevelopment, onRestore, showDevelopmentUnlock }: Props) {
   const [selectedPlan, setSelectedPlan] = useState<PaywallPlan>('annual');
+  const annualCard = paywallPlanCardContent(pricing, 'annual');
+  const monthlyCard = paywallPlanCardContent(pricing, 'monthly');
 
   return (
     <View style={{ backgroundColor: colors.background, flex: 1, height: '100%', overflow: 'hidden' }}>
@@ -32,9 +39,35 @@ export function PaywallScreen({ onPurchase, onUnlockForDevelopment, onRestore, s
           </Text>
         </View>
         <View style={{ gap: spacing.md }}>
-          <PaywallPlanCard plan="annual" selected={selectedPlan === 'annual'} title="Annual" price="EUR 49.99 / year" detail="EUR 4.17 / month. Best value." badge="7 days free" onSelect={setSelectedPlan} />
-          <PaywallPlanCard plan="monthly" selected={selectedPlan === 'monthly'} title="Monthly" price="EUR 9.99 / month" detail="Flexible, cancel anytime." onSelect={setSelectedPlan} />
+          <PaywallPlanCard
+            plan="annual"
+            selected={selectedPlan === 'annual'}
+            title="Annual"
+            price={annualCard.price}
+            priceIsPlaceholder={annualCard.priceIsPlaceholder}
+            detail={annualCard.detail}
+            badge={annualCard.badge ?? undefined}
+            onSelect={setSelectedPlan}
+          />
+          <PaywallPlanCard
+            plan="monthly"
+            selected={selectedPlan === 'monthly'}
+            title="Monthly"
+            price={monthlyCard.price}
+            priceIsPlaceholder={monthlyCard.priceIsPlaceholder}
+            detail={monthlyCard.detail}
+            badge={monthlyCard.badge ?? undefined}
+            onSelect={setSelectedPlan}
+          />
         </View>
+        {pricing === null ? (
+          <View style={{ alignItems: 'center', flexDirection: 'row', gap: spacing.sm, justifyContent: 'center' }}>
+            <Text style={{ color: colors.muted, fontSize: typography.tiny, fontWeight: '800' }}>Prices are loading…</Text>
+            <Pressable onPress={onRetryPricing} hitSlop={8}>
+              <Text style={{ color: colors.ink, fontSize: typography.tiny, fontWeight: '900', textDecorationLine: 'underline' }}>Retry</Text>
+            </Pressable>
+          </View>
+        ) : null}
         <View style={{ gap: spacing.sm }}>
           {benefits.map((benefit) => (
             <View key={benefit} style={{ alignItems: 'center', flexDirection: 'row', gap: spacing.sm }}>
@@ -44,8 +77,16 @@ export function PaywallScreen({ onPurchase, onUnlockForDevelopment, onRestore, s
           ))}
         </View>
         <Text style={{ color: colors.muted, fontSize: typography.tiny, lineHeight: 17, textAlign: 'center' }}>
-          Free trial if available. Subscription renews automatically. Cancel anytime from App Store settings. Nutrition estimates do not replace medical advice.
+          {paywallLegalText(pricing, selectedPlan)}
         </Text>
+        <View style={{ alignItems: 'center', flexDirection: 'row', gap: spacing.md, justifyContent: 'center' }}>
+          <Pressable onPress={() => Linking.openURL(termsUrl)} hitSlop={8}>
+            <Text style={{ color: colors.muted, fontSize: typography.tiny, fontWeight: '800', textDecorationLine: 'underline' }}>Terms of Use</Text>
+          </Pressable>
+          <Pressable onPress={() => Linking.openURL(privacyUrl)} hitSlop={8}>
+            <Text style={{ color: colors.muted, fontSize: typography.tiny, fontWeight: '800', textDecorationLine: 'underline' }}>Privacy Policy</Text>
+          </Pressable>
+        </View>
         <Pressable onPress={onRestore} style={{ alignItems: 'center' }}>
           <Text style={{ color: colors.ink, fontSize: typography.small, fontWeight: '900' }}>Restore purchases</Text>
         </Pressable>
@@ -56,7 +97,7 @@ export function PaywallScreen({ onPurchase, onUnlockForDevelopment, onRestore, s
           </Pressable>
         ) : null}
       </ScrollView>
-      <StickyFooterButton label="Start free trial" onPress={() => onPurchase(selectedPlan)} />
+      <StickyFooterButton label={ctaLabelForSelection(pricing, selectedPlan)} onPress={() => onPurchase(selectedPlan)} />
     </View>
   );
 }

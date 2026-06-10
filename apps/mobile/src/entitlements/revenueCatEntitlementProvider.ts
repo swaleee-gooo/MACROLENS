@@ -1,4 +1,4 @@
-import type { CommercialEntitlementState, EntitlementProvider, PurchasePlan } from './entitlementTypes';
+import type { CommercialEntitlementState, EntitlementProvider, PlanPricing, PurchasePlan } from './entitlementTypes';
 
 type RevenueCatEntitlement = {
   productIdentifier?: string;
@@ -80,6 +80,88 @@ export function selectPackageForPlan(packages: RevenueCatPackage[], plan: Purcha
   );
 }
 
+type RevenueCatIntroPrice = {
+  price?: unknown;
+  periodNumberOfUnits?: unknown;
+  periodUnit?: unknown;
+};
+
+type RevenueCatPricedProduct = {
+  priceString?: unknown;
+  price?: unknown;
+  currencyCode?: unknown;
+  introPrice?: RevenueCatIntroPrice | null;
+};
+
+function packageProduct(packageToInspect: RevenueCatPackage): RevenueCatPricedProduct {
+  if (!packageToInspect || typeof packageToInspect !== 'object') {
+    return {};
+  }
+
+  const candidate = packageToInspect as { product?: RevenueCatPricedProduct | null };
+  return candidate.product && typeof candidate.product === 'object' ? candidate.product : {};
+}
+
+function trialLabelFromIntroPrice(introPrice: RevenueCatIntroPrice | null | undefined): string | null {
+  // A trial is only a trial when the introductory price is exactly zero. Paid
+  // introductory offers (pay-up-front / pay-as-you-go) must never show a
+  // "free" badge (App Store guideline 3.1.2).
+  if (!introPrice || typeof introPrice !== 'object' || introPrice.price !== 0) {
+    return null;
+  }
+
+  const units = typeof introPrice.periodNumberOfUnits === 'number' ? introPrice.periodNumberOfUnits : null;
+  const unit = typeof introPrice.periodUnit === 'string' ? introPrice.periodUnit.toLowerCase() : null;
+  if (!units || units <= 0 || !unit) {
+    return null;
+  }
+
+  return `${units} ${unit}${units === 1 ? '' : 's'} free`;
+}
+
+function perMonthPriceStringForPlan(plan: PurchasePlan, product: RevenueCatPricedProduct): string | null {
+  if (plan !== 'annual' || typeof product.price !== 'number' || typeof product.currencyCode !== 'string' || !product.currencyCode) {
+    return null;
+  }
+
+  try {
+    return new Intl.NumberFormat(undefined, { currency: product.currencyCode, style: 'currency' }).format(product.price / 12);
+  } catch {
+    return null;
+  }
+}
+
+function planPricingFromPackage(plan: PurchasePlan, packageForPlan: RevenueCatPackage): PlanPricing {
+  const product = packageProduct(packageForPlan);
+  if (typeof product.priceString !== 'string' || !product.priceString) {
+    throw new Error(`revenuecat_price_missing_${plan}`);
+  }
+
+  const trialLabel = trialLabelFromIntroPrice(product.introPrice);
+  return {
+    plan,
+    priceString: product.priceString,
+    perMonthPriceString: perMonthPriceStringForPlan(plan, product),
+    hasFreeTrial: trialLabel !== null,
+    trialLabel,
+  };
+}
+
+export function pricingFromOffering(offering: { availablePackages: RevenueCatPackage[] } | null, productIds: RevenueCatProductIds = {}): PlanPricing[] {
+  if (!offering) {
+    throw new Error('revenuecat_offering_missing');
+  }
+
+  return (['annual', 'monthly'] as const).map((plan) => {
+    const packageForPlan = selectPackageForPlan(offering.availablePackages, plan, productIds);
+    if (!packageForPlan) {
+      throw new Error(`revenuecat_package_missing_${plan}`);
+    }
+
+    return planPricingFromPackage(plan, packageForPlan);
+  });
+}
+
 async function configuredPurchases(appleApiKey: string): Promise<RevenueCatModule> {
   const Purchases = await loadPurchases();
   if (configuredApiKey !== appleApiKey) {
@@ -113,6 +195,11 @@ export function createRevenueCatEntitlementProvider(appleApiKey: string, product
     async restore() {
       const Purchases = await configuredPurchases(appleApiKey);
       return stateFromCustomerInfo(await Purchases.restorePurchases());
+    },
+    async getPricing() {
+      const Purchases = await configuredPurchases(appleApiKey);
+      const offerings = await Purchases.getOfferings();
+      return pricingFromOffering(offerings.current, productIds);
     },
   };
 }

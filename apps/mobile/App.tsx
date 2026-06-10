@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Alert, Linking, Platform, SafeAreaView, Share, Text, View } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -35,7 +35,7 @@ import { calculateMealStreak } from './src/domain/streaks';
 import type { MacroTargets, Meal, UserProfile } from './src/domain/types';
 import { buildWeeklyReport, buildWeeklyReportFromMeals } from './src/domain/weeklyReport';
 import { createEntitlementProvider } from './src/entitlements/entitlementProviderFactory';
-import type { CommercialEntitlementState, PurchasePlan } from './src/entitlements/entitlementTypes';
+import type { CommercialEntitlementState, PlanPricing, PurchasePlan } from './src/entitlements/entitlementTypes';
 import { createPackagedFoodLookupService, type SupabaseLookupClient } from './src/packagedFood/packagedFoodLookupService';
 import { normalizeProductLookupOutcome } from './src/packagedFood/productLookupOutcome';
 import { createNutritionLabelOcrService } from './src/packagedFood/labelOcrService';
@@ -270,6 +270,10 @@ function MacroLensApp() {
   });
   const [onboardingState, setOnboardingState] = useState<OnboardingState>({ isComplete: false });
   const [authSession, setAuthSession] = useState<MacroLensSession>(null);
+  // Localized store pricing for the paywall. Loaded when the paywall screen
+  // mounts (never at boot), null while loading or when offerings are
+  // unavailable (offline, store down) — the screen then degrades gracefully.
+  const [paywallPricing, setPaywallPricing] = useState<PlanPricing[] | null>(null);
   const localMealRepository = useMemo(() => createMealRepository(AsyncStorage), []);
   const recipeRepository = useMemo(() => createRecipeRepository(AsyncStorage), []);
   const localMetaboProofRepository = useMemo(() => createMetaboProofRepository(AsyncStorage), []);
@@ -359,6 +363,24 @@ function MacroLensApp() {
       }),
     [],
   );
+  const loadPaywallPricing = useCallback(async () => {
+    try {
+      setPaywallPricing(await entitlementProvider.getPricing());
+    } catch (error) {
+      // Silent failure by design: the paywall degrades to "Price shown at
+      // checkout" and purchase still goes through the existing error path.
+      setPaywallPricing(null);
+      analytics.track('paywall_pricing_failed', { reason: errorMessage(error) });
+    }
+  }, [entitlementProvider]);
+  const isPaywallScreenVisible = screen.name === 'paywall';
+
+  useEffect(() => {
+    if (isPaywallScreenVisible) {
+      void loadPaywallPricing();
+    }
+  }, [isPaywallScreenVisible, loadPaywallPricing]);
+
   const targets: MacroTargets | null = profile?.targets ?? null;
   const activeUserId = authSession?.user?.id ?? localUserId;
   const authEmail = authSession?.user?.email ?? null;
@@ -1075,7 +1097,9 @@ function MacroLensApp() {
 
     return (
       <PaywallScreen
+        pricing={paywallPricing}
         onPurchase={purchasePlan}
+        onRetryPricing={() => void loadPaywallPricing()}
         onUnlockForDevelopment={unlockForDevelopment}
         onRestore={restorePurchases}
         showDevelopmentUnlock={appEnv.entitlementMode === 'local_dev'}

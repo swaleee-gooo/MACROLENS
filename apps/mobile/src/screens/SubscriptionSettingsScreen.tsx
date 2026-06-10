@@ -44,11 +44,11 @@ export function SubscriptionSettingsScreen({ entitlement, onBack, onPurchase, on
         <View style={{ gap: spacing.sm }}>
           <Pressable onPress={() => onPurchase('annual')} style={{ alignItems: 'center', backgroundColor: colors.black, borderRadius: radius.pill, justifyContent: 'center', minHeight: 62, paddingHorizontal: spacing.lg }}>
             <Text style={{ color: 'white', fontSize: typography.body, fontWeight: '900' }}>Start annual plan</Text>
-            <Text style={{ color: 'rgba(255,255,255,0.72)', fontSize: typography.tiny, fontWeight: '800', marginTop: 2 }}>EUR 49.99 / year</Text>
+            <Text style={{ color: 'rgba(255,255,255,0.72)', fontSize: typography.tiny, fontWeight: '800', marginTop: 2 }}>Billed yearly. Price shown at checkout.</Text>
           </Pressable>
           <Pressable onPress={() => onPurchase('monthly')} style={{ alignItems: 'center', backgroundColor: colors.surface, borderColor: colors.line, borderRadius: radius.pill, borderWidth: 1, justifyContent: 'center', minHeight: 58, paddingHorizontal: spacing.lg }}>
             <Text style={{ color: colors.black, fontSize: typography.body, fontWeight: '900' }}>Monthly plan</Text>
-            <Text style={{ color: colors.muted, fontSize: typography.tiny, fontWeight: '800', marginTop: 2 }}>EUR 9.99 / month</Text>
+            <Text style={{ color: colors.muted, fontSize: typography.tiny, fontWeight: '800', marginTop: 2 }}>Billed monthly. Price shown at checkout.</Text>
           </Pressable>
         </View>
       ) : null}
