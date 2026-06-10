@@ -22,6 +22,8 @@ import { detectRecipePlatform } from './src/recipeImport/recipeUrl';
 import { isUnsupportedRecipeUrlError, RECIPE_EXTRACTION_FAILED_MESSAGE } from './src/recipeImport/recipeImportErrors';
 import type { ImportedRecipe } from './src/recipeImport/recipeSchema';
 import { appEnv } from './src/config/env';
+import { captureException } from './src/observability/sentry';
+import { AppErrorBoundary } from './src/components/AppErrorBoundary';
 import { BottomTabs, type AppTab } from './src/components/BottomTabs';
 import { getMealCorrectionType, type MealCorrection } from './src/domain/corrections';
 import { applyMealCorrectionWithLedger } from './src/domain/correctionPersistence';
@@ -388,7 +390,8 @@ function MacroLensApp() {
         setScreen({ name: 'app', tab: 'home' });
     }
 
-    boot().catch(() => {
+    boot().catch((error) => {
+        captureException(error);
         setScreen({ name: 'onboarding' });
       });
   }, [authSessionRepository, entitlementRepository, onboardingRepository, profileRepository, repository, supabaseClient]);
@@ -1311,7 +1314,14 @@ export default function App() {
         <StatusBar style="dark" />
         <View style={appContainerStyle}>
           <LanguageProvider>
-            <MacroLensApp />
+            <AppErrorBoundary
+              onError={(error) => {
+                captureException(error);
+                analytics.track('screen_error');
+              }}
+            >
+              <MacroLensApp />
+            </AppErrorBoundary>
           </LanguageProvider>
         </View>
       </SafeAreaView>

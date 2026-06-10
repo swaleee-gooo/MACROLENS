@@ -15,6 +15,7 @@ describe('resolveAppEnv', () => {
       geminiApiKey: '',
       openAiApiKey: '',
       visionModelProvider: 'mock',
+      sentryDsn: '',
       supabaseUrl: null,
       supabaseAnonKey: null,
     });
@@ -39,6 +40,7 @@ describe('resolveAppEnv', () => {
       geminiApiKey: '',
       openAiApiKey: '',
       visionModelProvider: 'mock',
+      sentryDsn: '',
       supabaseUrl: 'https://example.supabase.co',
       supabaseAnonKey: 'sb_publishable_123',
     });
@@ -87,5 +89,10 @@ describe('resolveAppEnv', () => {
 
   it('parses the optional Facebook App ID for Instagram Stories sharing', () => {
     expect(resolveAppEnv({ EXPO_PUBLIC_FACEBOOK_APP_ID: ' 123456789 ' }).facebookAppId).toBe('123456789');
+  });
+
+  it('parses the optional Sentry DSN and defaults to empty (Sentry disabled)', () => {
+    expect(resolveAppEnv({}).sentryDsn).toBe('');
+    expect(resolveAppEnv({ EXPO_PUBLIC_SENTRY_DSN: ' https://abc123@o0.ingest.sentry.io/1 ' }).sentryDsn).toBe('https://abc123@o0.ingest.sentry.io/1');
   });
 });
