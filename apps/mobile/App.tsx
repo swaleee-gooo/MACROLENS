@@ -10,7 +10,8 @@ import { IBMPlexMono_400Regular, IBMPlexMono_500Medium, IBMPlexMono_600SemiBold 
 import { StatusBar } from 'expo-status-bar';
 import * as ImagePicker from 'expo-image-picker';
 import { LanguageProvider } from './src/i18n/LanguageContext';
-import { createAnalyticsClient, createConsoleAnalyticsSink } from './src/analytics/analyticsClient';
+import { createAnalyticsClient } from './src/analytics/analyticsClient';
+import { createAppAnalyticsSink } from './src/analytics/posthogAnalyticsSink';
 import { isNonFoodPhotoError } from './src/analysis/analysisErrors';
 import type { AnalysisResult } from './src/analysis/analysisSchema';
 import { createAnalysisService } from './src/analysis/analysisServiceFactory';
@@ -132,7 +133,9 @@ type ScreenState =
   | { name: 'weeklyReport' };
 
 const queryClient = new QueryClient();
-const analytics = createAnalyticsClient(createConsoleAnalyticsSink());
+// Console sink always; fans out to PostHog only when EXPO_PUBLIC_POSTHOG_API_KEY is set.
+const analyticsSink = createAppAnalyticsSink(appEnv.posthogApiKey);
+const analytics = createAnalyticsClient(analyticsSink);
 const localUserId = 'local-user';
 const appContainerStyle = Platform.OS === 'web' ? { alignSelf: 'center' as const, flex: 1, maxWidth: 430, width: '100%' as const } : { flex: 1 };
 const calibratedChickenSource: MetaboProofNutritionSource = {
@@ -353,6 +356,12 @@ function MacroLensApp() {
   const activeUserId = authSession?.user?.id ?? localUserId;
   const authEmail = authSession?.user?.email ?? null;
   const authRedirectUri = 'macrolens://auth-callback';
+
+  useEffect(() => {
+    // Identify with the active user UUID only (Supabase user id, or the local
+    // user id before sign-in) — never an email (privacy policy).
+    analyticsSink.identify(activeUserId);
+  }, [activeUserId]);
 
   useEffect(() => {
     analytics.track('app_opened');
@@ -699,6 +708,7 @@ function MacroLensApp() {
     setEntitlement({ isPremium: false, source: 'none', productId: null, expiresAt: null, updatedAt: null });
     setOnboardingState({ isComplete: false });
     setAuthSession(null);
+    analyticsSink.reset();
   }
 
   async function logout() {

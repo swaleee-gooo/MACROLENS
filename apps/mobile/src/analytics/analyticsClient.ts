@@ -40,6 +40,16 @@ export function createConsoleAnalyticsSink(): AnalyticsSink {
   };
 }
 
+export function createFanoutAnalyticsSink(...sinks: AnalyticsSink[]): AnalyticsSink {
+  return {
+    track(event) {
+      for (const sink of sinks) {
+        sink.track(event);
+      }
+    },
+  };
+}
+
 export function createAnalyticsClient(sink: AnalyticsSink): AnalyticsClient {
   return {
     track(name, payload = {}) {

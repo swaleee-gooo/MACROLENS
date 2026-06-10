@@ -16,6 +16,7 @@ describe('resolveAppEnv', () => {
       openAiApiKey: '',
       visionModelProvider: 'mock',
       sentryDsn: '',
+      posthogApiKey: '',
       supabaseUrl: null,
       supabaseAnonKey: null,
     });
@@ -41,6 +42,7 @@ describe('resolveAppEnv', () => {
       openAiApiKey: '',
       visionModelProvider: 'mock',
       sentryDsn: '',
+      posthogApiKey: '',
       supabaseUrl: 'https://example.supabase.co',
       supabaseAnonKey: 'sb_publishable_123',
     });
@@ -94,5 +96,10 @@ describe('resolveAppEnv', () => {
   it('parses the optional Sentry DSN and defaults to empty (Sentry disabled)', () => {
     expect(resolveAppEnv({}).sentryDsn).toBe('');
     expect(resolveAppEnv({ EXPO_PUBLIC_SENTRY_DSN: ' https://abc123@o0.ingest.sentry.io/1 ' }).sentryDsn).toBe('https://abc123@o0.ingest.sentry.io/1');
+  });
+
+  it('parses the optional PostHog API key and defaults to empty (PostHog disabled)', () => {
+    expect(resolveAppEnv({}).posthogApiKey).toBe('');
+    expect(resolveAppEnv({ EXPO_PUBLIC_POSTHOG_API_KEY: ' phc_test_key ' }).posthogApiKey).toBe('phc_test_key');
   });
 });

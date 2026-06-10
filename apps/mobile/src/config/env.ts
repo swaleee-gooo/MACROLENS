@@ -15,6 +15,7 @@ export type AppEnv = {
   openAiApiKey: string;
   visionModelProvider: VisionModelProvider;
   sentryDsn: string;
+  posthogApiKey: string;
   supabaseUrl: string | null;
   supabaseAnonKey: string | null;
 };
@@ -35,6 +36,7 @@ export function resolveAppEnv(input: EnvInput): AppEnv {
   const requestedVisionProvider = input.EXPO_PUBLIC_VISION_MODEL_PROVIDER?.trim();
   const visionModelProvider: VisionModelProvider = requestedVisionProvider === 'gemini' || requestedVisionProvider === 'openai' ? requestedVisionProvider : 'mock';
   const sentryDsn = input.EXPO_PUBLIC_SENTRY_DSN?.trim() ?? '';
+  const posthogApiKey = input.EXPO_PUBLIC_POSTHOG_API_KEY?.trim() ?? '';
   const supabaseUrl = input.EXPO_PUBLIC_SUPABASE_URL?.trim() || null;
   const supabaseAnonKey = input.EXPO_PUBLIC_SUPABASE_ANON_KEY?.trim() || null;
   const canUseRemote = requestedMode === 'remote' && supabaseUrl !== null && supabaseAnonKey !== null;
@@ -52,6 +54,7 @@ export function resolveAppEnv(input: EnvInput): AppEnv {
     openAiApiKey,
     visionModelProvider,
     sentryDsn,
+    posthogApiKey,
     supabaseUrl,
     supabaseAnonKey,
   };
@@ -70,6 +73,7 @@ export const appEnv = resolveAppEnv({
   EXPO_PUBLIC_OPENAI_API_KEY: process.env.EXPO_PUBLIC_OPENAI_API_KEY,
   EXPO_PUBLIC_VISION_MODEL_PROVIDER: process.env.EXPO_PUBLIC_VISION_MODEL_PROVIDER,
   EXPO_PUBLIC_SENTRY_DSN: process.env.EXPO_PUBLIC_SENTRY_DSN,
+  EXPO_PUBLIC_POSTHOG_API_KEY: process.env.EXPO_PUBLIC_POSTHOG_API_KEY,
   EXPO_PUBLIC_SUPABASE_URL: process.env.EXPO_PUBLIC_SUPABASE_URL,
   EXPO_PUBLIC_SUPABASE_ANON_KEY: process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY,
 });
