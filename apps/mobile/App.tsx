@@ -114,7 +114,7 @@ type ScreenState =
   | { name: 'result'; meal: Meal; isSaved: boolean }
   | { name: 'portionAdjust'; meal: Meal; itemId: string }
   | { name: 'saveConfirmation'; meal: Meal; streakDays: number }
-  | { name: 'auth'; mode?: 'login' | 'signup' | 'reset'; origin?: 'settings' | 'postPurchase' }
+  | { name: 'auth'; mode?: 'login' | 'signup' | 'reset'; origin?: 'settings' | 'postPurchase' | 'onboarding' }
   | { name: 'editProfile' }
   | { name: 'settings' }
   | { name: 'subscriptionSettings' }
@@ -598,14 +598,6 @@ function MacroLensApp() {
     return 'signed_in';
   }
 
-  /** Onboarding-compatible wrapper: the confirm-email case surfaces as a thrown message so the step does not advance without a session. */
-  async function signUpWithEmail(email: string, password: string) {
-    const outcome = await signUpWithEmailOutcome(email, password);
-    if (outcome === 'confirm_email') {
-      throw new Error('Account created. Check your email, then sign in.');
-    }
-  }
-
   async function signInWithEmail(email: string, password: string) {
     if (!supabaseClient) {
       throw new Error('Enable Supabase remote mode to sign in.');
@@ -618,7 +610,7 @@ function MacroLensApp() {
 
     await persistAuthSession(result.data.session);
     analytics.track('auth_completed', { method: 'email_signin' });
-    setScreen({ name: 'app', tab: 'profile' });
+    // Destination is decided by the AuthScreen call site (origin-dependent).
   }
 
   async function resetPassword(email: string) {
@@ -769,6 +761,33 @@ function MacroLensApp() {
     }
 
     await analyzeImageUri(result.assets[0].uri);
+  }
+
+  /**
+   * After a sign-in started from the onboarding welcome screen ("I already
+   * have an account"), mirror the boot decision for returning users: a synced
+   * profile + completed onboarding goes to paywall/app, anything else returns
+   * to onboarding.
+   */
+  async function routeAfterOnboardingSignIn() {
+    const [loadedProfile, loadedOnboarding] = await Promise.all([profileRepository.getProfile(), onboardingRepository.getState()]);
+    if (loadedProfile) {
+      setProfile(loadedProfile);
+    }
+    setOnboardingState(loadedOnboarding);
+
+    if (!loadedOnboarding.isComplete || !loadedProfile) {
+      setScreen({ name: 'onboarding' });
+      return;
+    }
+
+    if (appEnv.paywallEnabled && !entitlement.isPremium) {
+      analytics.track('paywall_viewed');
+      setScreen({ name: 'paywall' });
+      return;
+    }
+
+    setScreen({ name: 'app', tab: 'home' });
   }
 
   async function completeOnboarding(nextProfile: UserProfile) {
@@ -1213,13 +1232,9 @@ function MacroLensApp() {
       <OnboardingScreen
         userId={activeUserId}
         unitSystem={unitSystem}
-        authEmail={authEmail}
-        onEmailSignUp={signUpWithEmail}
-        onOAuthSignIn={async (provider) => {
-          await startOAuthSignIn(provider);
-        }}
         onComplete={completeOnboarding}
-        onStepCompleted={(step) => analytics.track('onboarding_step_completed', { step })}
+        onSignInRequest={supabaseClient ? () => setScreen({ name: 'auth', mode: 'login', origin: 'onboarding' }) : undefined}
+        onStepCompleted={(step, payload) => analytics.track('onboarding_step_completed', { step, ...payload })}
         onOnboardingCompleted={({ goal, friction }) => analytics.track('onboarding_completed', { goal, friction })}
       />
     );
@@ -1304,19 +1319,37 @@ function MacroLensApp() {
   }
 
   if (screen.name === 'auth') {
-    // Post-purchase ("auth last") entries land on Home and can be skipped;
-    // the Settings entry keeps its original Profile/Settings flow.
+    // Post-purchase ("auth last") entries land on Home and can be skipped; the
+    // onboarding entry ("I already have an account") returns to onboarding on
+    // cancel/skip and lets the boot-style decision route after a sign-in; the
+    // Settings entry keeps its original Profile/Settings flow.
     const isPostPurchaseAuth = screen.origin === 'postPurchase';
-    const goToAuthedDestination = () => setScreen({ name: 'app', tab: isPostPurchaseAuth ? 'home' : 'profile' });
+    const isOnboardingAuth = screen.origin === 'onboarding';
+    const goToAuthedDestination = () => {
+      if (isOnboardingAuth) {
+        void routeAfterOnboardingSignIn();
+        return;
+      }
+      setScreen({ name: 'app', tab: isPostPurchaseAuth ? 'home' : 'profile' });
+    };
+    const leaveAuth = () => {
+      if (isOnboardingAuth) {
+        setScreen({ name: 'onboarding' });
+        return;
+      }
+      if (isPostPurchaseAuth) {
+        setScreen({ name: 'app', tab: 'home' });
+        return;
+      }
+      setScreen({ name: 'settings' });
+    };
     return (
       <AuthScreen
         defaultMode={screen.mode}
-        onBack={() => (isPostPurchaseAuth ? setScreen({ name: 'app', tab: 'home' }) : setScreen({ name: 'settings' }))}
+        onBack={leaveAuth}
         onEmailLogin={async (email, password) => {
           await signInWithEmail(email, password);
-          if (isPostPurchaseAuth) {
-            goToAuthedDestination();
-          }
+          goToAuthedDestination();
         }}
         onEmailSignup={async (email, password) => {
           const outcome = await signUpWithEmailOutcome(email, password);
@@ -1332,7 +1365,7 @@ function MacroLensApp() {
             goToAuthedDestination();
           }
         }}
-        onSkip={isPostPurchaseAuth ? () => setScreen({ name: 'app', tab: 'home' }) : undefined}
+        onSkip={isPostPurchaseAuth || isOnboardingAuth ? leaveAuth : undefined}
       />
     );
   }
