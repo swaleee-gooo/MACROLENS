@@ -132,6 +132,7 @@ export function PrimaryButton({
   icon,
   disabled,
   style,
+  accessibilityLabel,
 }: {
   label: string;
   onPress?: () => void;
@@ -139,11 +140,15 @@ export function PrimaryButton({
   icon?: ReactNode;
   disabled?: boolean;
   style?: StyleProp<ViewStyle>;
+  accessibilityLabel?: string;
 }) {
   const bg = variant === 'accent' ? colors.accent : variant === 'ghost' ? colors.paper2 : colors.ink;
   const fg = variant === 'ghost' ? colors.ink : '#FFFFFF';
   return (
     <Pressable
+      accessibilityLabel={accessibilityLabel ?? label}
+      accessibilityRole="button"
+      accessibilityState={{ disabled: disabled === true }}
       onPress={onPress}
       disabled={disabled}
       style={({ pressed }) => [

@@ -61,6 +61,7 @@ import { createUnitPreferenceRepository } from './src/storage/unitPreferenceRepo
 import { parseSupabaseAuthCallback } from './src/auth/deepLinkSession';
 import { createMacroLensSupabaseClient, type MacroLensSession } from './src/supabase/client';
 import { colors, radius, spacing, typography } from './src/ui/theme';
+import { unlockedEyebrow, type UnlockedEyebrow } from './src/ui/paywallViewModel';
 import { AnalyzingScreen } from './src/screens/AnalyzingScreen';
 import { AuthScreen } from './src/screens/AuthScreen';
 import { BenchmarkDevScreen } from './src/screens/BenchmarkDevScreen';
@@ -107,13 +108,13 @@ type ScreenState =
   | { name: 'loading' }
   | { name: 'onboarding' }
   | { name: 'paywall' }
-  | { name: 'premiumUnlocked' }
+  | { name: 'premiumUnlocked'; unlocked?: UnlockedEyebrow }
   | { name: 'app'; tab: AppTab }
   | { name: 'analyzing'; imageUri: string }
   | { name: 'result'; meal: Meal; isSaved: boolean }
   | { name: 'portionAdjust'; meal: Meal; itemId: string }
   | { name: 'saveConfirmation'; meal: Meal; streakDays: number }
-  | { name: 'auth'; mode?: 'login' | 'signup' | 'reset' }
+  | { name: 'auth'; mode?: 'login' | 'signup' | 'reset'; origin?: 'settings' | 'postPurchase' }
   | { name: 'editProfile' }
   | { name: 'settings' }
   | { name: 'subscriptionSettings' }
@@ -790,7 +791,8 @@ function MacroLensApp() {
     await entitlementRepository.saveEntitlement(nextEntitlement);
     setEntitlement(nextEntitlement);
     if (nextEntitlement.isPremium) {
-      setScreen({ name: 'premiumUnlocked' });
+      // Eyebrow variant only ("7-day trial · active" vs "Pro · active") — never gates the unlock.
+      setScreen({ name: 'premiumUnlocked', unlocked: unlockedEyebrow(paywallPricing, plan) });
     }
 
     return nextEntitlement;
@@ -824,7 +826,8 @@ function MacroLensApp() {
       await entitlementRepository.saveEntitlement(nextEntitlement);
       setEntitlement(nextEntitlement);
       if (nextEntitlement.isPremium) {
-        setScreen({ name: 'premiumUnlocked' });
+        // A restored subscription is shown as plain Pro — no trial claim.
+        setScreen({ name: 'premiumUnlocked', unlocked: { variant: 'pro' } });
         return;
       }
 
@@ -1240,7 +1243,22 @@ function MacroLensApp() {
   }
 
   if (screen.name === 'premiumUnlocked') {
-    return <PremiumUnlockedScreen onStartScan={() => setScreen({ name: 'scanner', initialMode: 'meal' })} />;
+    return (
+      <PremiumUnlockedScreen
+        unlocked={screen.unlocked ?? { variant: 'pro' }}
+        onContinue={() => {
+          // "Auth last" (RevenueCat order): account creation comes after the
+          // purchase. Skip the auth step entirely without Supabase or when a
+          // session already exists.
+          if (supabaseClient && !authSession?.user?.id) {
+            setScreen({ name: 'auth', mode: 'signup', origin: 'postPurchase' });
+            return;
+          }
+
+          setScreen({ name: 'app', tab: 'home' });
+        }}
+      />
+    );
   }
 
   if (screen.name === 'app') {
@@ -1286,15 +1304,24 @@ function MacroLensApp() {
   }
 
   if (screen.name === 'auth') {
+    // Post-purchase ("auth last") entries land on Home and can be skipped;
+    // the Settings entry keeps its original Profile/Settings flow.
+    const isPostPurchaseAuth = screen.origin === 'postPurchase';
+    const goToAuthedDestination = () => setScreen({ name: 'app', tab: isPostPurchaseAuth ? 'home' : 'profile' });
     return (
       <AuthScreen
         defaultMode={screen.mode}
-        onBack={() => setScreen({ name: 'settings' })}
-        onEmailLogin={signInWithEmail}
+        onBack={() => (isPostPurchaseAuth ? setScreen({ name: 'app', tab: 'home' }) : setScreen({ name: 'settings' }))}
+        onEmailLogin={async (email, password) => {
+          await signInWithEmail(email, password);
+          if (isPostPurchaseAuth) {
+            goToAuthedDestination();
+          }
+        }}
         onEmailSignup={async (email, password) => {
           const outcome = await signUpWithEmailOutcome(email, password);
           if (outcome === 'signed_in') {
-            setScreen({ name: 'app', tab: 'profile' });
+            goToAuthedDestination();
           }
           return outcome;
         }}
@@ -1302,9 +1329,10 @@ function MacroLensApp() {
         onOAuth={async (provider) => {
           const signedIn = await startOAuthSignIn(provider);
           if (signedIn) {
-            setScreen({ name: 'app', tab: 'profile' });
+            goToAuthedDestination();
           }
         }}
+        onSkip={isPostPurchaseAuth ? () => setScreen({ name: 'app', tab: 'home' }) : undefined}
       />
     );
   }
