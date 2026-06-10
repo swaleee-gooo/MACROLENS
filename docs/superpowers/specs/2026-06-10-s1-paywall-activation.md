@@ -14,7 +14,7 @@ Le paywall est entièrement codé (écran, achat, restore, gating) mais désacti
 - [PaywallScreen.tsx:35-36](../../../apps/mobile/src/screens/PaywallScreen.tsx) : `price="EUR 49.99 / year"`, `detail="EUR 4.17 / month. Best value."`, `badge="7 days free"` — tout statique.
 - [revenueCatEntitlementProvider.ts](../../../apps/mobile/src/entitlements/revenueCatEntitlementProvider.ts) : expose `getEntitlement/purchase/restore` mais **aucune méthode de lecture des offerings/prix**.
 - [eas.json](../../../apps/mobile/eas.json) : aucun bloc `env` — les variables viennent des environnements EAS (`--environment production` déjà utilisé par les scripts npm).
-- Produits : `prod03d96b4e28` (mensuel), `prod0ef75e0b34` (annuel), entitlement `macrolens_pro`.
+- Produits : `prod03d96b4e28` (mensuel), `prod0ef75e0b34` (annuel), entitlement `MACROLENS Pro` (lookup_key exact, sensible à la casse et à l'espace — corrigé le 2026-06-10, le code disait `macrolens_pro`).
 
 ## Proposed Change
 
@@ -22,7 +22,7 @@ Le paywall est entièrement codé (écran, achat, restore, gating) mais désacti
 
 1. **App Store Connect → Abonnements** : vérifier que les deux abonnements existent dans un même groupe, statut « Prêt à soumettre » minimum, **prix USD défini** (proposé : 49,99 $/an et 9,99 $/mois — Apple localise les autres devises automatiquement).
 2. **Offre d'essai** : sur l'abonnement ANNUEL, créer une *Introductory Offer* type « Free trial », durée 7 jours, toutes les régions. NE PAS en créer sur le mensuel (le badge ne s'affichera que sur l'annuel, conforme au code).
-3. **RevenueCat → Products** : vérifier que les deux produits sont importés et rattachés à l'entitlement `macrolens_pro`.
+3. **RevenueCat → Products** : vérifier que les deux produits sont importés et rattachés à l'entitlement `MACROLENS Pro` (fait, vérifié le 2026-06-10).
 4. **RevenueCat → Offerings** : un offering `default` (current) avec deux packages : `$rc_annual` → produit annuel, `$rc_monthly` → produit mensuel.
 5. **Compte sandbox** : créer un Sandbox Apple ID dans ASC → Users and Access → Sandbox, pour la QA de la partie B.
 

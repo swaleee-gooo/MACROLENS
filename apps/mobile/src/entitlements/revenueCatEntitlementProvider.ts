@@ -26,7 +26,10 @@ type RevenueCatModule = {
   restorePurchases(): Promise<RevenueCatCustomerInfo>;
 };
 
-const entitlementId = 'macrolens_pro';
+// Must match the RevenueCat entitlement lookup_key exactly (case- and
+// space-sensitive). The dashboard entitlement is "MACROLENS Pro" — a
+// mismatch here means paying users never unlock. Verified 2026-06-10.
+export const entitlementId = 'MACROLENS Pro';
 const defaultProductIds: Record<PurchasePlan, string> = {
   monthly: 'prod03d96b4e28',
   annual: 'prod0ef75e0b34',

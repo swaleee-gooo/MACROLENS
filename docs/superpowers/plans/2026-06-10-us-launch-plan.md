@@ -19,7 +19,7 @@
 |---|---|---|
 | ASC : prix USD sur les 2 abonnements (49,99 $/an, 9,99 $/mois) | S1-A1 | 15 min |
 | ASC : Introductory Offer « 7 days free » sur l'ANNUEL uniquement | S1-A2 | 15 min |
-| RevenueCat : produits rattachés à `macrolens_pro`, offering `default` avec `$rc_annual` + `$rc_monthly` | S1-A3/A4 | 15 min |
+| RevenueCat : produits rattachés à l'entitlement `MACROLENS Pro`, offering `default` avec `$rc_annual` + `$rc_monthly` | S1-A3/A4 | 15 min |
 | ASC : créer un Sandbox Apple ID | S1-A5 | 5 min |
 | Sentry : org + projet RN → récupérer DSN + auth token → EAS env (preview + production) | S3-6 | 15 min |
 | PostHog : compte Cloud US + projet → Project API Key → EAS env | S4-6 | 15 min |

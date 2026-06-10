@@ -8,10 +8,14 @@
 - [ ] **Essai gratuit** : sur l'abonnement **ANNUEL uniquement** → Offres promotionnelles/d'introduction → créer une *Introductory Offer* type **Free trial, 7 jours**, toutes les régions. NE PAS en mettre sur le mensuel. (Le badge du paywall est dynamique : il n'apparaît que si cette offre existe réellement.)
 - [ ] **Compte sandbox** : Users and Access → Sandbox → créer un Sandbox Apple ID (pour la QA achat).
 
-## 2. RevenueCat (~15 min)
+## 2. RevenueCat (~15 min) — vérifié le 2026-06-10, mis à jour
 
-- [ ] Products : `prod03d96b4e28` (mensuel) et `prod0ef75e0b34` (annuel) importés et rattachés à l'entitlement **`macrolens_pro`**.
-- [ ] Offerings : un offering **`default` marqué Current** avec 2 packages : `$rc_annual` → produit annuel, `$rc_monthly` → produit mensuel. (Le code lit `offerings.current` — sans offering current, le paywall affichera le fallback « Price shown at checkout ».)
+- [x] Products : `prod03d96b4e28` (mensuel) et `prod0ef75e0b34` (annuel) rattachés à l'entitlement **`MACROLENS Pro`** ✓ (vérifié via l'assistant RevenueCat).
+- [x] Offering `default` marqué Current avec `$rc_annual` + `$rc_monthly` ✓.
+- [x] ~~Bug entitlement~~ : le code matchait `macrolens_pro` mais l'entitlement réel est `MACROLENS Pro` → **corrigé dans le code** (commit du 2026-06-10) + test de régression qui épingle la chaîne exacte.
+- [ ] **Credentials App Store Connect dans RevenueCat** : Apps → ton app iOS → uploader la **In-App Purchase Key** (clé API ASC, .p8) — sans elle, RevenueCat ne peut pas valider les achats StoreKit 2 en production ni vérifier que les produits sont live. (~10 min : ASC → Users and Access → Integrations → In-App Purchase → générer la clé, puis l'uploader dans RevenueCat.)
+- [ ] **Vérifier la clé publique** : le projet RevenueCat contient 2 apps (`appfc489ed8b3` avec les bons produits + une app legacy `app5027aabb45` avec des produits `monthly`/`yearly`). Confirme que la clé `appl_…` configurée dans EAS/`.env.local` est bien la **Public API Key de `appfc489ed8b3`** — sinon l'app interrogera la mauvaise config.
+- [ ] (Optionnel) Nettoyer l'app legacy `app5027aabb45` et ses produits pour éviter toute confusion future.
 
 ## 3. Comptes observabilité (~20 min)
 

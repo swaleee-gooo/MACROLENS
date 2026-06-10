@@ -1,5 +1,14 @@
 import { describe, expect, it } from 'vitest';
-import { pricingFromOffering, selectPackageForPlan } from './revenueCatEntitlementProvider';
+import { entitlementId, pricingFromOffering, selectPackageForPlan } from './revenueCatEntitlementProvider';
+
+describe('entitlementId', () => {
+  it('matches the RevenueCat dashboard lookup_key exactly — case- and space-sensitive', () => {
+    // The dashboard entitlement is named "MACROLENS Pro" (entl5208524e5c).
+    // A mismatch here means paying users never unlock premium. Do NOT
+    // "normalize" this string without renaming the entitlement in RevenueCat.
+    expect(entitlementId).toBe('MACROLENS Pro');
+  });
+});
 
 describe('selectPackageForPlan', () => {
   it('selects packages by configured product identifier first', () => {
