@@ -39,7 +39,7 @@ import type { MacroTargets, Meal, UserProfile } from './src/domain/types';
 import type { UnitSystem } from './src/domain/units';
 import { buildWeeklyReport, buildWeeklyReportFromMeals } from './src/domain/weeklyReport';
 import { createEntitlementProvider } from './src/entitlements/entitlementProviderFactory';
-import type { CommercialEntitlementState, PlanPricing, PurchasePlan } from './src/entitlements/entitlementTypes';
+import { defaultUsdPlanPricing, type CommercialEntitlementState, type PlanPricing, type PurchasePlan } from './src/entitlements/entitlementTypes';
 import { createPackagedFoodLookupService, type SupabaseLookupClient } from './src/packagedFood/packagedFoodLookupService';
 import { normalizeProductLookupOutcome } from './src/packagedFood/productLookupOutcome';
 import { createNutritionLabelOcrService } from './src/packagedFood/labelOcrService';
@@ -280,9 +280,10 @@ function MacroLensApp() {
   const [unitSystem, setUnitSystem] = useState<UnitSystem>('imperial');
   const [authSession, setAuthSession] = useState<MacroLensSession>(null);
   // Localized store pricing for the paywall. Loaded when the paywall screen
-  // mounts (never at boot), null while loading or when offerings are
-  // unavailable (offline, store down) — the screen then degrades gracefully.
-  const [paywallPricing, setPaywallPricing] = useState<PlanPricing[] | null>(null);
+  // mounts (never at boot). Starts on the US defaults so prices render
+  // instantly and never show a "price at checkout" placeholder; real store
+  // pricing replaces them as soon as offerings load.
+  const [paywallPricing, setPaywallPricing] = useState<PlanPricing[] | null>(defaultUsdPlanPricing);
   const localMealRepository = useMemo(() => createMealRepository(AsyncStorage), []);
   const recipeRepository = useMemo(() => createRecipeRepository(AsyncStorage), []);
   const localMetaboProofRepository = useMemo(() => createMetaboProofRepository(AsyncStorage), []);
@@ -377,9 +378,10 @@ function MacroLensApp() {
     try {
       setPaywallPricing(await entitlementProvider.getPricing());
     } catch (error) {
-      // Silent failure by design: the paywall degrades to "Price shown at
-      // checkout" and purchase still goes through the existing error path.
-      setPaywallPricing(null);
+      // Silent failure by design: the US default pricing stays on screen (the
+      // purchase sheet always shows the real charge) and purchase still goes
+      // through the existing error path.
+      setPaywallPricing(defaultUsdPlanPricing);
       analytics.track('paywall_pricing_failed', { reason: errorMessage(error) });
     }
   }, [entitlementProvider]);
