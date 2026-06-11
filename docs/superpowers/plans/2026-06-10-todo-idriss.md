@@ -27,10 +27,10 @@
 
 ## 3bis. Providers d'authentification Supabase (~25 min) — NOUVEAU (OAuth codé le 2026-06-10)
 
-- [ ] **Apple** : Dashboard Supabase → Authentication → Sign In / Providers → Apple → Enable. Dans « Authorized Client IDs », ajouter : `com.idrisscarta.macrolens` (+ les variantes `.dev`/`.preview` si tu testes ces builds). Aucune Secret Key nécessaire pour le flux natif iOS.
-- [ ] **Google** : [Google Cloud Console](https://console.cloud.google.com/apis/credentials) → Create OAuth client ID → type **Web application** → Authorized redirect URI : `https://wyrfncoiubvdnrvdpads.supabase.co/auth/v1/callback`. Puis Dashboard Supabase → Providers → Google → Enable → coller Client ID + Client Secret.
-- [ ] **Redirect URL** : Dashboard Supabase → Authentication → URL Configuration → Redirect URLs → ajouter `macrolens://auth-callback` (sans ça, le flux Google ne revient pas dans l'app).
-- [ ] **Désactiver l'email de confirmation** : Dashboard Supabase → Authentication → Sign In / Providers → Email → décocher « Confirm email ». (Le code gère les deux états, mais c'est ça qui supprime l'email Supabase à l'inscription.)
+- [ ] **Apple — SEUL RESTANT** : Dashboard Supabase → Authentication → Sign In / Providers → Apple → Enable. Dans « Client IDs », coller : `com.idrisscarta.macrolens,com.idrisscarta.macrolens.dev,com.idrisscarta.macrolens.preview`. Le champ « Secret Key » peut rester VIDE (il ne sert qu'au flux web OAuth ; notre app utilise le flux natif id_token). Save.
+- [x] **Google** ✓ (2026-06-11) — client OAuth créé + provider activé.
+- [ ] **Redirect URL** (à vérifier si pas déjà fait avec Google) : Authentication → URL Configuration → Redirect URLs → `macrolens://auth-callback`.
+- [x] **Email de confirmation désactivé** ✓ (2026-06-11) — plus d'email Supabase à l'inscription, session immédiate.
 - [ ] ⚠️ **Nouveau build natif requis** : `expo-apple-authentication`, `expo-web-browser`, `expo-crypto` sont des modules natifs — le bouton Apple reste invisible tant qu'un nouveau build EAS n'est pas fait (déjà nécessaire pour Sentry/PostHog/StoreReview de toute façon).
 
 ## 4. Variables d'environnement EAS (~5 min restantes)
