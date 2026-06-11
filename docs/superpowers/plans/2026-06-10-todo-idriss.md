@@ -52,8 +52,10 @@ Reste à ajouter (quand les comptes seront créés, étape 3) :
 
 ## 5. Déploiement backend — ✅ fonctions déployées le 2026-06-10, 1 étape restante
 
-- [x] **5 Edge Functions déployées** (analyze-meal, extract-recipe, scan-nutrition-label, lookup-packaged-food, delete-account) ✓ — smoke test : l'endpoint répond 401 `Invalid JWT` sans token valide, la protection gateway est active.
-- [ ] **Migration `scan_usage` (30 s)** : `supabase db push` est bloqué par un décalage d'historique de migrations (les anciennes migrations ont été appliquées sous d'autres versions). Le plus simple : ouvre le [SQL editor](https://supabase.com/dashboard/project/wyrfncoiubvdnrvdpads/sql/new), colle le contenu de `supabase/migrations/20260610090000_create_scan_usage.sql`, Run. En attendant, le rate limiting est **fail-open** : les scans marchent normalement, les quotas s'activeront tout seuls dès que la table existera.
+- [x] **5 Edge Functions déployées** ✓ — smoke test 401 `Invalid JWT` OK.
+- [x] **Migration `scan_usage` appliquée et vérifiée** ✓ (2026-06-11, via MCP Supabase) : RLS activé, zéro policy, RPC fonctionnelle (testée puis nettoyée). Les quotas 20 scans/h sont ACTIFS.
+- [x] **Hardening advisor** ✓ : la RPC `increment_scan_usage` était exécutable par les clients via PostgREST (un client aurait pu griller le quota d'un autre utilisateur) → EXECUTE révoqué pour anon/authenticated/public, réservé à service_role (migration `20260611100000`). Advisor sécurité re-passé : il ne reste que des avertissements attendus (accès anonyme = design assumé de l'app).
+- [ ] (1 clic, recommandé) **Leaked password protection** : Dashboard → Authentication → désactivée actuellement ; l'activer vérifie les mots de passe contre HaveIBeenPwned.
 - [ ] (Plus tard, hors lancement) Réconcilier l'historique de migrations CLI (`supabase migration repair`) pour réactiver `db push`.
 
 ## 6. Builds (~10 min de commandes + attente EAS)
