@@ -144,6 +144,9 @@ function planPricingFromPackage(plan: PurchasePlan, packageForPlan: RevenueCatPa
   return {
     plan,
     priceString: product.priceString,
+    // 0 (never a made-up number) when the store omits the numeric price —
+    // savings math downstream treats 0 as "unknown" and hides the pill.
+    price: typeof product.price === 'number' ? product.price : 0,
     perMonthPriceString: perMonthPriceStringForPlan(plan, product),
     hasFreeTrial: trialLabel !== null,
     trialLabel,

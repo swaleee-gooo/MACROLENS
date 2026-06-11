@@ -74,6 +74,7 @@ describe('pricingFromOffering', () => {
       {
         plan: 'annual',
         priceString: '$49.99',
+        price: 49.99,
         perMonthPriceString: formattedPerMonth(49.99, 'USD'),
         hasFreeTrial: false,
         trialLabel: null,
@@ -81,6 +82,7 @@ describe('pricingFromOffering', () => {
       {
         plan: 'monthly',
         priceString: '$9.99',
+        price: 9.99,
         perMonthPriceString: null,
         hasFreeTrial: false,
         trialLabel: null,

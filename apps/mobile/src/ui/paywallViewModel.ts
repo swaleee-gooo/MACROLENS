@@ -1,50 +1,22 @@
 import type { PlanPricing, PurchasePlan } from '../entitlements/entitlementTypes';
 
-export type PaywallPlanCardContent = {
-  price: string;
-  detail: string;
-  badge: string | null;
-  priceIsPlaceholder: boolean;
-};
-
 export function planPricingFor(pricing: PlanPricing[] | null, plan: PurchasePlan): PlanPricing | null {
   return pricing?.find((entry) => entry.plan === plan) ?? null;
-}
-
-export function paywallPlanCardContent(pricing: PlanPricing[] | null, plan: PurchasePlan): PaywallPlanCardContent {
-  const planPricing = planPricingFor(pricing, plan);
-  const staticDetail = plan === 'annual' ? 'Best value.' : 'Flexible, cancel anytime.';
-
-  if (!planPricing) {
-    // Offerings unavailable (offline, store down): never show a made-up price.
-    return { price: 'Price shown at checkout', detail: staticDetail, badge: null, priceIsPlaceholder: true };
-  }
-
-  if (plan === 'annual') {
-    return {
-      price: `${planPricing.priceString} / year`,
-      detail: planPricing.perMonthPriceString ? `${planPricing.perMonthPriceString} / month. Best value.` : staticDetail,
-      badge: planPricing.hasFreeTrial ? planPricing.trialLabel : null,
-      priceIsPlaceholder: false,
-    };
-  }
-
-  return {
-    price: `${planPricing.priceString} / month`,
-    detail: staticDetail,
-    badge: planPricing.hasFreeTrial ? planPricing.trialLabel : null,
-    priceIsPlaceholder: false,
-  };
-}
-
-export function ctaLabelForSelection(pricing: PlanPricing[] | null, selectedPlan: PurchasePlan): string {
-  // Only promise a free trial when the store confirmed one on the selected plan.
-  return planPricingFor(pricing, selectedPlan)?.hasFreeTrial ? 'Start free trial' : 'Subscribe';
 }
 
 /** Parses "7 days free" → 7. Null when the label has no number. */
 export function trialLengthDaysFromLabel(trialLabel: string | null): number | null {
   const match = trialLabel?.match(/(\d+)/);
+  return match ? Number(match[1]) : null;
+}
+
+/**
+ * Day count usable in "Start my 7-day free trial" copy — only when the store
+ * label is actually expressed in days ("7 days free"). A "1 week free" label
+ * returns null so the copy never claims a 1-day trial.
+ */
+export function trialDayCountFromLabel(trialLabel: string | null): number | null {
+  const match = trialLabel?.match(/(\d+)\s*day/i);
   return match ? Number(match[1]) : null;
 }
 
@@ -55,8 +27,8 @@ export type TrialTimeline = {
 };
 
 /**
- * The hero trial timeline ("Today / Day 5 / Day 7") is shown only when the
- * store confirmed a free trial on the annual plan — same gate as the badge.
+ * The trial timeline ("Now / Day 5 / Day 7") exists only when the store
+ * confirmed a free trial on the annual plan — same gate as the trial toggle.
  */
 export function trialTimeline(pricing: PlanPricing[] | null): TrialTimeline | null {
   const annual = planPricingFor(pricing, 'annual');
@@ -68,34 +40,81 @@ export function trialTimeline(pricing: PlanPricing[] | null): TrialTimeline | nu
   return { trialDays, reminderDay: Math.max(2, trialDays - 2) };
 }
 
-export type PaywallPricingLine = {
-  /** The most prominent price text — always carries the real billed price (Apple 3.1.2c). */
-  primary: string;
-  secondary: string | null;
-  isPlaceholder: boolean;
+/** The timeline renders inside the yearly card only while that card is selected. */
+export function trialTimelineForSelection(pricing: PlanPricing[] | null, selectedPlan: PurchasePlan): TrialTimeline | null {
+  return selectedPlan === 'annual' ? trialTimeline(pricing) : null;
+}
+
+/**
+ * Yearly savings vs paying monthly for 12 months, from numeric store prices.
+ * Null when either price is unknown (degraded mode) or the math yields no saving.
+ */
+export function savingsPercent(pricing: PlanPricing[] | null): number | null {
+  const annual = planPricingFor(pricing, 'annual');
+  const monthly = planPricingFor(pricing, 'monthly');
+  if (!annual || !monthly || annual.price <= 0 || monthly.price <= 0) {
+    return null;
+  }
+
+  const percent = Math.round((1 - annual.price / (monthly.price * 12)) * 100);
+  return percent > 0 ? percent : null;
+}
+
+/** The "Free trial enabled" row exists only when the store confirmed a trial on annual. */
+export function trialToggleVisible(pricing: PlanPricing[] | null): boolean {
+  return planPricingFor(pricing, 'annual')?.hasFreeTrial === true;
+}
+
+/** Toggle ON → annual (the trial plan), OFF → monthly. */
+export function planForTrialToggle(enabled: boolean): PurchasePlan {
+  return enabled ? 'annual' : 'monthly';
+}
+
+/** Toggle reflects the selection: ON only when annual is selected and carries a trial. */
+export function trialToggleValue(pricing: PlanPricing[] | null, selectedPlan: PurchasePlan): boolean {
+  return selectedPlan === 'annual' && trialToggleVisible(pricing);
+}
+
+export type PaywallCta = {
+  /** True only when the store confirmed a free trial on the selected plan. */
+  hasTrial: boolean;
+  /** Trial length in days when the store label is day-based, null otherwise. */
+  trialDays: number | null;
 };
 
-export function paywallPricingLine(pricing: PlanPricing[] | null, selectedPlan: PurchasePlan): PaywallPricingLine {
+export function paywallCta(pricing: PlanPricing[] | null, selectedPlan: PurchasePlan): PaywallCta {
+  const planPricing = planPricingFor(pricing, selectedPlan);
+  if (!planPricing?.hasFreeTrial) {
+    return { hasTrial: false, trialDays: null };
+  }
+
+  return { hasTrial: true, trialDays: trialDayCountFromLabel(planPricing.trialLabel) };
+}
+
+/**
+ * The billed-price line under the CTA — the real charge must be unmissable
+ * (Apple 3.1.2c). Structured so the screen can localize the copy.
+ */
+export type PaywallBilledLine =
+  | { kind: 'placeholder' }
+  | { kind: 'trial_annual'; trialDays: number | null; priceString: string }
+  | { kind: 'annual'; priceString: string }
+  | { kind: 'monthly'; priceString: string };
+
+export function paywallBilledLine(pricing: PlanPricing[] | null, selectedPlan: PurchasePlan): PaywallBilledLine {
   const planPricing = planPricingFor(pricing, selectedPlan);
   if (!planPricing) {
     // Offerings unavailable (offline, store down): never show a made-up price.
-    return { primary: 'Price shown at checkout', secondary: null, isPlaceholder: true };
+    return { kind: 'placeholder' };
   }
 
-  const period = selectedPlan === 'annual' ? 'year' : 'month';
-  const billedPrice = `${planPricing.priceString}/${period}`;
-  const primary = planPricing.hasFreeTrial && planPricing.trialLabel ? `${planPricing.trialLabel}, then ${billedPrice}` : billedPrice;
-  const secondary =
-    selectedPlan === 'annual' && planPricing.perMonthPriceString
-      ? `that's ${planPricing.perMonthPriceString}/month · cancel anytime`
-      : 'cancel anytime';
+  if (selectedPlan === 'monthly') {
+    return { kind: 'monthly', priceString: planPricing.priceString };
+  }
 
-  return { primary, secondary, isPlaceholder: false };
-}
-
-/** Collapsing the "Other options" row returns the selection to the hero annual plan. */
-export function planSelectionAfterOtherOptionsToggle(otherOptionsVisible: boolean, currentSelection: PurchasePlan): PurchasePlan {
-  return otherOptionsVisible ? currentSelection : 'annual';
+  return planPricing.hasFreeTrial
+    ? { kind: 'trial_annual', trialDays: trialDayCountFromLabel(planPricing.trialLabel), priceString: planPricing.priceString }
+    : { kind: 'annual', priceString: planPricing.priceString };
 }
 
 export type UnlockedEyebrow = { variant: 'trial'; trialDays: number } | { variant: 'pro' };

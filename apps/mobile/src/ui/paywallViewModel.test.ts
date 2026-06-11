@@ -1,67 +1,75 @@
 import { describe, expect, it } from 'vitest';
 import type { PlanPricing } from '../entitlements/entitlementTypes';
 import {
-  ctaLabelForSelection,
+  paywallBilledLine,
+  paywallCta,
   paywallLegalText,
-  paywallPlanCardContent,
-  paywallPricingLine,
-  planSelectionAfterOtherOptionsToggle,
+  planForTrialToggle,
+  savingsPercent,
+  trialDayCountFromLabel,
   trialTimeline,
+  trialTimelineForSelection,
+  trialToggleValue,
+  trialToggleVisible,
   unlockedEyebrow,
 } from './paywallViewModel';
 
 const storePricing: PlanPricing[] = [
-  { plan: 'annual', priceString: '$49.99', perMonthPriceString: '$4.17', hasFreeTrial: true, trialLabel: '7 days free' },
-  { plan: 'monthly', priceString: '$9.99', perMonthPriceString: null, hasFreeTrial: false, trialLabel: null },
+  { plan: 'annual', priceString: '$49.99', price: 49.99, perMonthPriceString: '$4.17', hasFreeTrial: true, trialLabel: '7 days free' },
+  { plan: 'monthly', priceString: '$9.99', price: 9.99, perMonthPriceString: null, hasFreeTrial: false, trialLabel: null },
 ];
 
 const pricingWithoutTrial: PlanPricing[] = storePricing.map((entry) => ({ ...entry, hasFreeTrial: false, trialLabel: null }));
 
-describe('paywallPlanCardContent', () => {
-  it('keeps the full billed price dominant and the per-month equivalent in the detail line', () => {
-    const annual = paywallPlanCardContent(storePricing, 'annual');
-
-    expect(annual.price).toBe('$49.99 / year');
-    expect(annual.detail).toBe('$4.17 / month. Best value.');
-    expect(annual.priceIsPlaceholder).toBe(false);
+describe('savingsPercent', () => {
+  it('computes the yearly saving vs 12 months of monthly billing', () => {
+    // 1 - 49.99 / (9.99 * 12) = 0.583 → 58%
+    expect(savingsPercent(storePricing)).toBe(58);
   });
 
-  it('shows the trial badge only on a plan with a store-confirmed free trial', () => {
-    expect(paywallPlanCardContent(storePricing, 'annual').badge).toBe('7 days free');
-    expect(paywallPlanCardContent(storePricing, 'monthly').badge).toBeNull();
-    expect(paywallPlanCardContent(pricingWithoutTrial, 'annual').badge).toBeNull();
+  it('returns null when pricing is unavailable or a numeric price is unknown', () => {
+    expect(savingsPercent(null)).toBeNull();
+    expect(savingsPercent([{ ...storePricing[0], price: 0 }, storePricing[1]])).toBeNull();
+    expect(savingsPercent([storePricing[0], { ...storePricing[1], price: 0 }])).toBeNull();
   });
 
-  it('renders the monthly plan without a per-month equivalent', () => {
-    const monthly = paywallPlanCardContent(storePricing, 'monthly');
-
-    expect(monthly.price).toBe('$9.99 / month');
-    expect(monthly.detail).toBe('Flexible, cancel anytime.');
-  });
-
-  it('masks prices when pricing is unavailable', () => {
-    const annual = paywallPlanCardContent(null, 'annual');
-    const monthly = paywallPlanCardContent(null, 'monthly');
-
-    expect(annual.price).toBe('Price shown at checkout');
-    expect(annual.priceIsPlaceholder).toBe(true);
-    expect(annual.badge).toBeNull();
-    expect(monthly.price).toBe('Price shown at checkout');
-    expect(monthly.badge).toBeNull();
+  it('returns null when the annual plan saves nothing', () => {
+    expect(savingsPercent([{ ...storePricing[0], price: 119.88 }, storePricing[1]])).toBeNull();
+    expect(savingsPercent([{ ...storePricing[0], price: 150 }, storePricing[1]])).toBeNull();
   });
 });
 
-describe('ctaLabelForSelection', () => {
-  it('promises a free trial only when the selected plan has one', () => {
-    expect(ctaLabelForSelection(storePricing, 'annual')).toBe('Start free trial');
-    expect(ctaLabelForSelection(storePricing, 'monthly')).toBe('Subscribe');
-    expect(ctaLabelForSelection(pricingWithoutTrial, 'annual')).toBe('Subscribe');
-    expect(ctaLabelForSelection(null, 'annual')).toBe('Subscribe');
+describe('trial toggle', () => {
+  it('shows the toggle only when the store confirmed a free trial on annual', () => {
+    expect(trialToggleVisible(storePricing)).toBe(true);
+    expect(trialToggleVisible(pricingWithoutTrial)).toBe(false);
+    expect(trialToggleVisible(null)).toBe(false);
+  });
+
+  it('maps the toggle to the matching plan: ON → annual, OFF → monthly', () => {
+    expect(planForTrialToggle(true)).toBe('annual');
+    expect(planForTrialToggle(false)).toBe('monthly');
+  });
+
+  it('derives the toggle value from the selected plan', () => {
+    expect(trialToggleValue(storePricing, 'annual')).toBe(true);
+    expect(trialToggleValue(storePricing, 'monthly')).toBe(false);
+    expect(trialToggleValue(pricingWithoutTrial, 'annual')).toBe(false);
+    expect(trialToggleValue(null, 'annual')).toBe(false);
+  });
+});
+
+describe('trialDayCountFromLabel', () => {
+  it('returns the day count only for day-based store labels', () => {
+    expect(trialDayCountFromLabel('7 days free')).toBe(7);
+    expect(trialDayCountFromLabel('1 day free')).toBe(1);
+    expect(trialDayCountFromLabel('1 week free')).toBeNull();
+    expect(trialDayCountFromLabel(null)).toBeNull();
   });
 });
 
 describe('trialTimeline', () => {
-  it('shows the timeline only when the annual plan has a store-confirmed free trial', () => {
+  it('exists only when the annual plan has a store-confirmed free trial', () => {
     expect(trialTimeline(storePricing)).toEqual({ trialDays: 7, reminderDay: 5 });
     expect(trialTimeline(pricingWithoutTrial)).toBeNull();
     expect(trialTimeline(null)).toBeNull();
@@ -80,47 +88,46 @@ describe('trialTimeline', () => {
   });
 });
 
-describe('paywallPricingLine', () => {
-  it('keeps the real billed annual price in the primary line, trial first', () => {
-    const line = paywallPricingLine(storePricing, 'annual');
-
-    expect(line.primary).toBe('7 days free, then $49.99/year');
-    expect(line.secondary).toBe("that's $4.17/month · cancel anytime");
-    expect(line.isPlaceholder).toBe(false);
-  });
-
-  it('drops the trial prefix when the annual plan has none', () => {
-    const line = paywallPricingLine(pricingWithoutTrial, 'annual');
-
-    expect(line.primary).toBe('$49.99/year');
-    expect(line.secondary).toBe("that's $4.17/month · cancel anytime");
-  });
-
-  it('switches to the monthly billed price when monthly is selected', () => {
-    const line = paywallPricingLine(storePricing, 'monthly');
-
-    expect(line.primary).toBe('$9.99/month');
-    expect(line.secondary).toBe('cancel anytime');
-  });
-
-  it('masks the price when pricing is unavailable', () => {
-    const line = paywallPricingLine(null, 'annual');
-
-    expect(line.primary).toBe('Price shown at checkout');
-    expect(line.secondary).toBeNull();
-    expect(line.isPlaceholder).toBe(true);
+describe('trialTimelineForSelection', () => {
+  it('renders inside the yearly card only while annual is selected', () => {
+    expect(trialTimelineForSelection(storePricing, 'annual')).toEqual({ trialDays: 7, reminderDay: 5 });
+    expect(trialTimelineForSelection(storePricing, 'monthly')).toBeNull();
+    expect(trialTimelineForSelection(pricingWithoutTrial, 'annual')).toBeNull();
+    expect(trialTimelineForSelection(null, 'annual')).toBeNull();
   });
 });
 
-describe('planSelectionAfterOtherOptionsToggle', () => {
-  it('keeps the current selection while the other options stay visible', () => {
-    expect(planSelectionAfterOtherOptionsToggle(true, 'monthly')).toBe('monthly');
-    expect(planSelectionAfterOtherOptionsToggle(true, 'annual')).toBe('annual');
+describe('paywallCta', () => {
+  it('promises a free trial only when the selected plan has one', () => {
+    expect(paywallCta(storePricing, 'annual')).toEqual({ hasTrial: true, trialDays: 7 });
+    expect(paywallCta(storePricing, 'monthly')).toEqual({ hasTrial: false, trialDays: null });
+    expect(paywallCta(pricingWithoutTrial, 'annual')).toEqual({ hasTrial: false, trialDays: null });
+    expect(paywallCta(null, 'annual')).toEqual({ hasTrial: false, trialDays: null });
   });
 
-  it('reverts to the hero annual plan when the other options collapse', () => {
-    expect(planSelectionAfterOtherOptionsToggle(false, 'monthly')).toBe('annual');
-    expect(planSelectionAfterOtherOptionsToggle(false, 'annual')).toBe('annual');
+  it('omits the day count when the store label is not day-based', () => {
+    const weekTrial: PlanPricing[] = [{ ...storePricing[0], trialLabel: '1 week free' }, storePricing[1]];
+
+    expect(paywallCta(weekTrial, 'annual')).toEqual({ hasTrial: true, trialDays: null });
+  });
+});
+
+describe('paywallBilledLine', () => {
+  it('keeps the real billed annual price with the trial first', () => {
+    expect(paywallBilledLine(storePricing, 'annual')).toEqual({ kind: 'trial_annual', trialDays: 7, priceString: '$49.99' });
+  });
+
+  it('drops the trial when the annual plan has none', () => {
+    expect(paywallBilledLine(pricingWithoutTrial, 'annual')).toEqual({ kind: 'annual', priceString: '$49.99' });
+  });
+
+  it('switches to the monthly billed price when monthly is selected', () => {
+    expect(paywallBilledLine(storePricing, 'monthly')).toEqual({ kind: 'monthly', priceString: '$9.99' });
+  });
+
+  it('masks the price when pricing is unavailable', () => {
+    expect(paywallBilledLine(null, 'annual')).toEqual({ kind: 'placeholder' });
+    expect(paywallBilledLine(null, 'monthly')).toEqual({ kind: 'placeholder' });
   });
 });
 

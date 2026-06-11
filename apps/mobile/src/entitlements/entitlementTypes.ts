@@ -13,6 +13,7 @@ export type PurchasePlan = 'monthly' | 'annual';
 export type PlanPricing = {
   plan: PurchasePlan;
   priceString: string; // "$49.99" — localized by the store
+  price: number; // numeric store price (49.99) — 0 when the store omits it
   perMonthPriceString: string | null; // computed for annual, null otherwise
   hasFreeTrial: boolean; // introPrice present AND price === 0
   trialLabel: string | null; // "7 days free" derived from introPrice.periodNumberOfUnits

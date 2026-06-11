@@ -40,8 +40,8 @@ describe('createEntitlementProvider', () => {
     });
 
     expect(await provider.getPricing()).toEqual([
-      { plan: 'annual', priceString: '$49.99', perMonthPriceString: '$4.17', hasFreeTrial: true, trialLabel: '7 days free' },
-      { plan: 'monthly', priceString: '$9.99', perMonthPriceString: null, hasFreeTrial: false, trialLabel: null },
+      { plan: 'annual', priceString: '$49.99', price: 49.99, perMonthPriceString: '$4.17', hasFreeTrial: true, trialLabel: '7 days free' },
+      { plan: 'monthly', priceString: '$9.99', price: 9.99, perMonthPriceString: null, hasFreeTrial: false, trialLabel: null },
     ]);
   });
 });
